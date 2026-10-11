@@ -73,10 +73,10 @@ h3{font-size:21px;letter-spacing:-.6px;margin:0 0 10px}
 .controls-panel>p:not(.eyebrow){font-size:13px;line-height:1.6;color:var(--muted)}
 #actions{margin-top:18px}
 .booba-action-bar,.booba-action-group{display:flex;flex-wrap:wrap;width:100%;min-width:0;gap:8px}
-.booba-action{font-size:13px!important;font-weight:600!important;font-family:inherit!important;background:#e8f0dd;color:#214432;border:1px solid #cfdec2;border-radius:8px;min-height:44px;padding:10px 16px;cursor:pointer;flex:1 1 auto;min-width:min(100%,7rem);max-width:100%;white-space:normal;overflow-wrap:anywhere;transition:background .12s}
+.booba-action{font-size:13px!important;font-weight:600!important;font-family:inherit!important;background:#e8f0dd;color:#214432;border:1px solid #cfdec2;border-radius:8px;min-height:44px;padding:10px 14px;cursor:pointer;flex:0 1 auto;min-width:44px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s}
 .booba-action:hover:not(:disabled){background:#d7e8c7}
 .booba-action:disabled{opacity:.4;cursor:not-allowed}
-.booba-action--toggle{background:transparent;border-color:var(--line);font-size:12px!important;flex:0 1 auto;min-width:min(100%,5rem);margin-left:auto}
+.booba-action--toggle{background:transparent;border-color:var(--line);font-size:12px!important;margin-left:auto}
 button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #4c8561;outline-offset:3px}
 #status{font-size:11px!important;margin-top:18px;min-height:18px}
 .restart{font-size:12px;font-weight:600;font-family:inherit;border:0;background:transparent;color:var(--green);padding:5px 0;cursor:pointer}
