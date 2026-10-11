@@ -39,11 +39,9 @@ at `devices/feather-reverse-tft/README.md`.
 | `docs/assets/hello.gif` | README demo asset generated from the hello model |
 | `Makefile`, `.github/workflows/ci.yml` | Local checks and firmware CI |
 
-The Go module/import path is currently `github.com/NimbleTerminal/TinyBubbles`.
-The configured GitHub remote is `NimbleMarkets/TinyBubbles`; README repository
-badges and issue links follow that remote. Preserve this distinction unless an
-import-path migration is explicitly requested. Do not silently rewrite modules
-or remotes while editing documentation.
+The canonical repository and Go module/import path are
+`github.com/NimbleTerminal/TinyBubbles`. Use NimbleTerminal for repository badges,
+issue links, and remotes.
 
 ## Framework conventions
 
@@ -89,11 +87,18 @@ Run commands from the repository root:
 
 ```sh
 make test           # race-enabled Go tests and vet
+make check          # formatting, modules, docs, tests, vet, and host builds
 make firmware       # Pico, Pico 2, CLUE, ESP32-S3 check, Reverse TFT Feather
 make hello          # build/feather-reverse-tft.bin
 make hello-preview  # build/hello.png and build/hello.gif
 make snapshot       # snapshot.png for the shared counter
 ```
+
+Pushes, pull requests, and manual dispatch run `.github/workflows/ci.yml`.
+CI runs `make check`, generates previews, and compiles the firmware matrix with
+TinyGo v0.43.0. Only explicitly listed previews and firmware files are uploaded
+as artifacts; never broaden uploads to the entire `build/` directory.
+The documentation check requires Python 3 and checks tracked Markdown files.
 
 `TINYGO=/path/to/tinygo make firmware` selects a compiler binary. Use a Go version
 supported by that compiler. Run `gofmt` on changed Go files. Add focused behavioral
@@ -157,6 +162,6 @@ assets. Do not assume the project's MIT license relicenses a dependency.
 
 Follow the sibling projects' README style: title and badges, a visible demo,
 quickstart, component/example tables, collaboration links, acknowledgements,
-license, and the Nimble.Markets footer. Keep detailed API and device material in
+license, and the NimbleTerminal footer. Keep detailed API and device material in
 their guides. Do not add release/version badges for nonexistent releases or
 claim compatibility with untested boards.

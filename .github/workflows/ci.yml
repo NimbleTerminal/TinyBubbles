@@ -1,22 +1,54 @@
-name: test
-on: [push, pull_request]
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   host:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.x'
-      - run: go test -race -cover ./...
-      - run: go vet ./...
+      - name: Check formatting, modules, docs, tests, and host builds
+        run: make check
+      - name: Render desktop demos
+        run: make hello-preview snapshot
+      - uses: actions/upload-artifact@v4
+        with:
+          name: demo-previews
+          path: |
+            build/hello.png
+            build/hello.gif
+            snapshot.png
+          if-no-files-found: error
+          retention-days: 14
   firmware:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     container: tinygo/tinygo:0.43.0
     steps:
       - uses: actions/checkout@v4
-      - run: make firmware
+      - name: Build all firmware with the minimum supported TinyGo
+        run: make firmware
       - uses: actions/upload-artifact@v4
         with:
           name: firmware
-          path: build/
+          path: |
+            build/pico-oled.uf2
+            build/pico2-oled.uf2
+            build/clue.uf2
+            build/esp32s3-check.elf
+            build/feather-reverse-tft.bin
+          if-no-files-found: error
+          retention-days: 14

@@ -1,8 +1,21 @@
 TINYGO ?= tinygo
 
-.PHONY: test firmware snapshot hello hello-preview
+.PHONY: check check-format check-modules check-docs test firmware snapshot hello hello-preview
+check: check-format check-modules check-docs test
+	go build ./...
+
+check-format:
+	@files="$$(gofmt -l $$(git ls-files '*.go'))"; if [ -n "$$files" ]; then echo "Run gofmt on:"; echo "$$files"; exit 1; fi
+
+check-modules:
+	go mod tidy -diff
+	go mod verify
+
+check-docs:
+	python3 scripts/check_docs.py
+
 test:
-	go test -race ./...
+	go test -race -cover ./...
 	go vet ./...
 
 firmware:

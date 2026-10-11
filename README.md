@@ -1,7 +1,7 @@
 # TinyBubbles - TinyGo Display UIs
 
 <p>
-    <a href="https://github.com/NimbleMarkets/TinyBubbles/actions/workflows/ci.yml"><img src="https://github.com/NimbleMarkets/TinyBubbles/actions/workflows/ci.yml/badge.svg" alt="Build Status"></a>
+    <a href="https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml"><img src="https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml/badge.svg" alt="Build Status"></a>
     <a href="https://pkg.go.dev/github.com/NimbleTerminal/TinyBubbles"><img src="https://pkg.go.dev/badge/github.com/NimbleTerminal/TinyBubbles.svg" alt="Go Reference"></a>
     <a href="https://tinygo.org"><img src="https://img.shields.io/badge/TinyGo-0.43%2B-blue" alt="TinyGo 0.43 or newer"></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
@@ -139,13 +139,21 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 | Command | Purpose |
 | :--- | :--- |
-| `make test` | Run race-enabled Go tests and vet. |
+| `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
+| `make test` | Run race-enabled Go tests with coverage and vet. |
 | `make firmware` | Compile all device examples and the ESP32-S3 core check. |
 | `make hello` | Build the Reverse TFT Feather firmware. |
 | `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
 | `make snapshot` | Render the counter to `snapshot.png`. |
 
-GitHub Actions runs host tests and firmware builds with TinyGo v0.43.0.
+[GitHub Actions](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)
+runs on every push and pull request, and supports manual dispatch. The host job
+runs `make check` and generates both desktop previews. The firmware job builds
+Pico, Pico 2, CLUE, the ESP32-S3 core check, and the Reverse TFT Feather with
+**TinyGo v0.43.0**. Successful jobs upload firmware and preview artifacts for
+14 days. CI validates builds; it does not flash connected hardware or publish
+releases. `make check` also requires Python 3 for local documentation checks.
+
 The module declares Go 1.23 language compatibility and pins drivers v0.36.0 and
 TinyFont v0.7.0. TinyBubbles uses the TEA architecture but does not depend on
 Bubble Tea or accept ANSI views. To port a terminal model, use buffer writes and
@@ -158,14 +166,36 @@ make hello-preview
 cp build/hello.gif docs/assets/hello.gif
 ```
 
+## TODO
+
+The next milestone is a **three-button settings menu on the Feather** with
+scrolling options, editable values, and a confirmation dialog.
+
+- [ ] **Widgets and layout:** scrolling menu, progress bar, label, and dialog;
+  add buffer composition and alignment helpers.
+- [ ] **Button interactions:** optional hold-to-repeat, long-press, and release
+  events, suitable for devices with only a few buttons.
+- [ ] **Cooperative timers:** reusable ticks and delayed messages with cancellation,
+  keeping commands short and avoiding application-specific scheduling boilerplate.
+- [ ] **Interactive desktop simulator:** keyboard-controlled display with OLED and
+  TFT presets for testing navigation and layouts without flashing.
+- [ ] **Rendering benchmarks:** measure frame time, allocations, and display writes
+  on the Feather; use the results to evaluate glyph caching and batched transfers.
+- [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical
+  display, including monochrome styling and button navigation.
+- [ ] **First release:** validate CI on the new repository, document any remaining
+  API limitations, and publish an initial version.
+- [x] **Canonical repository:** align module imports, links, and the remote with
+  `NimbleTerminal/TinyBubbles`.
+
 ## Open Collaboration
 
-We welcome contributions and feedback! Run `make test` before submitting changes,
+We welcome contributions and feedback! Run `make check` before submitting changes,
 and `make firmware` when changing the core or device setup. Include your board,
 display, TinyGo version, and reproduction steps when reporting hardware issues.
 
-- [GitHub Issues](https://github.com/NimbleMarkets/TinyBubbles/issues)
-- [GitHub Pull Requests](https://github.com/NimbleMarkets/TinyBubbles/pulls)
+- [GitHub Issues](https://github.com/NimbleTerminal/TinyBubbles/issues)
+- [GitHub Pull Requests](https://github.com/NimbleTerminal/TinyBubbles/pulls)
 
 ## Acknowledgements
 
@@ -188,4 +218,4 @@ Copyright (c) 2026 [Neomantra Corp](https://www.neomantra.com).
 
 ----
 
-Made with :heart: and :fire: by the team behind [Nimble.Markets](https://nimble.markets).
+Made with :heart: and :fire: by the team behind [NimbleTerminal](https://NimbleTerminal.com).
