@@ -21,15 +21,23 @@ type Demo struct {
 	Runtimes    []Runtime `json:"runtimes,omitempty"`
 }
 
+// TextPart is plain introduction text with an optional link.
+type TextPart struct {
+	Text string `json:"text"`
+	URL  string `json:"url,omitempty"`
+}
+
 // Config supplies page content and display sizes from Go.
 type Config struct {
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	Source      string   `json:"source"`
-	Note        string   `json:"note,omitempty"`
-	Screens     []Screen `json:"screens"`
-	Demos       []Demo   `json:"demos,omitempty"`
-	LEDCount    int      `json:"ledCount,omitempty"`
+	Title        string     `json:"title"`
+	Logo         string     `json:"logo,omitempty"`
+	Introduction []TextPart `json:"introduction,omitempty"`
+	Description  string     `json:"description"`
+	Source       string     `json:"source"`
+	Note         string     `json:"note,omitempty"`
+	Screens      []Screen   `json:"screens"`
+	Demos        []Demo     `json:"demos,omitempty"`
+	LEDCount     int        `json:"ledCount,omitempty"`
 }
 type Selection struct {
 	Screen  Screen  `json:"screen"`

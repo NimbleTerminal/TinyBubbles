@@ -15,9 +15,15 @@ import (
 
 func main() {
 	selected := browser.Configure(browser.Config{
-		Title:       "TinyBubbles",
-		Source:      "https://github.com/NimbleTerminal/TinyBubbles",
-		Description: "TinyGo compiles Go for microcontrollers. Bubble Tea is a Go framework for interactive terminal apps. TinyBubbles brings Bubble Tea to small embedded displays, so you can try a Go interface in your browser and run the same UI on hardware.",
+		Title:  "TinyBubbles",
+		Logo:   "bubbles.svg",
+		Source: "https://github.com/NimbleTerminal/TinyBubbles",
+		Introduction: []browser.TextPart{
+			{Text: "TinyGo", URL: "https://tinygo.org"},
+			{Text: " compiles Go for microcontrollers. "},
+			{Text: "Bubble Tea", URL: "https://github.com/charmbracelet/bubbletea"},
+			{Text: " is a Go framework for interactive terminal apps. TinyBubbles brings Bubble Tea to small embedded displays, so you can try a Go interface in your browser and run the same UI on hardware."},
+		},
 		Screens: []browser.Screen{
 			{ID: "feather", Label: "Feather TFT · 240 × 135", Width: 240, Height: 135},
 			{ID: "oled", Label: "Monochrome OLED · 128 × 64", Width: 128, Height: 64, Monochrome: true},

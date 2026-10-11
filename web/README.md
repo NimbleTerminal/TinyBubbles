@@ -72,7 +72,12 @@ The tool owns the shared licenses and notices script; consumers do not copy them
 The browser APIs have `js && wasm` build tags. Host tests can import `Config`,
 `Screen`, and `WrapActions` without importing `syscall/js`.
 
-In your WASM main, pass page content and display presets from Go:
+In your WASM main, pass page content and display presets from Go. `Logo` is an
+optional image URL. `Introduction` accepts `TextPart` entries with optional URLs
+for inline links; omit it to use plain `Description` text. Content stays plain
+text rather than accepting raw HTML.
+
+For example:
 
 ```go
 selected := web.Configure(web.Config{

@@ -33,7 +33,16 @@ window.tinybubblesConfigure = json => {
   document.title = demo.title === config.title ? config.title : `${demo.title} · ${config.title}`;
   $('brand').textContent = config.title;
   $('source').href = config.source;
-  $('intro').textContent = config.description;
+  $('brand-logo').hidden = !config.logo;
+  if (config.logo) $('brand-logo').src = config.logo;
+  $('intro').replaceChildren(...(config.introduction || [{text:config.description || ''}]).map(part => {
+    if (!part.url) return document.createTextNode(part.text);
+    const link = document.createElement('a');
+    link.textContent = part.text;
+    const target = new URL(part.url, location.href);
+    if (target.protocol === 'https:' || target.protocol === 'http:') link.href = target.href;
+    return link;
+  }));
   $('demo-title').textContent = demo.title;
   $('demo-description').textContent = demo.description;
   $('demo-source').href = demo.source || config.source;
