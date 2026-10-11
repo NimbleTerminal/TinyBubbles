@@ -21,7 +21,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.8'
-          cache-dependency-path: web/go.sum
+          cache-dependency-path: |
+            web/go.sum
+            web/hello/go.sum
       - name: Install asset packaging runtime
         run: apt-get update && apt-get install -y --no-install-recommends python3
       - name: Build TinyGo WASM site
@@ -40,7 +42,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.8'
-          cache-dependency-path: web/go.sum
+          cache-dependency-path: |
+            web/go.sum
+            web/hello/go.sum
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

@@ -139,7 +139,7 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 The [browser playground](web/README.md) uses the shared Go model, fonts, and
 renderer. Booba turns the model's Bubbles help map into HTML controls: Pause
 becomes Resume, and Color is disabled on monochrome screens. Add working demos
-to `web/site/demos.js`; the [browser guide](web/README.md#adding-a-gallery-entry)
+to the Go `web.Config.Demos` list in `web/hello/cmd/demo/main.go`; the [browser guide](web/README.md#adding-a-gallery-entry)
 explains how to build and register them.
 
 Hello World has a **Bubble Tea / TinyTea** runtime selector. Switching restarts
@@ -169,13 +169,19 @@ renders previews, and builds the firmware matrix and both Go and TinyGo WASM
 sites. Artifacts are kept for 14 days. CI does not flash hardware or deploy the
 site. `make ci` runs the same checks locally.
 
-There are three Go modules. Root checks do not run the nested modules' tests:
+There are four Go modules. Root checks do not run the nested modules' tests:
 
 | Module | Toolchain and role |
 | :--- | :--- |
 | Root | Go 1.23 language version; shared renderer and TinyTea. |
 | `bubbletea/` | Go 1.26.0 and TinyGo 0.43; Bubble Tea v2.1 firmware with portability patches. |
-| `web/` | Go 1.26.8; Booba and its pinned Bubble Tea WASM fork. TinyGo WASM uses a 128 KiB stack. |
+| `web/` | Go 1.26.8; reusable canvas, LEDs, Booba actions, and scaffold tool. |
+| `web/hello/` | Hello World consumer of the harness. TinyGo WASM uses a 128 KiB stack. |
+
+Other TinyGo display projects can use the [browser harness](web/README.md) without
+TinyBubbles cells or fonts. Presets come from Go; the tool generates the page
+and build assets. Hidden tabs throttle timers to roughly once per second,
+slowing every `time.Sleep`; keep previews visible when testing timing.
 
 Documentation and web asset builds need Python 3. Web tests need Node.js 22 or
 newer. See the [backend](bubbletea/README.md) and [browser](web/README.md) guides

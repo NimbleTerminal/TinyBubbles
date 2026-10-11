@@ -2,13 +2,13 @@
 package web
 
 import (
+	"charm.land/bubbles/v2/help"
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/go-booba/actions"
-	"github.com/NimbleMarkets/go-booba/actions/bubblehelp"
 	bubbles "nimbleterminal.dev/tinybubbles"
 	displaytea "nimbleterminal.dev/tinybubbles/bubbletea"
 	"nimbleterminal.dev/tinybubbles/bubbletea/hello"
 	greeting "nimbleterminal.dev/tinybubbles/demo/hello"
+	browser "nimbleterminal.dev/tinybubbles/web"
 	"tinygo.org/x/drivers"
 )
 
@@ -26,10 +26,9 @@ func NewDemo(display drivers.Displayer, monochrome bool) (tea.Model, *displaytea
 	if err != nil {
 		return nil, nil, err
 	}
-	wrapped, err := bubblehelp.NewModel(pixels, func(model tea.Model) bubblehelp.Description {
-		helloModel := model.(*displaytea.DisplayModel).Model().(*hello.Model)
-		return bubblehelp.Description{Context: "hello", Keys: helloModel.Keys(), Status: actions.ProgramStatus{Summary: "Hello, tiny world"}}
-	}, bubblehelp.ModelOptions{Instance: "tinybubbles-hello", Adapter: bubblehelp.Options{IncludeDisabled: true}})
+	wrapped, err := browser.WrapActions(pixels, "hello", func(model tea.Model) help.KeyMap {
+		return model.(*displaytea.DisplayModel).Model().(*hello.Model).Keys()
+	}, nil)
 	if err != nil {
 		pixels.Close()
 		return nil, nil, err

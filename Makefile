@@ -21,7 +21,7 @@ web:
 web-tinygo:
 	$(MAKE) -C web build-tinygo TINYGO="$(TINYGO)"
 
-web-serve: web
+web-serve:
 	$(MAKE) -C web serve
 
 check-format:

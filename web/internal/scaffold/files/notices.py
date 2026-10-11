@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 destination = Path(sys.argv[1]) / "THIRD_PARTY_NOTICES.txt"
-parts = ["TinyBubbles browser demo — dependency license notices\n"]
+parts = ["Browser application — dependency license notices\n"]
 
 
 def include(name, path):
@@ -29,7 +29,7 @@ while modules.strip():
 
 goroot = subprocess.check_output(["go", "env", "GOROOT"], text=True).strip()
 include("Go runtime", Path(goroot) / "LICENSE")
-for path in sorted(Path("licenses").glob("*.txt")):
+for path in sorted((Path(__file__).parent / "licenses").glob("*.txt")):
     include("Browser dependency: " + path.stem, path)
 if len(sys.argv) > 2:
     for relative in ("lib/compiler-rt-builtins/LICENSE.TXT", "lib/wasi-libc/libc-bottom-half/cloudlibc/LICENSE"):

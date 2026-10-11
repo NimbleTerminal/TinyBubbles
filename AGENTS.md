@@ -24,8 +24,8 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `demo/hello/` | Shared greeting, custom font tiles, enlarged counter |
 | `demo/model.go` | Counter used by Pico and CLUE |
 | `devices/` | Board setup, pins, drivers, and local targets |
-| `web/` | Separate WASM module, canvas driver, Booba transport, demo site |
-| `web/site/demos.js` | Gallery entries and their WASM asset paths |
+| `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
+| `web/hello/` | Separate Hello World consumer module and WASM main |
 | `examples/` | Host PNG/GIF previews |
 | `internal/` | Firmware compile checks |
 | `Makefile`, `.github/workflows/ci.yml` | Local checks and CI |
@@ -85,7 +85,7 @@ These rules apply only to TinyTea and the original root runtime:
 Hello World has a Bubble Tea / TinyTea selector. Each selection starts the
 chosen runtime loop from scratch and preserves the display preset. The browser
 bundle includes both runtimes; do not use its size to compare firmware memory.
-`web/tinyhello.go` adapts only hello: it reuses the visual model and bindings,
+`web/hello/tinyhello.go` adapts only hello: it reuses the visual model and bindings,
 supplies host ticks, and uses TinyTea commands for quitting. It is not a general
 Bubble Tea command adapter. Keep TinyTea program calls on one host loop; JS
 callbacks enqueue input. Firmware uses `make hello` or `make hello-tinytea`.
@@ -100,10 +100,19 @@ callbacks enqueue input. Firmware uses `make hello` or `make hello-tinytea`.
   the demo uses Booba's `bubblehelp` raw-output path instead.
 - Define actions in Bubbles key bindings used by both Update and the help map.
   HTML buttons must follow that metadata. Keep widget behavior in Go.
-- Register working demos in `web/site/demos.js` with a category, source link,
-  and WASM path. Add the asset build step too. All entries in a build must use
-  the same compiler/runtime shim. Demo links preserve the display preset and
-  reload the page for a fresh program.
+- Supply display presets and gallery entries through Go `web.Config`. The
+  shared page receives them at startup. Compile the app models into `app.wasm`
+  and select one using the returned selection. Links preserve presets and reload.
+- Keep app models and renderer dependencies in `web/hello`, not the reusable
+  harness. Consumers generate pages with `go tool tinybubbles-web --assets`;
+  do not copy its JavaScript, notices, or licenses. Each consumer web module
+  must repeat the Bubble Tea WASM replacement. Go replacements are not inherited.
+- `WrapActions` uses short key IDs and validates the initial OSC payload. Keep
+  host tests for ID collisions and the 2048-byte message limit. Keyboard input
+  must be restricted to enabled bindings in the current help map.
+- Hidden browser tabs throttle timers to about once per second and slow every
+  `time.Sleep`. Keep the page visible during timing checks. Do not add Web Audio
+  as part of harness work.
 - Keep the page compact. Explain TinyGo, Bubble Tea, and TinyBubbles plainly.
   Put the display and controls first; collapse supporting details.
 

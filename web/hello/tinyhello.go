@@ -11,6 +11,7 @@ import (
 	"nimbleterminal.dev/tinybubbles/bubbletea/hello"
 	greeting "nimbleterminal.dev/tinybubbles/demo/hello"
 	"nimbleterminal.dev/tinybubbles/tinytea"
+	browser "nimbleterminal.dev/tinybubbles/web"
 	"tinygo.org/x/drivers"
 )
 
@@ -105,7 +106,7 @@ func (s *TinySession) publish() error {
 	if !s.supported || s.Program.Stopped() {
 		return nil
 	}
-	snapshot, _, err := bubblehelp.Snapshot(s.model.inner.Keys(), "tinybubbles-hello-tinytea", "hello", 0, bubblehelp.Options{IncludeDisabled: true})
+	snapshot, _, err := bubblehelp.Snapshot(s.model.inner.Keys(), "tinybubbles-hello-tinytea", "hello", 0, browser.ActionOptions())
 	if err != nil {
 		return err
 	}
