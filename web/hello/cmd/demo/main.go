@@ -26,7 +26,7 @@ func main() {
 		Demos: []browser.Demo{{ID: "hello", Title: "Hello, tiny world", Description: "Animation, custom fonts, and a counter on a tiny display.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/hello", Runtimes: []browser.Runtime{
 			{ID: "bubbletea", Label: "Bubble Tea", Description: "Commands and timers run through Bubble Tea’s event loop."},
 			{ID: "tinytea", Label: "TinyTea", Description: "Cooperative commands; the host supplies animation ticks."},
-		}}, {ID: "list", Title: "Scrolling menu", Description: "A small-screen list with selection, disabled items, and wraparound navigation.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/list"}},
+		}}, {ID: "list", Title: "Scrolling menu", Description: "A small-screen list with selection, disabled items, and wraparound navigation.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/list"}, {ID: "value", Title: "Value picker", Description: "Adjust a bounded setting, apply it, or cancel changes.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/value"}},
 	})
 	display := browser.NewCanvasDisplay("display", selected.Screen.Width, selected.Screen.Height)
 	if selected.Runtime.ID == "tinytea" {
@@ -34,8 +34,11 @@ func main() {
 		select {}
 	}
 	newDemo := demo.NewDemo
-	if selected.Demo.ID == "list" {
+	switch selected.Demo.ID {
+	case "list":
 		newDemo = demo.NewListDemo
+	case "value":
+		newDemo = demo.NewValueDemo
 	}
 	model, pixels, err := newDemo(display, selected.Screen.Monochrome)
 	if err != nil {

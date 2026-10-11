@@ -45,6 +45,7 @@ firmware:
 	$(TINYGO) build -target=clue -size=short -o build/clue.uf2 ./devices/clue
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/esp32s3-check.elf ./internal/compilecheck
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/tinytea-check.elf ./internal/tinyteacheck
+	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/value-check.elf ./internal/valuecheck
 	$(MAKE) hello-tinytea
 
 hello:
