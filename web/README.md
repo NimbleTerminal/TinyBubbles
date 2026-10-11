@@ -22,9 +22,9 @@ Open <http://127.0.0.1:8080>. The gallery lives in [hello](./hello), a separate
 consumer module. It includes Hello World, layout, Settings, list, value, dialog,
 progress, status, and viewport demos. Settings includes choice pickers.
 
-Hello World It shares the device model and renderer and supports Bubble Tea
-and TinyTea loops; the other demos use Bubble Tea. Switching runtime restarts the demo and keeps the display
-preset. Both runtimes are in the browser binary, so this does not compare
+Hello World shares the device model and renderer and supports Bubble Tea
+and TinyTea loops; the other demos use Bubble Tea. Switching runtime restarts
+the demo and keeps the display preset. Both runtimes are in the browser binary, so this does not compare
 firmware sizes. `make web-tinygo` builds with TinyGo 0.43 and a 128 KiB stack.
 
 ## Start another project
