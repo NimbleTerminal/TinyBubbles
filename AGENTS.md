@@ -28,7 +28,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `bubbletea/<widget>/` | Bubble Tea adapters and Bubbles help bindings |
 | `tinytea/<widget>/` | Cooperative widget adapters |
 | `bubbletea/settings/` | Composed menu, focus routing, and child command handling |
-| `devices/` | Board setup, pins, drivers, and local targets |
+| `devices/` | Board setup, pins, drivers, and local targets; shared Feather initialization in `feather-reverse-tft/board` |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
 | `web/hello/` | Demo gallery consumer module, layout playground, and WASM main |
 | `examples/` | Host PNG/GIF previews |
@@ -44,12 +44,14 @@ for boards, and [web/README.md](web/README.md) for the browser bridge.
   TinyGo 0.43.0 is the minimum compiler; the root module uses Go 1.23 syntax.
 - Accept `drivers.Displayer`: `Size`, `SetPixel`, and `Display`. Detect optional
   `FillRectangle(..., color.RGBA) error` with a type assertion. Keep the pixel fallback.
-- Keep `machine`, buses, pins, power, and rotation in device mains with board
+- Keep `machine`, buses, pins, power, and rotation in device mains or board packages with board
   build tags. Ordinary Go tests must not import `machine`.
 - Design widgets for small screens, three-button navigation, monochrome/color,
   and mixed font sizes. Share widget state and cell layouts across runtimes;
   let the owning model schedule commands and timers.
-- Reuse buffers. Change application state in `Update`, not `View`.
+- Reuse buffers with `Buffer.Resize`. Change application state in `Update`, not `View`.
+- Use `layout.ClipText` for one-line labels; it skips controls when aligning.
+  Define result messages in shared widgets and alias them in runtime adapters.
 - Use `layout` to split cell regions and compose buffers. Size children in Update,
   clear the parent before drawing, and keep focus routing in the owning model.
   Parents choose responsive breakpoints; layout does not infer them. See
@@ -203,7 +205,7 @@ The Adafruit ESP32-S3 Reverse TFT Feather (5691) is hardware-tested. Pico,
 Pico 2, and CLUE have compile checks only. Use the Feather's local
 `devices/feather-reverse-tft/target.json`. D0 pops, D1 changes palette, and D2
 pauses; preserve those controls unless asked to change them. Wiring, power,
-rotation, and pin polarity are in its main and device guide.
+rotation, and pin polarity are in its board package and device guide.
 
 Flash only for authorized hardware work. Identify the board and current serial
 port first; ports can change after reset. Follow the selected runtime's flash

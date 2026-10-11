@@ -208,3 +208,15 @@ cost many small SPI transactions; full-screen animation is not the primary use.
 Use `tinygo build -size=short` for code/static RAM figures, and profile heap/stack
 headroom on your actual board. Those compiler figures do not include live heap
 allocations such as cell and display buffers.
+
+## Resizing buffers and polling buttons
+
+`Buffer.Resize(width, height)` reports whether the grid changed size. An unchanged
+size preserves cells and allocates nothing. A changed size clears and reallocates
+the grid; nonpositive dimensions become 0×0. Widgets use the return value to
+reflow cached text only when needed.
+
+`ButtonPoller` shares round-robin polling across device loops. Supply its `Buttons`
+and call `Poll(now, pressed)` with a function returning each button's logical
+pressed state. It emits at most one press per call and preserves simultaneous
+presses for later polls. Pin reads and polarity remain in device code.

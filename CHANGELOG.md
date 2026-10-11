@@ -124,3 +124,8 @@ and each stays readable in monochrome. See the
   source trees. Builds override only consumer HTML and CSS.
 - Scaffold refreshes preserve existing go.mod files, including with --force.
 - Bubble Tea adapter tests refresh vendored dependencies before running.
+
+- Consolidated widget label clipping, buffer resizing, and result message types.
+  One-cell labels retain their first character; centered labels ignore controls.
+- Shared Feather board initialization between runtimes and button polling
+  between Pico and CLUE.
