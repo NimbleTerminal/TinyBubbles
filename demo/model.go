@@ -2,7 +2,7 @@
 package demo
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"strconv"
 )
 

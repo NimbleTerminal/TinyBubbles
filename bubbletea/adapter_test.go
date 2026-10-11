@@ -3,8 +3,8 @@ package displaytea
 import (
 	tea "charm.land/bubbletea/v2"
 	"errors"
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
 	"image/color"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"testing"
 	"time"
 

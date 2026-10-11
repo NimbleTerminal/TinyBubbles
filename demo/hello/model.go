@@ -2,8 +2,8 @@
 package hello
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
 	"image/color"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"strconv"
 )
 

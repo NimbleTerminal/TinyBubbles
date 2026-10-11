@@ -1,8 +1,8 @@
 package tinytea
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
 	"image/color"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"testing"
 
 	"tinygo.org/x/drivers"

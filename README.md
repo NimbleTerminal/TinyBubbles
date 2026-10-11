@@ -2,7 +2,7 @@
 
 <p>
     <a href="https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml"><img src="https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml/badge.svg" alt="Build Status"></a>
-    <a href="https://pkg.go.dev/github.com/NimbleTerminal/TinyBubbles"><img src="https://pkg.go.dev/badge/github.com/NimbleTerminal/TinyBubbles.svg" alt="Go Reference"></a>
+    <a href="https://pkg.go.dev/nimbleterminal.dev/tinybubbles"><img src="https://pkg.go.dev/badge/nimbleterminal.dev/tinybubbles.svg" alt="Go Reference"></a>
     <a href="https://tinygo.org"><img src="https://img.shields.io/badge/TinyGo-0.43%2B-blue" alt="TinyGo 0.43 or newer"></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
 </p>
@@ -56,14 +56,18 @@ The [device guide](DEVICES.md) covers wiring and adding a board.
 
 ## Usage
 
+The canonical Go import path is `nimbleterminal.dev/tinybubbles`; replace the old
+`github.com/NimbleTerminal/TinyBubbles` prefix in existing imports. Source and
+issues remain on GitHub.
+
 Use Bubble Tea's model interface and the display backend from the `bubbletea`
 module (a separate module keeps these dependencies out of TinyTea):
 
 ```go
 import (
     tea "charm.land/bubbletea/v2"
-    bubbles "github.com/NimbleTerminal/TinyBubbles"
-    displaytea "github.com/NimbleTerminal/TinyBubbles/bubbletea"
+    bubbles "nimbleterminal.dev/tinybubbles"
+    displaytea "nimbleterminal.dev/tinybubbles/bubbletea"
 )
 
 type model struct{}

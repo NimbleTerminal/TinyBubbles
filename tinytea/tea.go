@@ -5,7 +5,7 @@ package tinytea
 import (
 	"errors"
 
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"tinygo.org/x/drivers"
 )
 

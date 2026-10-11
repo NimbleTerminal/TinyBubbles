@@ -7,7 +7,7 @@ import (
 	"io"
 
 	tea "charm.land/bubbletea/v2"
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"tinygo.org/x/drivers"
 )
 

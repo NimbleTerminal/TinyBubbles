@@ -5,8 +5,8 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
-	greeting "github.com/NimbleTerminal/TinyBubbles/demo/hello"
+	bubbles "nimbleterminal.dev/tinybubbles"
+	greeting "nimbleterminal.dev/tinybubbles/demo/hello"
 )
 
 type Model struct{ greeting *greeting.Model }

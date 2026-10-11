@@ -3,9 +3,9 @@
 package main
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
-	tea "github.com/NimbleTerminal/TinyBubbles/tinytea"
 	"image/color"
+	bubbles "nimbleterminal.dev/tinybubbles"
+	tea "nimbleterminal.dev/tinybubbles/tinytea"
 )
 
 type display struct{}

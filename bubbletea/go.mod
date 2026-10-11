@@ -1,4 +1,4 @@
-module github.com/NimbleTerminal/TinyBubbles/bubbletea
+module nimbleterminal.dev/tinybubbles/bubbletea
 
 go 1.26.0
 
@@ -25,8 +25,8 @@ require (
 )
 
 require (
-	github.com/NimbleTerminal/TinyBubbles v0.0.0
+	nimbleterminal.dev/tinybubbles v0.0.0
 	tinygo.org/x/drivers v0.36.0
 )
 
-replace github.com/NimbleTerminal/TinyBubbles => ..
+replace nimbleterminal.dev/tinybubbles => ..

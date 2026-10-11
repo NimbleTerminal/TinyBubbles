@@ -44,9 +44,9 @@ at `devices/feather-reverse-tft/README.md`.
 | `docs/assets/hello.gif` | README demo asset generated from the hello model |
 | `Makefile`, `.github/workflows/ci.yml` | Local checks and firmware CI |
 
-The canonical repository and Go module/import path are
-`github.com/NimbleTerminal/TinyBubbles`. Use NimbleTerminal for repository badges,
-issue links, and remotes.
+The Go module/import path is `nimbleterminal.dev/tinybubbles`. The repository remains
+`https://github.com/NimbleTerminal/TinyBubbles`; use NimbleTerminal for repository
+badges, issue links, and remotes.
 
 ## Framework conventions
 

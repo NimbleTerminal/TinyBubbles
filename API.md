@@ -11,7 +11,7 @@ see [TinyTea and runtime differences](RUNTIMES.md) for the lightweight replaceme
 ```go
 import (
     "strconv"
-    bubbles "github.com/NimbleTerminal/TinyBubbles"
+    bubbles "nimbleterminal.dev/tinybubbles"
 )
 
 type counter struct {

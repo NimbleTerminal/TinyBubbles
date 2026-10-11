@@ -1,4 +1,4 @@
-module github.com/NimbleTerminal/TinyBubbles
+module nimbleterminal.dev/tinybubbles
 
 go 1.23.0
 

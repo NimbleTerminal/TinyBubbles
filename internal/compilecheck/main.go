@@ -4,9 +4,9 @@
 package main
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
-	"github.com/NimbleTerminal/TinyBubbles/demo"
 	"image/color"
+	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/demo"
 )
 
 type display struct{ pixels uint32 }

@@ -3,13 +3,13 @@ package main
 
 import (
 	"flag"
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
-	"github.com/NimbleTerminal/TinyBubbles/demo/hello"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/gif"
 	"image/png"
+	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/demo/hello"
 	"os"
 	"path/filepath"
 )

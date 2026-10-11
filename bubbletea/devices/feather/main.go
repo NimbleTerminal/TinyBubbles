@@ -5,11 +5,11 @@ package main
 
 import (
 	tea "charm.land/bubbletea/v2"
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
-	displaytea "github.com/NimbleTerminal/TinyBubbles/bubbletea"
-	teamodel "github.com/NimbleTerminal/TinyBubbles/bubbletea/hello"
-	"github.com/NimbleTerminal/TinyBubbles/demo/hello"
 	"machine"
+	bubbles "nimbleterminal.dev/tinybubbles"
+	displaytea "nimbleterminal.dev/tinybubbles/bubbletea"
+	teamodel "nimbleterminal.dev/tinybubbles/bubbletea/hello"
+	"nimbleterminal.dev/tinybubbles/demo/hello"
 	"time"
 	"tinygo.org/x/drivers/st7789"
 )

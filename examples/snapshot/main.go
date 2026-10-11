@@ -2,11 +2,11 @@
 package main
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
-	"github.com/NimbleTerminal/TinyBubbles/demo"
 	"image"
 	"image/color"
 	"image/png"
+	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/demo"
 	"os"
 )
 

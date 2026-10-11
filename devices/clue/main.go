@@ -4,9 +4,9 @@
 package main
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
-	"github.com/NimbleTerminal/TinyBubbles/demo"
 	"machine"
+	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/demo"
 	"time"
 	"tinygo.org/x/drivers/st7789"
 )

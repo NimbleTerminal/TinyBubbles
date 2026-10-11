@@ -51,7 +51,7 @@ For Bubble Tea:
 ```go
 import (
     tea "charm.land/bubbletea/v2"
-    displaytea "github.com/NimbleTerminal/TinyBubbles/bubbletea"
+    displaytea "nimbleterminal.dev/tinybubbles/bubbletea"
 )
 // After initializing display, font, and theme:
 p, err := displaytea.NewProgram(model{}, display, font, theme)
@@ -60,7 +60,7 @@ p, err := displaytea.NewProgram(model{}, display, font, theme)
 For TinyTea, change the model import and program constructor:
 
 ```go
-import tea "github.com/NimbleTerminal/TinyBubbles/tinytea"
+import tea "nimbleterminal.dev/tinybubbles/tinytea"
 
 p, err := tea.NewProgram(model{}, display, font, theme)
 ```

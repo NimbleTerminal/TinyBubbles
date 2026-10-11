@@ -1,9 +1,9 @@
 package hello
 
 import (
-	bubbles "github.com/NimbleTerminal/TinyBubbles"
 	"image"
 	"image/color"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"reflect"
 	"testing"
 )
