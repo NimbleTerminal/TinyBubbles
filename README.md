@@ -7,12 +7,15 @@
     <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
 </p>
 
-`TinyBubbles` brings the [Bubble Tea](https://github.com/charmbracelet/bubbletea)
-v2.1 runtime to [TinyGo](https://tinygo.org) embedded displays, with cell rendering,
-custom fonts, and a focus on small-screen widgets. **Bubble Tea is the primary
-runtime; TinyTea is the optional lightweight replacement.**
+**TinyBubbles brings Bubble Tea to small embedded displays.**
+[TinyGo](https://tinygo.org) compiles Go for microcontrollers.
+[Bubble Tea](https://github.com/charmbracelet/bubbletea) is a Go framework for
+interactive terminal apps. TinyBubbles lets you use it on a tiny screen and try
+the same Go UI in your browser.
 
-Small screens, big possibilities!
+Bubble Tea v2.1 is the primary runtime. [TinyTea](RUNTIMES.md) is an optional,
+smaller replacement with limited functionality. Both use the same cells,
+fonts, and renderer.
 
 <p align="center">
     <a href="./devices/feather-reverse-tft/README.md"><b>Hello, Tiny World</b></a>
@@ -36,32 +39,39 @@ or reusable cell buffers with custom fonts, including large glyphs and counters.
 | [Cell buffer](cell.go) | Reusable character grids with UTF-8 text and clipped writes. |
 | [Renderer](API.md#displayer-and-rendering) | Changed-cell drawing and optional FillRectangle acceleration. |
 | [Fonts and themes](API.md#fonts-and-themes) | TinyFont, custom glyphs, palettes, and monochrome/color defaults. |
+| [Browser playground](web/README.md) | WASM demos with OLED/TFT presets and HTML controls from Go help maps. |
 | [Devices](DEVICES.md) | Hardware initialization, buttons, buses, and power controls. |
 
 ## Quickstart
 
-Use **TinyGo 0.43.0 and Go 1.26** for the Bubble Tea backend. Its Makefile selects
-the Go toolchain and prepares the required bare-metal portability patches.
-The backend is the primary development path, but remains an early port with
-[documented limitations](bubbletea/README.md#portability-changes).
+Try the browser demo from a checkout:
 
 ```sh
-make hello          # Bubble Tea Feather firmware: build/bubbletea-feather.bin
-make hello-preview  # desktop PNG/GIF of the shared greeting and fonts
+make web-serve
 ```
 
-See the [Bubble Tea backend guide](bubbletea/README.md) for build and flash
-instructions. The top-left header on that firmware reads **BUBBLE TEA 2.1**.
-The [device guide](DEVICES.md) covers wiring and adding a board.
+Open <http://127.0.0.1:8080>. This needs Go and Python 3; the build selects
+Go 1.26.8. Pick a display, pop bubbles, change colors, or pause the animation.
+The gallery is ready for more demos as we add widgets.
+
+To build firmware, install **TinyGo 0.43.0 or newer**:
+
+```sh
+make hello          # Bubble Tea firmware: build/bubbletea-feather.bin
+make hello-preview  # desktop PNG/GIF of the shared greeting
+```
+
+The firmware build selects Go 1.26.0 and applies the required portability patches.
+This is an early port; read the [backend guide](bubbletea/README.md) for its
+limitations and flash instructions. See the [device guide](DEVICES.md) for wiring
+and adding a board.
 
 ## Usage
 
-The canonical Go import path is `nimbleterminal.dev/tinybubbles`; replace the old
-`github.com/NimbleTerminal/TinyBubbles` prefix in existing imports. Source and
-issues remain on GitHub.
+Use `nimbleterminal.dev/tinybubbles` for Go imports. The repository and issue
+tracker remain at [NimbleTerminal/TinyBubbles](https://github.com/NimbleTerminal/TinyBubbles).
 
-Use Bubble Tea's model interface and the display backend from the `bubbletea`
-module (a separate module keeps these dependencies out of TinyTea):
+Use Bubble Tea's model interface and the separate `bubbletea` module:
 
 ```go
 import (
@@ -121,24 +131,29 @@ See [adding a device](./DEVICES.md#devices-and-wiring).
 
 The default font uses 6×8 pixel cells. Two cell grids take about **2.6 KiB** on a
 128×64 OLED, **10 KiB** on a 240×135 TFT, or **24.8 KiB** on a 320×240 display.
-TinyBubbles allocates no pixel framebuffer; drivers may maintain their own.
+The core renderer allocates no pixel framebuffer; display drivers may use one.
 See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 ## Development
 
-### Interactive browser demo
+The [browser playground](web/README.md) uses the shared Go model, fonts, and
+renderer. Booba turns the model's Bubbles help map into HTML controls: Pause
+becomes Resume, and Color is disabled on monochrome screens. Add working demos
+to `web/site/demos.js`; the [browser guide](web/README.md#adding-a-gallery-entry)
+explains how to build and register them.
 
-Run `make web-serve`, then open <http://127.0.0.1:8080>. The shared hello model
-runs as WASM with OLED and TFT presets. Booba builds HTML controls from its
-Bubbles help map: Pause becomes Resume, and Color is disabled for monochrome.
-The simulated screen retains the custom fonts and enlarged counter, without
-on-screen help text. See [the browser guide](./web/README.md) for architecture,
-dependencies, and static hosting.
+Hello World has a **Bubble Tea / TinyTea** runtime selector. Switching restarts
+the demo and keeps the display preset. Bubble Tea uses commands and timers;
+TinyTea runs cooperatively with host-supplied ticks. Both share the same visual
+model and help bindings. Go versus TinyGo is a separate compiler choice. The
+browser bundle includes both runtimes, so it does not compare firmware sizes.
 
 | Command | Purpose |
 | :--- | :--- |
 | `make ci` | Run all CI checks locally, generate previews, and build firmware and the WASM site. |
 | `make web` | Build the static browser demo in `build/web/`. |
+| `make web-tinygo` | Build the browser demo with TinyGo v0.43 and its matching runtime shim. |
+| `make -C web test` | Check web modules, Go tests, vet, and the JavaScript key encoder. |
 | `make web-serve` | Build and serve the interactive demo on port 8080. |
 | `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
 | `make test` | Run race-enabled Go tests with coverage and vet. |
@@ -148,22 +163,23 @@ dependencies, and static hosting.
 | `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
 | `make snapshot` | Render the counter to `snapshot.png`. |
 
-[GitHub Actions](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)
-runs on every push and pull request, and supports manual dispatch. The host job
-runs `make check` and generates both desktop previews. The firmware job builds
-Pico, Pico 2, CLUE, the ESP32-S3 core check, and the Reverse TFT Feather with
-**TinyGo v0.43.0**. Successful jobs upload firmware and preview artifacts for
-14 days. CI validates builds; it does not flash connected hardware or publish
-releases. `make check` also requires Python 3 for local documentation checks.
-The web job uses Go 1.26.8 and Node.js 22, tests the action bridge, and uploads
-the static `web-demo` artifact. It does not automatically deploy a public site.
-A separate job builds `web-demo-tinygo` with TinyGo v0.43 and the matching runtime shim.
+[CI](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)
+runs on pushes, pull requests, and manual dispatch. It checks code and docs,
+renders previews, and builds the firmware matrix and both Go and TinyGo WASM
+sites. Artifacts are kept for 14 days. CI does not flash hardware or deploy the
+site. `make ci` runs the same checks locally.
 
-The core module declares Go 1.23 language compatibility and pins drivers v0.36.0 and
-TinyFont v0.7.0. The core uses the TEA architecture without depending on
-Bubble Tea or accepting ANSI views. The primary Bubble Tea backend has its
-own module, host tests, and Feather firmware CI job. To port a terminal model, use buffer writes and
-palette styles in `View`; see the [rendering guide](./API.md#displayer-and-rendering).
+There are three Go modules. Root checks do not run the nested modules' tests:
+
+| Module | Toolchain and role |
+| :--- | :--- |
+| Root | Go 1.23 language version; shared renderer and TinyTea. |
+| `bubbletea/` | Go 1.26.0 and TinyGo 0.43; Bubble Tea v2.1 firmware with portability patches. |
+| `web/` | Go 1.26.8; Booba and its pinned Bubble Tea WASM fork. TinyGo WASM uses a 128 KiB stack. |
+
+Documentation and web asset builds need Python 3. Web tests need Node.js 22 or
+newer. See the [backend](bubbletea/README.md) and [browser](web/README.md) guides
+for dependency details.
 
 To refresh the README animation after a demo change:
 
@@ -192,13 +208,13 @@ scrolling options, editable values, and a confirmation dialog.
   display, including monochrome styling and button navigation.
 - [ ] **First release:** validate CI on the new repository, document any remaining
   API limitations, and publish an initial version.
-- [x] **Canonical repository:** align module imports, links, and the remote with
-  `NimbleTerminal/TinyBubbles`.
+- [x] **Vanity imports:** use `nimbleterminal.dev/tinybubbles` for Go packages
+  and `NimbleTerminal/TinyBubbles` for the GitHub repository.
 
 ## Open Collaboration
 
-We welcome contributions and feedback! Run `make check` before submitting changes,
-and `make firmware` when changing the core or device setup. Include your board,
+Contributions and feedback are welcome. Run checks for the modules you change;
+use `make ci` for the full suite. Include your board,
 display, TinyGo version, and reproduction steps when reporting hardware issues.
 
 - [GitHub Issues](https://github.com/NimbleTerminal/TinyBubbles/issues)
@@ -212,9 +228,9 @@ Thanks to the [TinyGo](https://tinygo.org) community for the compiler,
 [drivers](https://github.com/tinygo-org/drivers), and
 [TinyFont](https://github.com/tinygo-org/tinyfont).
 
-Thanks also to tinyterm, tinypod, and tinygui for exploring embedded display
-rendering, device configuration, and UI design. TinyBubbles brings those concerns
-together around a reusable Model / Update / View framework.
+Thanks to tinyterm, tinypod, and tinygui for their embedded display work, and
+[Booba](https://github.com/NimbleMarkets/go-booba) for browser I/O and generated
+HTML controls.
 
 ## License
 

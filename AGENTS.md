@@ -1,192 +1,185 @@
 # Working on TinyBubbles
 
-TinyBubbles provides display rendering and device-focused UI for TinyGo, with
-**Bubble Tea v2.1 as the primary runtime**. TinyTea is an optional cooperative
-replacement with a documented subset of Bubble Tea's model API. Read
-`RUNTIMES.md` before introducing dependencies or changing runtime semantics.
+TinyGo compiles Go for microcontrollers. Bubble Tea is a Go framework for
+interactive terminal apps. TinyBubbles brings Bubble Tea to small displays and
+runs the same UI in a browser for development.
 
-## Where this fits
+**Use Bubble Tea v2.1 by default.** TinyTea is an optional smaller runtime with
+limited functionality. Read [RUNTIMES.md](RUNTIMES.md) before changing runtime
+behavior or dependencies.
 
-- `bubbletea/` is a separate module importing real Bubble Tea v2.1.0. It is the
-  primary backend, using TinyGo 0.43 and Go 1.26 plus reproducible bare-metal
-  portability patches. Run `make prepare` there after changes to local dependencies.
-- `tinytea/` exposes the supported Bubble Tea-shaped model API without importing
-  Bubble Tea. Keep it small; unsupported timers and terminal APIs must stay explicit.
-- The root package owns shared cells, fonts, themes, buttons, and rendering. Its
-  original cooperative Program/Model API remains for compatibility with old demos.
-- Widgets should prioritize small displays, three-button focus/navigation,
-  monochrome/color adaptation, and mixed-size fonts. Reuse cell layouts and widget
-  state; keep runtime-specific command scheduling in the owning model.
-- tinypod supplies the Config plus devices precedent. tinyterm is a terminal
-  renderer, and tinygui follows an immediate-mode paradigm. ntcharts and ntcharts3d
-  are sibling documentation references, not dependencies for the rendering core.
+Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes use
+`https://github.com/NimbleTerminal/TinyBubbles`.
 
-Read `README.md` for the overview, `API.md` for framework semantics and memory
-budgets, and `DEVICES.md` for wiring and adding targets. The Feather guide lives
-at `devices/feather-reverse-tft/README.md`.
+## Code map
 
-## Repository map
-
-| Location | Responsibility |
+| Location | Purpose |
 | --- | --- |
-| `bubbletea/` | Primary Bubble Tea backend, portability preparation, Feather demo |
-| `web/` | Isolated WASM module, canvas Displayer, Booba help-to-HTML actions, static site |
-| `tinytea/` | Optional cooperative subset with Bubble Tea-shaped models |
-| `program.go` | Model, Msg, Cmd, Config, lifecycle, bounded command queue |
-| `cell.go` | Reusable cell buffer, text placement, clipping |
-| `renderer.go` | Changed-cell rendering, optional rectangle fill, flush/retry |
-| `font.go`, `theme.go` | TinyFont adapter, pluggable fonts, compact palette |
-| `input.go` | Standard key events and hardware-independent button debounce |
-| `demo/model.go` | Counter shared by Pico and CLUE |
-| `demo/hello/` | Animated greeting, bubble sprites, enlarged pop counter |
-| `devices/` | Hardware-specific mains and any local target definitions |
-| `examples/` | Host PNG/GIF previews using real models and renderers |
-| `internal/compilecheck/` | Hardware-free ESP32-S3 firmware compile check |
-| `docs/assets/hello.gif` | README demo asset generated from the hello model |
-| `Makefile`, `.github/workflows/ci.yml` | Local checks and firmware CI |
+| `cell.go`, `renderer.go` | Shared cell buffers and Displayer rendering |
+| `font.go`, `theme.go`, `input.go` | Fonts, palettes, key events, button debounce |
+| `bubbletea/` | Primary runtime adapter, portability patches, Feather main |
+| `bubbletea/hello/` | Bubble Tea hello model and shared Bubbles key bindings |
+| `tinytea/` | Optional cooperative subset of the Bubble Tea model API |
+| `program.go` | Original cooperative runtime used by TinyTea and older demos |
+| `demo/hello/` | Shared greeting, custom font tiles, enlarged counter |
+| `demo/model.go` | Counter used by Pico and CLUE |
+| `devices/` | Board setup, pins, drivers, and local targets |
+| `web/` | Separate WASM module, canvas driver, Booba transport, demo site |
+| `web/site/demos.js` | Gallery entries and their WASM asset paths |
+| `examples/` | Host PNG/GIF previews |
+| `internal/` | Firmware compile checks |
+| `Makefile`, `.github/workflows/ci.yml` | Local checks and CI |
 
-The Go module/import path is `nimbleterminal.dev/tinybubbles`. The repository remains
-`https://github.com/NimbleTerminal/TinyBubbles`; use NimbleTerminal for repository
-badges, issue links, and remotes.
+Read [API.md](API.md) for rendering and memory budgets, [DEVICES.md](DEVICES.md)
+for boards, and [web/README.md](web/README.md) for the browser bridge.
 
-## Framework conventions
+## Shared code and widgets
 
-The cooperative lifecycle rules below describe TinyTea and the original root
-runtime. Bubble Tea retains upstream scheduling and message semantics; consult
-`RUNTIMES.md` instead of applying these rules to its program.
+- Keep the core small and free of terminal, OS, and browser dependencies.
+  TinyGo 0.43.0 is the minimum compiler; the root module uses Go 1.23 syntax.
+- Accept `drivers.Displayer`: `Size`, `SetPixel`, and `Display`. Detect optional
+  `FillRectangle(..., color.RGBA) error` with a type assertion. Keep the pixel fallback.
+- Keep `machine`, buses, pins, power, and rotation in device mains with board
+  build tags. Ordinary Go tests must not import `machine`.
+- Design widgets for small screens, three-button navigation, monochrome/color,
+  and mixed font sizes. Share widget state and cell layouts across runtimes;
+  let the owning model schedule commands and timers.
+- Reuse buffers. Change application state in `Update`, not `View`.
+- The renderer keeps a previous-cell grid, clips glyphs, clears stale cells,
+  and flushes changed frames. Preserve retry behavior after display failures
+  and support both buffered OLED and direct-write TFT drivers.
+- Fonts receive a clipping display and must not retain it. Large hello glyphs
+  are cell tiles; keep them going through the renderer.
+- `Displayer` does not report color depth. Choose the theme explicitly, pass
+  monochrome settings where supported, and size layouts from `WindowSizeMsg`.
+  Set physical orientation before creating the program.
+- Budget model and renderer grids at about 16 bytes per cell: 10 KiB for 40×16.
+  Drivers, fonts, heap, and stacks add to that. Static RAM figures exclude heap
+  allocations. The browser driver has its own RGBA framebuffer.
 
-- Keep `machine`, bus initialization, display power/rotation, and physical pin
-  assignments in `devices/<name>/main.go`. Use TinyGo/board build tags so ordinary
-  `go test ./...` never imports `machine`.
-- Accept the existing `drivers.Displayer` directly: `Size`, `SetPixel`, `Display`.
-  Detect optional `FillRectangle(..., color.RGBA) error` with a type assertion;
-  retain the SetPixel fallback. Do not require a richer driver interface.
-- Keep the core free of terminal/OS APIs and heavy dependencies. TinyGo v0.43.0
-  is the minimum supported compiler. The module language version is Go 1.23.
-- The original root `Model` implements `Init() Cmd`, `Update(Msg) (Model, Cmd)`,
-  and `View() *Buffer`. TinyTea instead uses `View() tinytea.View` with optional
-  `CellView() *Buffer`, matching the supported Bubble Tea-shaped API.
-  Any Go value can be a custom message. Reuse buffers rather than allocating one
-  on every frame; keep animation state changes in `Update`, not `View`.
-- `Start` queues Init's command, sends the initial `WindowSizeMsg`, and renders.
-  `Step` polls once, executes at most one queued command, then renders. `Run`
-  repeats this with a configurable sleep. `Send` updates/renders synchronously
-  but leaves returned commands for a later Step.
-- Commands are cooperative, not concurrent. Never wait for input, sleep, or do
-  long network work inside a command. Device loops own timers; the hello demo
-  feeds `TickMsg` from its poll function. The queue holds 16 commands and reports
-  overflow with `ErrCommandQueueFull`.
-- All program operations belong to one main loop. Interrupts and other tasks
-  should hand events through a device-owned safe mechanism, not call `Send`.
-- `KeyQuit` reaches the model; only `QuitMsg` stops the program. This permits
-  application-specific confirmation. Preserve that distinction.
-- The renderer owns one previous-cell grid, not a framebuffer. It clears stale
-  cells, clips glyphs, flushes only changed frames, and invalidates on driver
-  errors so a later render can retry. Preserve both buffered OLED and direct-write
-  TFT behavior.
-- A custom font receives a clipping display that it must not retain. The hello
-  font encodes larger text and sprites as cell tiles; do not bypass the renderer
-  to draw that demo directly onto hardware.
-- `Displayer` cannot report color depth. Set Monochrome in Config and adapt layout
-  from WindowSizeMsg. Configure physical orientation before program construction.
-- Budget memory explicitly. With 6x8 cells, model plus renderer grids cost about
-  16 bytes per cell (10 KiB for 40x16), in addition to drivers, fonts, heap, and
-  stacks. Compiler static RAM figures exclude runtime allocations.
+## Runtime rules
 
-## Build and verification
+Bubble Tea owns its event loop, commands, goroutines, and timers. Device code
+can inject keys and custom messages through `Program.Send`. Use `CellView()`
+for styled cells and custom fonts; plain view content is clipped text, without
+ANSI interpretation. The firmware backend uses upstream v2.1 plus patches in
+an ignored vendor directory. Run `make -C bubbletea prepare` after changing
+local dependencies; never patch the module cache or another checkout.
 
-Run commands from the repository root:
+These rules apply only to TinyTea and the original root runtime:
+
+- Root models return `*Buffer` from `View`; TinyTea models return `tinytea.View`
+  and may implement `CellView() *Buffer`.
+- `Start` queues Init's command, sends the initial size, and renders. `Step`
+  polls, executes at most one queued command, and renders. `Send` updates and
+  renders immediately but leaves returned commands for a later step.
+- Commands run cooperatively. Do not block, sleep, or wait for network input
+  inside them. Device loops supply ticks. The command queue holds 16 entries
+  and reports `ErrCommandQueueFull` on overflow.
+- Keep program operations on one loop. Interrupts and other tasks must hand
+  events to that loop rather than call `Send` directly.
+- `KeyQuit` reaches the model; `QuitMsg` stops the program.
+
+## Browser demos
+
+Hello World has a Bubble Tea / TinyTea selector. Each selection starts the
+chosen runtime loop from scratch and preserves the display preset. The browser
+bundle includes both runtimes; do not use its size to compare firmware memory.
+`web/tinyhello.go` adapts only hello: it reuses the visual model and bindings,
+supplies host ticks, and uses TinyTea commands for quitting. It is not a general
+Bubble Tea command adapter. Keep TinyTea program calls on one host loop; JS
+callbacks enqueue input. Firmware uses `make hello` or `make hello-tinytea`.
+
+- Keep Booba and its pinned Bubble Tea WASM fork in `web/go.mod`. The firmware
+  module uses upstream v2.1. Root module replacements do not inherit web settings.
+- Use `displaytea.NewModel` when Booba owns the program. Pass its context and
+  cell size to the program, check `Err()` after Run, and call `Close()`.
+- `WithoutRenderer()` still allows `tea.Raw` output. Keep Booba's input and
+  output connected for capability replies and action metadata. Sending output
+  to `io.Discard` breaks this path. `View.ProgramStatus` needs terminal rendering;
+  the demo uses Booba's `bubblehelp` raw-output path instead.
+- Define actions in Bubbles key bindings used by both Update and the help map.
+  HTML buttons must follow that metadata. Keep widget behavior in Go.
+- Register working demos in `web/site/demos.js` with a category, source link,
+  and WASM path. Add the asset build step too. All entries in a build must use
+  the same compiler/runtime shim. Demo links preserve the display preset and
+  reload the page for a fresh program.
+- Keep the page compact. Explain TinyGo, Bubble Tea, and TinyBubbles plainly.
+  Put the display and controls first; collapse supporting details.
+
+## Build and check
+
+Run from the repository root:
 
 ```sh
-make test           # race-enabled Go tests and vet
-make check          # formatting, modules, docs, tests, vet, and host builds
-make ci             # all CI checks, previews, and TinyTea/Bubble Tea firmware
-make firmware       # Pico, Pico 2, CLUE, ESP32-S3 check, Reverse TFT Feather
-make hello          # primary build/bubbletea-feather.bin
-make hello-tinytea  # original cooperative build/feather-reverse-tft.bin
+make check          # root tests, vet, build, modules, formatting, docs
+make ci             # all modules, previews, firmware, Go/TinyGo WASM
+make firmware       # Pico, Pico 2, CLUE, ESP32-S3, cooperative Feather
+make hello          # Bubble Tea Feather firmware
+make hello-tinytea  # original cooperative Feather firmware
 make hello-preview  # build/hello.png and build/hello.gif
-make snapshot       # snapshot.png for the shared counter
-make web-serve      # build and serve WASM hello with generated HTML controls
-make -C web test    # Go bridge tests, module checks, vet, Node key encoder tests
+make snapshot       # counter snapshot.png
+make web-serve      # build Go WASM and serve on port 8080
+make web-tinygo     # build TinyGo WASM with a 128 KiB stack
+make -C web test    # Go bridge tests, vet, module checks, JS encoder tests
+make -C bubbletea prepare test  # prepare dependencies and test the adapter
 ```
 
-Pushes, pull requests, and manual dispatch run `.github/workflows/ci.yml`.
-CI runs `make check`, generates previews, and compiles the firmware matrix with
-TinyGo v0.43.0. Only explicitly listed previews and firmware files are uploaded
-as artifacts; never broaden uploads to the entire `build/` directory.
-The documentation check requires Python 3 and checks tracked and unignored new Markdown files.
+Root tests do not cover the nested modules. Firmware selects Go 1.26.0; web
+selects Go 1.26.8. Web tests need Node.js 22+. Docs and asset builds need Python 3.
+Use `TINYGO=/path/to/tinygo` to select a compiler. Rebuild when switching WASM
+compilers so `wasm_exec.js` matches the binary.
 
-Web CI builds standard Go WASM using Go 1.26.8 and Node.js 22, plus a separate
-TinyGo v0.43 WASM build with a 128 KiB stack. Its only artifact directory is
-`build/web/`. Keep Booba and its Bubble Tea WASM fork
-replacement isolated in `web/go.mod`; hardware uses upstream v2.1. Browser
-controls derive from Bubbles key bindings used by the model's Update method,
-not a separate JavaScript action list. Read `web/README.md` for the
-WithoutRenderer/raw-output contract. Test metadata changes and browser lifecycle
-alongside the display behavior. Browser work does not authorize flashing hardware.
+Choose checks that match the change:
 
-`TINYGO=/path/to/tinygo make firmware` selects a compiler binary. Use a Go version
-supported by that compiler. Run `gofmt` on changed Go files. Add focused behavioral
-tests for framework changes, particularly clipping, failed flushes, queue order,
-debounce, and buffer reuse. For a simple visual adjustment, generate and inspect
-the preview; do not add tests that merely repeat layout constants. Documentation
-changes need link/content checks, not firmware rebuilds or flashes.
+- Core: host checks and the firmware matrix.
+- Board setup: that target's build and relevant model tests.
+- Runtime/bridge: that module's tests and affected firmware or WASM build.
+- Browser UI: inspect the page and check actions, navigation, and lifecycle.
+- Visuals: inspect the rendered preview. Avoid tests that repeat layout constants.
+- Docs: `make check-docs` and `git diff --check`; no firmware build or flash.
 
-For core changes, run the host checks and firmware matrix. For board-specific
-changes, build that target and run relevant host/model tests. Cross-compilation
-does not validate wiring or physical rendering. State separately what compiled,
-what ran on the host, and what a person confirmed on hardware.
+Use focused tests for clipping, failed flushes, command order, debounce, and
+buffer reuse. Run `gofmt` on changed Go files. State separately what compiled,
+what ran in a browser or on the host, and what was confirmed on hardware.
 
-After changing the shared `demo/hello` visual model, regenerate the README animation when applicable:
+When the shared hello visuals change, refresh the README animation if needed:
 
 ```sh
 make hello-preview
 cp build/hello.gif docs/assets/hello.gif
 ```
 
-## Reverse TFT Feather workflow
+CI runs on pushes, pull requests, and manual dispatch. It uploads named previews,
+firmware files, and `build/web/`. It does not flash or deploy. Never upload the
+whole `build/` directory.
 
-The Adafruit ESP32-S3 Reverse TFT Feather (5691) is the hardware-tested example.
-The user confirmed the hello demo working; the larger counter was subsequently
-flashed successfully. Pico/Pico 2/CLUE currently have compile validation only.
+## Hardware and private files
 
-Use `devices/feather-reverse-tft/target.json`, not another ESP32 board's target.
-It inherits `esp32s3-generic` and adds the `feather_reverse_tft` build tag.
-Board details are recorded in its main and README, including power enable,
-landscape offsets, BGR order, and D0's active-low versus D1/D2's active-high inputs.
-D0 pops, D1 changes palette, and D2 pauses. Preserve these controls unless asked
-to change them.
+The Adafruit ESP32-S3 Reverse TFT Feather (5691) is hardware-tested. Pico,
+Pico 2, and CLUE have compile checks only. Use the Feather's local
+`devices/feather-reverse-tft/target.json`. D0 pops, D1 changes palette, and D2
+pauses; preserve those controls unless asked to change them. Wiring, power,
+rotation, and pin polarity are in its main and device guide.
 
-Flash only as part of authorized hardware work; a documentation or unrelated
-code task is not a request to replace connected firmware. Identify the connected
-device and current serial port first, especially after switching boards.
-The port can change when entering ROM download mode. Never assume a remembered
-`/dev/cu.usbmodem...` name still belongs to the intended board.
+Flash only for authorized hardware work. Identify the board and current serial
+port first; ports can change after reset. Follow the selected runtime's flash
+guide. Preserve existing CircuitPython files before replacing that firmware.
+If automatic reset fails, ask the user to hold D0/BOOT, tap RESET, then release
+D0; rescan the port before retrying. Flasher success does not prove the screen works.
 
-```sh
-tinygo flash -target=./devices/feather-reverse-tft/target.json \
-  -port=<current-serial-port> ./devices/feather-reverse-tft
-```
+`build/` may contain private device backups and credentials. Never read, print,
+commit, publish, or copy those backups into demo assets. Generate the README GIF
+from `examples/hello-preview`.
 
-TinyGo flashing replaces existing firmware/bootloader contents. Preserve existing
-CircuitPython application files before the first replacement. If automatic reset
-cannot synchronize, ask the user to hold D0/BOOT, tap RESET, then release D0; rescan
-the port before retrying. Report flash verification separately from seeing the UI
-work. Do not claim to have observed a physical screen from compiler/flasher output.
+## Docs and licensing
 
-`build/` is ignored and may contain private device backups, including credentials
-in CircuitPython settings. Never commit, publish, or copy those backups into demo
-assets, and do not print their contents. The README GIF should come only from
-`examples/hello-preview`, not a copied device filesystem.
+Write plainly: say what a feature does, why it matters, and how to use it.
+Keep detailed API, device, and browser instructions in their guides. Follow the
+ntcharts/ntcharts3d README structure: badges, demo, quickstart, tables,
+collaboration links, acknowledgements, license, and NimbleTerminal footer.
+Do not claim untested board support or add badges for unreleased versions.
 
-## Documentation and licensing
-
-This project is MIT licensed, copyright (c) 2026 Neomantra Corp; see `LICENSE`.
-Preserve third-party licenses and check font-face licenses when adding fonts or
-assets. Do not assume the project's MIT license relicenses a dependency.
-
-Follow the sibling projects' README style: title and badges, a visible demo,
-quickstart, component/example tables, collaboration links, acknowledgements,
-license, and the NimbleTerminal footer. Keep detailed API and device material in
-their guides. Do not add release/version badges for nonexistent releases or
-claim compatibility with untested boards.
+TinyBubbles is MIT licensed, copyright (c) 2026 Neomantra Corp. Preserve dependency
+and font licenses. Web distributions include `THIRD_PARTY_NOTICES.txt`; update
+its inputs when changing bundled dependencies.
