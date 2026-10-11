@@ -182,6 +182,39 @@ of the applied settings. This is an in-memory example: it does not write storage
 or change hardware. Each child retains a cell grid, so composition uses more RAM
 than a single widget. Device apps can create editors on demand to reduce memory.
 
+## Progress bar
+
+`widgets/progress` displays completed work as a bar and an integer percentage.
+A zero total selects an activity indicator for work with no known total.
+
+```go
+import (
+    progresstea "nimbleterminal.dev/tinybubbles/bubbletea/progress"
+    "nimbleterminal.dev/tinybubbles/widgets/progress"
+)
+
+bar := progresstea.New(progress.Config{Label: "Loading", Total: 100})
+// Forward this message to the bar in the parent's Update:
+msg := progresstea.UpdateMsg{Done: 35, Total: 100}
+```
+
+Counts are `uint32`. `SetProgress(done, total)` clamps completed work to the total;
+an unknown total discards the completed count. `Complete()` is true only for a
+known total that has been reached. The widget emits no completion command and
+binds no keys. Parents decide what finishing, cancelling, or restarting means.
+
+For unknown work, send `PulseMsg{}` or call `Advance()` from the parent's timer.
+Each pulse moves a short segment one cell, wrapping at the end. The widget owns
+no clock or goroutine; TinyTea parents must supply pulses from their device loop.
+`tinytea/progress` accepts the same count and pulse messages. Bubble Tea parents
+can schedule pulses with `tea.Tick`.
+
+`SetSize` takes cells. One row displays only the bar; two rows add the percentage
+or Working text, and taller views add the label. ASCII `=` and `-` distinguish
+filled and empty cells even on monochrome displays. The buffer is reused, drawing
+allocates nothing, and percentage arithmetic uses 64 bits to avoid count overflow.
+Memory is one cell grid (about eight bytes per cell), plus the renderer's grid.
+
 ## Try it
 
 Run `make web-serve` and choose **Scrolling menu** in the gallery. Try the
@@ -191,7 +224,9 @@ Choose **Value picker** to adjust a volume setting, apply it, and cancel edits.
 The picker is a UI demo and does not control audio. Choose **Confirmation dialog**
 to confirm or cancel a mock settings reset. Choose **Settings** to try all four
 widgets together, including on/off and playback choices. The widget demos run Bubble Tea;
-Hello World retains its runtime selector.
+Hello World retains its runtime selector. **Progress bar** simulates a load with
+Pause/Resume, Start over, and Known/Unknown total controls. Its timer belongs to
+the demo; switching browser tabs can slow it down.
 
 The shared widget and both adapters have host tests. `make ci` also compiles
 the gallery with TinyGo 0.43 and checks the TinyTea widget adapters in firmware.
