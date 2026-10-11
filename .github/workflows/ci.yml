@@ -21,6 +21,8 @@ jobs:
       options: --user 0
     steps:
       - uses: actions/checkout@v4
+      - name: Trust the mounted checkout for TinyGo VCS stamping
+        run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.8'
@@ -89,6 +91,8 @@ jobs:
       options: --user 0
     steps:
       - uses: actions/checkout@v4
+      - name: Trust the mounted checkout for TinyGo VCS stamping
+        run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - name: Build all firmware with the minimum supported TinyGo
         run: make firmware
       - uses: actions/upload-artifact@v4
@@ -116,6 +120,8 @@ jobs:
         working-directory: bubbletea
     steps:
       - uses: actions/checkout@v4
+      - name: Trust the mounted checkout for TinyGo VCS stamping
+        run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.0'
