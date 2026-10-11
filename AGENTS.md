@@ -23,6 +23,8 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `program.go` | Original cooperative runtime used by TinyTea and older demos |
 | `demo/hello/` | Shared greeting, custom font tiles, enlarged counter |
 | `demo/model.go` | Counter used by Pico and CLUE |
+| `widgets/list/` | Shared scrolling list state and cell layout |
+| `bubbletea/list/`, `tinytea/list/` | Runtime adapters and selection messages |
 | `devices/` | Board setup, pins, drivers, and local targets |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
 | `web/hello/` | Separate Hello World consumer module and WASM main |
@@ -56,6 +58,10 @@ for boards, and [web/README.md](web/README.md) for the browser bridge.
 - Budget model and renderer grids at about 16 bytes per cell: 10 KiB for 40×16.
   Drivers, fonts, heap, and stacks add to that. Static RAM figures exclude heap
   allocations. The browser driver has its own RGBA framebuffer.
+
+Lists copy their items on replacement and reuse the cell buffer while drawing.
+Forward input only to the focused widget. Selection commands capture the item
+at activation; parents decide what selecting it does. See [widgets/README.md](widgets/README.md).
 
 ## Runtime rules
 

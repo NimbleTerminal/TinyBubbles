@@ -52,7 +52,8 @@ make web-serve
 
 Open <http://127.0.0.1:8080>. This needs Go and Python 3; the build selects
 Go 1.26.8. Pick a display, pop bubbles, change colors, or pause the animation.
-The gallery is ready for more demos as we add widgets.
+The gallery includes Hello World and a scrolling menu. See [widgets](widgets/README.md)
+for the list API and runtime adapters.
 
 To build firmware, install **TinyGo 0.43.0 or newer**:
 
@@ -207,7 +208,8 @@ scrolling options, editable values, and a confirmation dialog.
   keeping commands short and avoiding application-specific scheduling boilerplate.
 - [x] **Interactive browser simulator:** WASM hello demo with OLED/TFT presets,
   keyboard input, and HTML controls generated from the model's help map.
-- [ ] **Browser widget gallery:** add widget demos as the embedded widgets land.
+- [x] **Browser widget gallery:** Hello World and the scrolling list demo.
+- [ ] **More widget demos:** add progress, value editing, and dialogs.
 - [ ] **Rendering benchmarks:** measure frame time, allocations, and display writes
   on the Feather; use the results to evaluate glyph caching and batched transfers.
 - [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical
