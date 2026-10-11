@@ -16,6 +16,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | Location | Purpose |
 | --- | --- |
 | `cell.go`, `renderer.go` | Shared cell buffers and Displayer rendering |
+| `layout/` | Allocation-free cell regions, padding, alignment, and buffer composition |
 | `font.go`, `theme.go`, `input.go` | Fonts, palettes, key events, button debounce |
 | `bubbletea/` | Primary runtime adapter, portability patches, Feather main |
 | `bubbletea/hello/` | Bubble Tea hello model and shared Bubbles key bindings |
@@ -48,6 +49,8 @@ for boards, and [web/README.md](web/README.md) for the browser bridge.
   and mixed font sizes. Share widget state and cell layouts across runtimes;
   let the owning model schedule commands and timers.
 - Reuse buffers. Change application state in `Update`, not `View`.
+- Use `layout` to split cell regions and compose buffers. Size children in Update,
+  clear the parent before drawing, and keep focus routing in the owning model.
 - The renderer keeps a previous-cell grid, clips glyphs, clears stale cells,
   and flushes changed frames. Preserve retry behavior after display failures
   and support both buffered OLED and direct-write TFT drivers.

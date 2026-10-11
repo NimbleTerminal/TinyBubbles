@@ -8,6 +8,7 @@ import (
 	bubbles "nimbleterminal.dev/tinybubbles"
 	displaytea "nimbleterminal.dev/tinybubbles/bubbletea"
 	valuetea "nimbleterminal.dev/tinybubbles/bubbletea/value"
+	"nimbleterminal.dev/tinybubbles/layout"
 	browser "nimbleterminal.dev/tinybubbles/web"
 	"nimbleterminal.dev/tinybubbles/widgets/value"
 	"tinygo.org/x/drivers"
@@ -50,16 +51,10 @@ func (m *valueDemo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 func (m *valueDemo) CellView() *bubbles.Buffer {
 	m.buffer.Clear(bubbles.Normal)
-	w, h := m.buffer.Size()
-	view := m.picker.CellView()
-	for y := 0; y < h-1; y++ {
-		for x := 0; x < w; x++ {
-			m.buffer.Set(x, y, view.At(x, y))
-		}
-	}
-	if h > 0 {
-		m.buffer.Text(0, h-1, m.status, bubbles.Muted)
-	}
+	bounds := layout.Bounds(m.buffer)
+	body, footer := bounds.Rows(max(0, bounds.Height-1), 0)
+	layout.Draw(m.buffer, body, m.picker.CellView())
+	layout.Text(m.buffer, footer, m.status, bubbles.Muted)
 	return m.buffer
 }
 

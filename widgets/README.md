@@ -2,6 +2,7 @@
 
 Widgets share cell layouts across Bubble Tea and TinyTea. They use the display's
 font and theme. They do not draw ANSI text or own the display driver.
+Use [layout helpers](../layout/README.md) to size and compose their cell buffers.
 
 ## Scrolling list
 

@@ -86,3 +86,18 @@ func TestFocusedHelp(t *testing.T) {
 		t.Fatal("help remained disabled")
 	}
 }
+
+func TestSmallMenuLayout(t *testing.T) {
+	m := New()
+	for _, size := range [][2]int{{21, 8}, {4, 2}, {4, 1}, {0, 0}} {
+		m.Update(tea.WindowSizeMsg{Width: size[0], Height: size[1]})
+		b := m.CellView()
+		w, h := b.Size()
+		if w > 0 && h > 0 && b.At(0, 0).Rune != 'S' {
+			t.Fatal("header lost")
+		}
+		if h > 1 && b.At(0, h-1).Rune != 'C' {
+			t.Fatal("footer lost")
+		}
+	}
+}

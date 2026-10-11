@@ -51,6 +51,7 @@ firmware:
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/progress-check.elf ./internal/progresscheck
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/status-check.elf ./internal/statuscheck
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/viewport-check.elf ./internal/viewportcheck
+	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/layout-check.elf ./internal/layoutcheck
 	$(MAKE) hello-tinytea
 
 hello:

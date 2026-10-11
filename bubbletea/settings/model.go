@@ -11,6 +11,7 @@ import (
 	dialog "nimbleterminal.dev/tinybubbles/bubbletea/dialog"
 	list "nimbleterminal.dev/tinybubbles/bubbletea/list"
 	value "nimbleterminal.dev/tinybubbles/bubbletea/value"
+	"nimbleterminal.dev/tinybubbles/layout"
 	cc "nimbleterminal.dev/tinybubbles/widgets/choice"
 	dc "nimbleterminal.dev/tinybubbles/widgets/dialog"
 	lc "nimbleterminal.dev/tinybubbles/widgets/list"
@@ -76,7 +77,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if w != msg.Width || h != msg.Height {
 			m.buffer = bubbles.NewBuffer(msg.Width, msg.Height)
 		}
-		m.menu.SetSize(msg.Width, max(0, msg.Height-2))
+		_, body, _ := menuRegions(layout.Bounds(m.buffer))
+		m.menu.SetSize(body.Width, body.Height)
 		m.volume.SetSize(msg.Width, msg.Height)
 		m.sound.SetSize(msg.Width, msg.Height)
 		m.playback.SetSize(msg.Width, msg.Height)
@@ -134,18 +136,18 @@ func (m *Model) CellView() *bubbles.Buffer {
 	}
 	b := m.buffer
 	b.Clear(bubbles.Normal)
-	w, h := b.Size()
-	b.Text(0, 0, "SETTINGS", bubbles.Accent)
-	v := m.menu.CellView()
-	for y := 0; y < h-2; y++ {
-		for x := 0; x < w; x++ {
-			b.Set(x, y+1, v.At(x, y))
-		}
-	}
-	if h > 1 {
-		b.Text(0, h-1, "Choose a setting", bubbles.Muted)
-	}
+	header, body, footer := menuRegions(layout.Bounds(b))
+	layout.Text(b, header, "SETTINGS", bubbles.Accent)
+	layout.Draw(b, body, m.menu.CellView())
+	layout.Text(b, footer, "Choose a setting", bubbles.Muted)
 	return b
+}
+
+// Reserve header and footer first; the menu receives the remaining rows.
+func menuRegions(bounds layout.Rect) (header, body, footer layout.Rect) {
+	header, rest := bounds.Rows(1, 0)
+	body, footer = rest.Rows(max(0, rest.Height-1), 0)
+	return
 }
 
 // HelpMap is the Bubbles help contract without importing its terminal renderer.

@@ -53,7 +53,8 @@ make web-serve
 Open <http://127.0.0.1:8080>. This needs Go and Python 3; the build selects
 Go 1.26.8. Pick a display, pop bubbles, change colors, or pause the animation.
 The gallery includes Hello World, a scrolling menu, a value picker, a confirmation dialog, a progress bar, a status indicator, a text viewport, and a composed settings screen. See [widgets](widgets/README.md)
-for their APIs and runtime adapters.
+for their APIs and runtime adapters. Use [layout helpers](layout/README.md) to
+compose widgets into cell regions, or try **Layout playground** in the gallery.
 
 To build firmware, install **TinyGo 0.43.0 or newer**:
 
@@ -200,8 +201,8 @@ cp build/hello.gif docs/assets/hello.gif
 The next milestone is a **three-button settings menu on the Feather** with
 scrolling options, editable values, and a confirmation dialog.
 
-- [ ] **Widgets and layout:** labels and layout helpers;
-  add buffer composition and alignment helpers.
+- [x] **Layout helpers:** cell regions, padding, row/column splits, alignment,
+  and clipped buffer composition.
 - [ ] **Button interactions:** optional hold-to-repeat, long-press, and release
   events, suitable for devices with only a few buttons.
 - [ ] **TinyTea cooperative timers:** reusable ticks and delayed messages with cancellation,
