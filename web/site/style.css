@@ -141,3 +141,6 @@ footer span a { margin-left:10px; }
   footer { flex-wrap:wrap; }
 
 }
+
+.runtime-settings { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; margin-bottom:16px; font-size:12px; font-weight:600; color:#56655f; }
+.runtime-settings p { flex-basis:100%; margin:0; font-weight:400; font-size:11px; line-height:1.5; color:var(--muted); }

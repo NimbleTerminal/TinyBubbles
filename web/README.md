@@ -22,9 +22,20 @@ Pop increments the enlarged counter; Color changes palette; Pause becomes
 Resume. Color is disabled on the OLED. More reveals Quit; Restart reloads the
 program. Focus the display for Enter, Right, Escape, and Q keyboard controls.
 
+The Runtime selector switches Hello World between **Bubble Tea** and **TinyTea**.
+The URL stores `runtime=bubbletea` or `runtime=tinytea`, alongside the display
+preset. Switching reloads the page and resets the counter and animation.
+Bubble Tea is the default. TinyTea runs the real cooperative program with
+host-supplied 100 ms ticks; Bubble Tea schedules its own `tea.Tick` commands.
+Both use the same hello state, fonts, palettes, and help bindings.
+
+This is a runtime behavior comparison. The WASM binary includes both runtimes
+and the browser protocol dependencies, so its size does not represent a minimal
+TinyTea firmware build. Go versus TinyGo remains a separate compiler choice.
+
 ## How it works
 
-There are two independent output paths from one Go model:
+The Bubble Tea path has two outputs from one Go model:
 
 ```text
 hello.CellView → DisplayModel → TinyBubbles renderer → canvas Displayer
@@ -54,6 +65,19 @@ The browser explicitly opts into Terminal Actions and supplies a restricted
 key encoder. It respects application-cursor mode for arrow keys, rejects
 unsupported gestures, and clears controls when the program stops. There is no
 parallel JavaScript implementation of the counter or animation.
+
+### TinyTea bridge
+
+`tinyhello.go` adapts hello to `tinytea.Model`. It forwards state updates to the
+shared hello model, replaces its scheduled ticks with host ticks, and returns
+TinyTea's Quit command. It does not execute Bubble Tea commands or support
+arbitrary Bubble Tea models. The active runtime is also printed on the display.
+
+The WASM host registers the same Booba read/write callbacks. Callbacks enqueue
+complete gestures from this page's restricted encoder; one loop calls TinyTea's
+`Send`, `Step`, and tick handler. Booba's publisher turns the shared Bubbles help
+map into the same OSC action snapshots. Display size stays fixed. Quit stops
+ticks and clears the HTML controls through the existing page lifecycle.
 
 ## Versions and hosting
 
@@ -89,9 +113,9 @@ Generated distributions include `THIRD_PARTY_NOTICES.txt`. Dependencies retain t
 ## Adding a gallery entry
 
 `site/demos.js` lists the available demos: stable ID, category, title, description,
-control instructions, source URL, and WASM asset path. The gallery groups entries
+control instructions, source URL, supported runtimes, and WASM asset path. The gallery groups entries
 by category and links them with `?demo=<id>`, preserving the selected display.
-Unknown IDs fall back to hello. Only add demos when their WASM assets are ready.
+Unknown demo IDs fall back to hello; unsupported runtimes fall back to the entry’s default. Only add demos when their WASM assets are ready.
 
 For a new widget, add its Go entry point, build its WASM into `build/web/`, and
 register that asset in `demos.js`. Use the same compiler and runtime shim for all

@@ -3,6 +3,7 @@
 export const demos = [
   {
     id: 'hello',
+    runtimes: ['bubbletea', 'tinytea'],
     title: 'Hello, tiny world',
     category: 'Getting started',
     description: 'Animation, custom fonts, and a counter on a tiny display.',

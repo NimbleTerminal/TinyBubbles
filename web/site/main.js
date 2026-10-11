@@ -7,6 +7,29 @@ const canvas = document.getElementById('display');
 const select = document.getElementById('screen');
 const pageURL = new URL(location.href);
 const demo = demos.find(entry => entry.id === pageURL.searchParams.get('demo')) || demos[0];
+const runtimeSelect = document.getElementById('runtime');
+const runtimeInfo = {
+  bubbletea: {label:'Bubble Tea', note:'Commands and timers run through Bubble Tea’s event loop.', display:'BUBBLE TEA 2.1'},
+  tinytea: {label:'TinyTea', note:'Cooperative commands; the host supplies animation ticks.', display:'TINYTEA'},
+};
+const supportedRuntimes = demo.runtimes || ['bubbletea'];
+const requestedRuntime = pageURL.searchParams.get('runtime');
+const runtime = supportedRuntimes.includes(requestedRuntime) ? requestedRuntime : supportedRuntimes[0];
+for (const id of supportedRuntimes) {
+  const option = document.createElement('option');
+  option.value = id; option.textContent = runtimeInfo[id].label;
+  runtimeSelect.append(option);
+}
+runtimeSelect.value = runtime;
+runtimeSelect.disabled = supportedRuntimes.length === 1;
+window.tinybubblesRuntime = runtime;
+document.getElementById('runtime-note').textContent = `${runtimeInfo[runtime].note} Switching restarts the demo.`;
+document.getElementById('runtime-label').textContent = runtimeInfo[runtime].display;
+runtimeSelect.addEventListener('change', () => {
+  const url = new URL(location.href);
+  url.searchParams.set('runtime', runtimeSelect.value);
+  location.assign(url);
+});
 for (const category of new Set(demos.map(entry => entry.category))) {
   const heading = document.createElement('h2');
   heading.textContent = category;

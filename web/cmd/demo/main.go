@@ -3,8 +3,11 @@
 package main
 
 import (
+	"github.com/NimbleMarkets/go-booba/actions"
 	"image/color"
+	"sync"
 	"syscall/js"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	booba "github.com/NimbleMarkets/go-booba/wasm"
@@ -62,7 +65,13 @@ func main() {
 	case "large":
 		width, height = 320, 240
 	}
-	model, pixels, err := demo.NewDemo(newDisplay(width, height), mono)
+	display := newDisplay(width, height)
+	if js.Global().Get("tinybubblesRuntime").String() == "tinytea" {
+		err := runTiny(display, mono)
+		stopped(err)
+		select {}
+	}
+	model, pixels, err := demo.NewDemo(display, mono)
 	if err != nil {
 		panic(err)
 	}
@@ -73,11 +82,70 @@ func main() {
 		err = pixels.Err()
 	}
 	pixels.Close()
+	stopped(err)
+	// Keep the Go runtime alive after disconnect.
+	select {}
+}
+
+func stopped(err error) {
 	message := "Demo stopped. Reload to start again."
 	if err != nil {
 		message = "Demo stopped: " + err.Error()
 	}
 	js.Global().Call("tinybubblesStopped", message)
-	// Booba owns browser callbacks. Keep the Go runtime alive after disconnect.
-	select {}
+}
+
+// The JS callbacks enqueue input; only this loop operates TinyTea.
+func runTiny(display *canvasDisplay, mono bool) error {
+	input := make(chan string, 64)
+	var mu sync.Mutex
+	output := actions.QueryProgramStatus
+	session, err := demo.NewTinyDemo(display, mono, func(wire string) {
+		mu.Lock()
+		output += wire
+		mu.Unlock()
+	})
+	if err != nil {
+		return err
+	}
+	write := js.FuncOf(func(_ js.Value, args []js.Value) any {
+		if len(args) > 0 {
+			select {
+			case input <- args[0].String():
+			default:
+			}
+		}
+		return nil
+	})
+	read := js.FuncOf(func(js.Value, []js.Value) any {
+		mu.Lock()
+		defer mu.Unlock()
+		result := output
+		output = ""
+		return result
+	})
+	resize := js.FuncOf(func(js.Value, []js.Value) any { return nil })
+	js.Global().Set("bubbletea_write", write)
+	js.Global().Set("bubbletea_read", read)
+	js.Global().Set("bubbletea_resize", resize)
+	defer write.Release()
+	defer read.Release()
+	defer resize.Release()
+	if err := session.Program.Start(); err != nil {
+		return err
+	}
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+	for !session.Program.Stopped() {
+		select {
+		case value := <-input:
+			err = session.Input(value)
+		case <-ticker.C:
+			err = session.Tick()
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
