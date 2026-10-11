@@ -44,6 +44,13 @@ var (
 	ErrNilModel         = errors.New("tinybubbles: nil model")
 )
 
+// DisplayError wraps a rendering failure so a Step loop can retry it without
+// ignoring model or command errors. Unwrap preserves the original driver error.
+type DisplayError struct{ Err error }
+
+func (e *DisplayError) Error() string { return "tinybubbles: display: " + e.Err.Error() }
+func (e *DisplayError) Unwrap() error { return e.Err }
+
 // Program is single-owner: call all methods from the device's main loop, not
 // from interrupts or concurrent goroutines. Copy interrupt data into a safe
 // device-owned queue and consume it in Input.
@@ -127,7 +134,10 @@ func (p *Program) render() error {
 	if p.stopped {
 		return nil
 	}
-	return p.renderer.Render(p.model.View())
+	if err := p.renderer.Render(p.model.View()); err != nil {
+		return &DisplayError{Err: err}
+	}
+	return nil
 }
 
 // Send synchronously delivers any application message and renders. It does not
@@ -173,7 +183,8 @@ func (p *Program) Stopped() bool { return p.stopped }
 // SetTheme forces a repaint on the next Step or Send.
 func (p *Program) SetTheme(theme Theme) { p.renderer.SetTheme(theme) }
 
-// Run owns a polling loop until QuitMsg or an error. Use Step for custom scheduling.
+// Run is fail-fast: it returns on any error, including DisplayError.
+// Use a paced Step loop to retry display failures while preserving model state.
 func (p *Program) Run() error {
 	for !p.stopped {
 		if err := p.Step(); err != nil {

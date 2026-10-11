@@ -15,7 +15,9 @@ uses `WithoutRenderer()` and public model/program APIs.
   This preserves custom fonts, large glyph tiles, and the enlarged hello counter.
 - GPIO code sends `tea.KeyPressMsg` through `Program.Send`. Custom messages work
   the same way. The greeting uses real `tea.Tick` commands for animation.
-- Display errors cancel the program and are returned by `Run`.
+- Display errors cancel the program and are returned by `Run` as
+  `*tinybubbles.DisplayError`, which unwraps to the driver error. Both runtimes
+  make Run fail-fast; cooperative apps can retry through a paced Step loop.
 
 ## Build and test
 

@@ -91,9 +91,25 @@ returned, so treat it as backpressure or an application scheduling error.
 
 All program methods belong to one main loop. Do not call `Send` from an interrupt
 or a second goroutine. Transfer hardware events through a device-owned safe queue
-and consume them from `Input`. Renderer/bus errors propagate to the caller; a
-later `Step` retries the full frame. `Run` returns on errors so the application
-can choose whether to retry, report, or stop.
+and consume them from `Input`. Renderer/bus errors return as `*DisplayError`,
+which unwraps to the driver error.
+A later `Step` retries the full frame. `Run` is fail-fast, as in the Bubble Tea
+adapter. The cooperative device mains use a paced loop so a transient bus
+failure does not stop input or require a reset:
+
+```go
+for !p.Stopped() {
+    if err := p.Step(); err != nil {
+        if _, retry := err.(*bubbles.DisplayError); !retry {
+            panic(err)
+        }
+    }
+    time.Sleep(10 * time.Millisecond)
+}
+```
+
+This loop retries display failures indefinitely. Add reporting, backoff, or a
+retry limit here if the device needs it; do not ignore model or queue errors.
 
 ## Displayer and rendering
 

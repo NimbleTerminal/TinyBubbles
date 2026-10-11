@@ -108,8 +108,8 @@ func (a *DisplayModel) View() tea.View {
 		a.buffer.Text(0, 0, view.Content, bubbles.Normal)
 		cells = a.buffer
 	}
-	a.err = a.renderer.Render(cells)
-	if a.err != nil {
+	if err := a.renderer.Render(cells); err != nil {
+		a.err = &bubbles.DisplayError{Err: err}
 		a.cancel()
 	}
 	return view

@@ -109,7 +109,8 @@ func TestDisplayErrorStopsProgram(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = run(t, p)
-	if !errors.Is(err, want) {
+	var displayErr *bubbles.DisplayError
+	if !errors.As(err, &displayErr) || !errors.Is(err, want) {
 		t.Fatalf("got %v, want %v", err, want)
 	}
 }

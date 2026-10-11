@@ -52,7 +52,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err = p.Run(); err != nil {
-		panic(err)
+	// Retry transient bus failures on the next frame; keep polling buttons.
+	for !p.Stopped() {
+		if err := p.Step(); err != nil {
+			if _, retry := err.(*bubbles.DisplayError); !retry {
+				panic(err)
+			}
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }

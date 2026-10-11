@@ -1,6 +1,8 @@
 package tinybubbles
 
 import (
+	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -114,5 +116,55 @@ func TestProgramValidation(t *testing.T) {
 	}
 	if _, err := NewProgram(&testModel{}, Config{}); err == nil {
 		t.Fatal("nil display accepted")
+	}
+}
+
+func TestDisplayFailurePolicy(t *testing.T) {
+	for _, initial := range []bool{true, false} {
+		for _, rectangle := range []bool{true, false} {
+			t.Run(fmt.Sprintf("initial=%v/rectangle=%v", initial, rectangle), func(t *testing.T) {
+				d := &fillDisplay{testDisplay: newDisplay(12, 16)}
+				m := &testModel{}
+				polls := 0
+				p, err := NewProgram(m, Config{Display: d, Input: func() Msg { polls++; return "input" }})
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !initial {
+					if err := p.Start(); err != nil {
+						t.Fatal(err)
+					}
+					m.view.Set(0, 0, Cell{Rune: 'X'})
+				}
+				want := errors.New("temporary bus failure")
+				if rectangle {
+					d.fillErr = want
+				} else {
+					d.err = want
+				}
+				err = p.Run()
+				var displayErr *DisplayError
+				if !errors.As(err, &displayErr) || !errors.Is(err, want) {
+					t.Fatalf("Run must fail fast with a display error: %v", err)
+				}
+				if p.Stopped() {
+					t.Fatal("display failure discarded the running model")
+				}
+				d.fillErr, d.err = nil, nil
+				beforePolls, beforeFlushes, beforeWrites := polls, d.flushes, d.writes
+				if err := p.Step(); err != nil {
+					t.Fatal(err)
+				}
+				if polls != beforePolls+1 || d.flushes != beforeFlushes+1 || d.writes <= beforeWrites {
+					t.Fatal("Step did not poll and repaint after recovery")
+				}
+				if m.initCalls != 1 {
+					t.Fatal("recovery reran Init")
+				}
+				if err := p.Send(Quit()); err != nil || !p.Stopped() {
+					t.Fatal("quit lost after recovery", err)
+				}
+			})
+		}
 	}
 }

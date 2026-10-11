@@ -21,7 +21,7 @@ custom cell views; choosing a runtime does not limit font sizes or layout.
 | Window size | Cell dimensions from display; upstream delivery order | Cell dimensions delivered before the first view and Init command execution |
 | Main loop | `Run() (tea.Model, error)` | `Run() (tinytea.Model, error)` or Start/Step/Stopped |
 | Quit | Upstream Quit command | Quit command; directly sent QuitMsg queues shutdown for Step |
-| Errors | Adapter cancels on display failure | Synchronous errors; display retries on a later Step |
+| Errors | Run fails fast; adapter cancels on display failure | Run fails fast; a custom Step loop can retry display errors |
 | Terminal behavior | Terminal features unsupported by display backend | No terminal features |
 | Toolchains | TinyGo 0.43, Go 1.26; vendored portability patches | TinyGo 0.43; lightweight root module uses Go 1.23 language level |
 
@@ -71,6 +71,14 @@ call `Send` and check its error, then call `Step` and check its error. Stop when
 `Stopped()` is true. Interrupts must hand data to this loop rather than calling
 Send directly. Root-package `Button` press messages are translated into TinyTea
 key presses; Select maps to Enter, Back to Escape, and Quit to 'q'.
+
+Both runtimes deliberately make `Run` fail-fast. Rendering failures are wrapped
+in `*tinybubbles.DisplayError`; `errors.Is` still matches the driver error.
+Bubble Tea cancels its program on that error. Cooperative firmware examples use
+paced `Step` loops instead: they retry display errors, keep polling input, and
+panic on model or command errors. A retry redraws the full frame without
+restarting the model. Persistent display failures keep retrying every 10 ms;
+applications can add logging, backoff, or a retry limit in their device loop.
 
 Keep view methods free of state changes: view-call counts and ordering are not
 portable between runtimes.
