@@ -10,7 +10,7 @@ fork at `c397c32a5074`. The root TinyBubbles module stays Go 1.23 with no Bubble
 Tea dependency. **Each application's web module must repeat the Bubble Tea
 replace directive** because Go does not inherit dependency replacements.
 
-## Try Hello World
+## Try the gallery
 
 From the repository root:
 
@@ -18,9 +18,12 @@ From the repository root:
 make web-serve
 ```
 
-Open <http://127.0.0.1:8080>. Hello World lives in [hello](./hello), a separate
-consumer module. It shares the device model and renderer and supports Bubble Tea
-and TinyTea loops. Switching runtime restarts the demo and keeps the display
+Open <http://127.0.0.1:8080>. The gallery lives in [hello](./hello), a separate
+consumer module. It includes Hello World, layout, Settings, list, value, dialog,
+progress, status, and viewport demos. Settings includes choice pickers.
+
+Hello World It shares the device model and renderer and supports Bubble Tea
+and TinyTea loops; the other demos use Bubble Tea. Switching runtime restarts the demo and keeps the display
 preset. Both runtimes are in the browser binary, so this does not compare
 firmware sizes. `make web-tinygo` builds with TinyGo 0.43 and a 128 KiB stack.
 
@@ -144,10 +147,20 @@ in the URL; invalid values fall back to the first available entry. All models
 are compiled into the application's `app.wasm`; the selected entry tells your
 main which model to start. Sizes and presets are never duplicated in JavaScript.
 
+For a TinyBubbles demo, follow `hello/layout.go` or an existing widget demo:
+size child buffers in Update, expose a current help map, and keep rendering in
+CellView. Register its metadata and model construction in
+[hello/cmd/demo/main.go](hello/cmd/demo/main.go). Use a distinct action context
+and check both OLED and TFT presets, including disabled controls.
+
+Edit shared HTML and CSS in `internal/scaffold/files`, then rebuild the consumer.
+Generated files in `build/web` are overwritten. The shared footer includes the
+NimbleTerminal attribution and dependency notices link.
+
 ## Checks and hosting
 
 `make -C web test` from the repository root tests the harness, key encoder, and
-Hello World. Tests cover compact action IDs, the status size limit, live help
+the demo gallery. Tests cover compact action IDs, the status size limit, live help
 updates, and preserving existing scaffold files. `make ci` also builds firmware
 and Go/TinyGo WASM. CI uploads only `build/web/` for the site, not all of `build/`.
 

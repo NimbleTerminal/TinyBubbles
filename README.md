@@ -36,6 +36,8 @@ or reusable cell buffers with custom fonts, including large glyphs and counters.
 | :--- | :--- |
 | [Bubble Tea backend](bubbletea/README.md) | Real Bubble Tea v2.1 Program with a Displayer renderer. |
 | [TinyTea](RUNTIMES.md) | Optional cooperative subset with a similar model API for smaller devices. |
+| [Widgets](widgets/README.md) | Lists, value and choice pickers, dialogs, progress, status, and scrollable text. |
+| [Layout](layout/README.md) | Cell regions, padding, splits, alignment, and clipped composition. |
 | [Cell buffer](cell.go) | Reusable character grids with UTF-8 text and clipped writes. |
 | [Renderer](API.md#displayer-and-rendering) | Changed-cell drawing and optional FillRectangle acceleration. |
 | [Fonts and themes](API.md#fonts-and-themes) | TinyFont, custom glyphs, palettes, and monochrome/color defaults. |
@@ -52,9 +54,9 @@ make web-serve
 
 Open <http://127.0.0.1:8080>. This needs Go and Python 3; the build selects
 Go 1.26.8. Pick a display, pop bubbles, change colors, or pause the animation.
-The gallery includes Hello World, a scrolling menu, a value picker, a confirmation dialog, a progress bar, a status indicator, a text viewport, and a composed settings screen. See [widgets](widgets/README.md)
-for their APIs and runtime adapters. Use [layout helpers](layout/README.md) to
-compose widgets into cell regions, or try **Layout playground** in the gallery.
+Explore the [demo gallery](#demo-apps), from individual widgets to a composed
+settings screen and an interactive layout playground. Hello World also lets you
+switch between Bubble Tea and TinyTea.
 
 To build firmware, install **TinyGo 0.43.0 or newer**:
 
@@ -114,15 +116,28 @@ state and cell layouts across both runtimes.
 | Demo | Source | What it shows |
 | :--- | :--- | :--- |
 | Hello, Tiny World | [bubbletea/hello](./bubbletea/hello) | Floating bubbles, large text and counter, four palettes, and pause/resume on the Reverse TFT Feather. |
+| Layout playground | [web/hello/layout.go](web/hello/layout.go) | Responsive rows and columns, padding, gaps, and alignment. |
+| Settings | [bubbletea/settings](bubbletea/settings) | A menu combining values, choices, toggles, and confirmation. |
+| Scrolling menu | [bubbletea/list](bubbletea/list) | Selection, disabled items, and scrolling. |
+| Value picker | [bubbletea/value](bubbletea/value) | Bounded numbers with apply and cancel. |
+| Confirmation dialog | [bubbletea/dialog](bubbletea/dialog) | Safe default and one decision per prompt. |
+| Progress bar | [bubbletea/progress](bubbletea/progress) | Known totals and indeterminate activity. |
+| Status indicator | [bubbletea/status](bubbletea/status) | State symbols, labels, and optional detail. |
+| Text viewport | [bubbletea/viewport](bubbletea/viewport) | Scrollable plain text with paging. |
 | Counter | [demo](./demo/model.go) | One model adapting to a monochrome OLED or color TFT. |
 | Hello preview | [examples/hello-preview](./examples/hello-preview) | The hello demo rendered to PNG and an animated GIF with ordinary Go. |
 | Counter snapshot | [examples/snapshot](./examples/snapshot) | A desktop Displayer implementation that writes a PNG. |
+
+The first nine entries run in the browser gallery. Choice pickers appear in
+Settings. Only Hello World has a runtime selector; the other browser demos use
+Bubble Tea. All seven widgets have shared state and layouts plus adapters for
+both runtimes. See the [widget guide](widgets/README.md).
 
 ## Device Support
 
 | Device | Display | TinyGo target | Validation |
 | :--- | :--- | :--- | :--- |
-| Adafruit Reverse TFT Feather | ST7789, 240×135 | [Local target](./devices/feather-reverse-tft/target.json) | Demo confirmed on hardware |
+| Adafruit Reverse TFT Feather | ST7789, 240×135 | [Local target](./devices/feather-reverse-tft/target.json) | Hello demo confirmed on hardware |
 | Raspberry Pi Pico | SSD1306, 128×64 | `pico` | Compiled |
 | Raspberry Pi Pico 2 | SSD1306, 128×64 | `pico2` | Compiled |
 | Adafruit CLUE | ST7789, 240×240 | `clue` | Compiled |
@@ -133,6 +148,7 @@ See [adding a device](./DEVICES.md#devices-and-wiring).
 
 The default font uses 6×8 pixel cells. Two cell grids take about **2.6 KiB** on a
 128×64 OLED, **10 KiB** on a 240×135 TFT, or **24.8 KiB** on a 320×240 display.
+Composed screens also retain child buffers; viewports retain text and line offsets.
 The core renderer allocates no pixel framebuffer; display drivers may use one.
 See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
@@ -159,7 +175,7 @@ browser bundle includes both runtimes, so it does not compare firmware sizes.
 | `make web-serve` | Build and serve the interactive demo on port 8080. |
 | `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
 | `make test` | Run race-enabled Go tests with coverage and vet. |
-| `make firmware` | Compile all device examples and the ESP32-S3 core check. |
+| `make firmware` | Compile device examples and core, widget, and layout checks. |
 | `make hello` | Build the primary Bubble Tea Reverse TFT Feather firmware. |
 | `make hello-tinytea` | Build the original cooperative Feather demo. |
 | `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
@@ -175,10 +191,10 @@ There are four Go modules. Root checks do not run the nested modules' tests:
 
 | Module | Toolchain and role |
 | :--- | :--- |
-| Root | Go 1.23 language version; shared renderer and TinyTea. |
+| Root | Go 1.23 language version; renderer, widgets, layout, and TinyTea; no Bubble Tea dependency. |
 | `bubbletea/` | Go 1.26.0 and TinyGo 0.43; Bubble Tea v2.1 firmware with portability patches. |
 | `web/` | Go 1.26.8; reusable canvas, LEDs, Booba actions, and scaffold tool. |
-| `web/hello/` | Hello World consumer of the harness. TinyGo WASM uses a 128 KiB stack. |
+| `web/hello/` | Demo gallery consumer of the harness. TinyGo WASM uses a 128 KiB stack. |
 
 Other TinyGo display projects can use the [browser harness](web/README.md) without
 TinyBubbles cells or fonts. Presets come from Go; the tool generates the page
@@ -209,14 +225,13 @@ scrolling options, editable values, and a confirmation dialog.
   keeping commands short and avoiding application-specific scheduling boilerplate.
 - [x] **Interactive browser simulator:** WASM hello demo with OLED/TFT presets,
   keyboard input, and HTML controls generated from the model's help map.
-- [x] **Browser widget gallery:** Hello World, list, value, choice, dialog, progress, status, and Settings demos.
+- [x] **Browser widget gallery:** Hello World, seven widgets, Settings, and the layout playground.
 - [ ] **More widget demos:** add more composed screens.
 - [ ] **Rendering benchmarks:** measure frame time, allocations, and display writes
   on the Feather; use the results to evaluate glyph caching and batched transfers.
 - [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical
   display, including monochrome styling and button navigation.
-- [ ] **First release:** validate CI on the new repository, document any remaining
-  API limitations, and publish an initial version.
+- [ ] **First release:** document remaining API limitations and publish versioned modules.
 - [x] **Vanity imports:** use `nimbleterminal.dev/tinybubbles` for Go packages
   and `NimbleTerminal/TinyBubbles` for the GitHub repository.
 

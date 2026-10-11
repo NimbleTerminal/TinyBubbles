@@ -24,12 +24,13 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `program.go` | Original cooperative runtime used by TinyTea and older demos |
 | `demo/hello/` | Shared greeting, custom font tiles, enlarged counter |
 | `demo/model.go` | Counter used by Pico and CLUE |
-| `widgets/list/`, `widgets/value/`, `widgets/dialog/`, `widgets/choice/`, `widgets/progress/`, `widgets/status/`, `widgets/viewport/` | Shared widget state and cell layouts |
-| `bubbletea/list/`, `bubbletea/value/`, `bubbletea/dialog/`, `bubbletea/choice/`, `bubbletea/progress/`, `bubbletea/status/`, `bubbletea/viewport/` | Bubble Tea widgets and Bubbles help bindings |
-| `tinytea/list/`, `tinytea/value/`, `tinytea/dialog/`, `tinytea/choice/`, `tinytea/progress/`, `tinytea/status/`, `tinytea/viewport/` | Cooperative widget adapters |
+| `widgets/` | Shared state and cell layouts for list, value, choice, dialog, progress, status, and viewport |
+| `bubbletea/<widget>/` | Bubble Tea adapters and Bubbles help bindings |
+| `tinytea/<widget>/` | Cooperative widget adapters |
+| `bubbletea/settings/` | Composed menu, focus routing, and child command handling |
 | `devices/` | Board setup, pins, drivers, and local targets |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
-| `web/hello/` | Separate Hello World consumer module and WASM main |
+| `web/hello/` | Demo gallery consumer module, layout playground, and WASM main |
 | `examples/` | Host PNG/GIF previews |
 | `internal/` | Firmware compile checks |
 | `Makefile`, `.github/workflows/ci.yml` | Local checks and CI |
@@ -51,6 +52,8 @@ for boards, and [web/README.md](web/README.md) for the browser bridge.
 - Reuse buffers. Change application state in `Update`, not `View`.
 - Use `layout` to split cell regions and compose buffers. Size children in Update,
   clear the parent before drawing, and keep focus routing in the owning model.
+  Parents choose responsive breakpoints; layout does not infer them. See
+  [layout/README.md](layout/README.md) and `web/hello/layout.go`.
 - The renderer keeps a previous-cell grid, clips glyphs, clears stale cells,
   and flushes changed frames. Preserve retry behavior after display failures
   and support both buffered OLED and direct-write TFT drivers.
@@ -73,8 +76,8 @@ accepting more input. Dialogs default to Cancel and emit one decision until rese
 and the confirmed action. Progress bars receive counts and pulses from the parent;
 they own no timers, key bindings, or completion effects. Status indicators receive
 state and detail from the parent; keep symbols and text meaningful without color.
-Text viewports cache line boundaries, preserve plain-text spacing, and allocate
-only a visible grid. Parents bound document size and route focused input. See [widgets/README.md](widgets/README.md).
+Text viewports hard-wrap at cell boundaries, cache line offsets, preserve
+plain-text spacing, and allocate only a visible grid. They do not interpret ANSI. Parents bound document size and route focused input. See [widgets/README.md](widgets/README.md).
 
 ## Runtime rules
 
@@ -101,6 +104,11 @@ These rules apply only to TinyTea and the original root runtime:
 
 ## Browser demos
 
+The gallery includes Hello, layout, Settings, list, value, dialog, progress,
+status, and viewport demos. Settings demonstrates choice pickers. All entries
+except Hello use Bubble Tea only. New widgets have compile and browser checks;
+do not describe them as hardware-tested.
+
 Hello World has a Bubble Tea / TinyTea selector. Each selection starts the
 chosen runtime loop from scratch and preserves the display preset. The browser
 bundle includes both runtimes; do not use its size to compare firmware memory.
@@ -118,7 +126,9 @@ callbacks enqueue input. Firmware uses `make hello` or `make hello-tinytea`.
   to `io.Discard` breaks this path. `View.ProgramStatus` needs terminal rendering;
   the demo uses Booba's `bubblehelp` raw-output path instead.
 - Define actions in Bubbles key bindings used by both Update and the help map.
-  HTML buttons must follow that metadata. Keep widget behavior in Go.
+  HTML buttons must follow that metadata. Keep widget behavior in Go. Multiple
+  key aliases produce multiple buttons, so avoid redundant aliases in short help.
+  Disabled actions remain in metadata with `Enabled: false`; test that flag.
 - Supply display presets and gallery entries through Go `web.Config`. The
   shared page receives them at startup. Compile the app models into `app.wasm`
   and select one using the returned selection. Links preserve presets and reload.
@@ -160,7 +170,8 @@ compilers so `wasm_exec.js` matches the binary.
 
 Choose checks that match the change:
 
-- Core: host checks and the firmware matrix.
+- Core, widgets, and layout: host checks and the relevant firmware compile checks.
+  Widget adapters also need their nested module tests.
 - Board setup: that target's build and relevant model tests.
 - Runtime/bridge: that module's tests and affected firmware or WASM build.
 - Browser UI: inspect the page and check actions, navigation, and lifecycle.
@@ -168,7 +179,7 @@ Choose checks that match the change:
 - Docs: `make check-docs` and `git diff --check`; no firmware build or flash.
 
 Use focused tests for clipping, failed flushes, command order, debounce, and
-buffer reuse. Run `gofmt` on changed Go files. State separately what compiled,
+buffer reuse, draft/apply/cancel behavior, viewport reflow, and focus routing. Run `gofmt` on changed Go files. State separately what compiled,
 what ran in a browser or on the host, and what was confirmed on hardware.
 
 When the shared hello visuals change, refresh the README animation if needed:
