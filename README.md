@@ -143,6 +143,7 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 | Command | Purpose |
 | :--- | :--- |
+| `make ci` | Run all CI checks locally, generate previews, and build core and experimental Bubble Tea firmware. |
 | `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
 | `make test` | Run race-enabled Go tests with coverage and vet. |
 | `make firmware` | Compile all device examples and the ESP32-S3 core check. |

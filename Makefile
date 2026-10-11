@@ -1,8 +1,17 @@
 TINYGO ?= tinygo
 
-.PHONY: check check-format check-modules check-docs test firmware snapshot hello hello-preview
+.PHONY: ci check check-format check-modules check-docs test firmware snapshot hello hello-preview
 check: check-format check-modules check-docs test
 	go build ./...
+
+# Keep preparation and builds sequential, including when invoked with make -j.
+ci:
+	$(MAKE) check
+	$(MAKE) hello-preview snapshot
+	$(MAKE) firmware
+	$(MAKE) -C experimental/bubbletea prepare
+	$(MAKE) -C experimental/bubbletea test
+	$(MAKE) -C experimental/bubbletea firmware TINYGO="$(TINYGO)"
 
 check-format:
 	@files="$$(gofmt -l $$(git ls-files '*.go'))"; if [ -n "$$files" ]; then echo "Run gofmt on:"; echo "$$files"; exit 1; fi

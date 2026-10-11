@@ -91,6 +91,7 @@ Run commands from the repository root:
 ```sh
 make test           # race-enabled Go tests and vet
 make check          # formatting, modules, docs, tests, vet, and host builds
+make ci             # all CI checks, previews, and core/experimental firmware
 make firmware       # Pico, Pico 2, CLUE, ESP32-S3 check, Reverse TFT Feather
 make hello          # build/feather-reverse-tft.bin
 make hello-preview  # build/hello.png and build/hello.gif
