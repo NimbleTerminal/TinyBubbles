@@ -1,0 +1,4 @@
+{
+  "inherits": ["esp32s3-generic"],
+  "build-tags": ["feather_reverse_tft"]
+}
