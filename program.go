@@ -12,6 +12,8 @@ type Msg interface{}
 // one per Step, never in goroutines. Do not block waiting for input or timers.
 type Cmd func() Msg
 
+// Model is the original cell-view model API. New applications should use
+// Bubble Tea or the tinytea package's Bubble Tea-shaped model API.
 type Model interface {
 	Init() Cmd
 	Update(Msg) (Model, Cmd)
