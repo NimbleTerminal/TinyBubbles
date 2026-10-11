@@ -154,6 +154,8 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 ## Development
 
+See the [changelog](CHANGELOG.md) for the upcoming v0.1.0 release summary.
+
 The [browser playground](web/README.md) uses the shared Go model, fonts, and
 renderer. Booba turns the model's Bubbles help map into HTML controls: Pause
 becomes Resume, and Color is disabled on monochrome screens. Add working demos
