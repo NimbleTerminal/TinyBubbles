@@ -7,8 +7,8 @@ require (
 	charm.land/bubbletea/v2 v2.1.0
 	github.com/NimbleMarkets/go-booba v0.9.1
 	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4
-	nimbleterminal.dev/tinybubbles v0.0.0
-	nimbleterminal.dev/tinybubbles/bubbletea v0.0.0
+	nimbleterminal.dev/tinybubbles v0.1.0
+	nimbleterminal.dev/tinybubbles/bubbletea v0.1.0
 	tinygo.org/x/drivers v0.36.0
 )
 
@@ -41,7 +41,7 @@ replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-2026
 
 tool github.com/NimbleMarkets/go-booba/cmd/booba-assets
 
-require nimbleterminal.dev/tinybubbles/web v0.0.0
+require nimbleterminal.dev/tinybubbles/web v0.1.0
 
 replace nimbleterminal.dev/tinybubbles/web => ..
 

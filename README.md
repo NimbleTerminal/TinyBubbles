@@ -152,7 +152,7 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 ## Development
 
-See the [changelog](CHANGELOG.md) for the upcoming v0.1.0 release summary.
+See the [changelog](CHANGELOG.md) for the v0.1.0 release summary.
 
 The [browser playground](web/README.md) uses the shared Go model, fonts, and
 renderer. Booba turns the model's Bubbles help map into HTML controls: Pause
@@ -231,7 +231,7 @@ scrolling options, editable values, and a confirmation dialog.
   on the Feather; use the results to evaluate glyph caching and batched transfers.
 - [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical
   display, including monochrome styling and button navigation.
-- [ ] **First release:** document remaining API limitations and publish versioned modules.
+- [x] **First release:** document remaining API limitations and publish versioned modules.
 - [x] **Vanity imports:** use `nimbleterminal.dev/tinybubbles` for Go packages
   and `NimbleTerminal/TinyBubbles` for the GitHub repository.
 

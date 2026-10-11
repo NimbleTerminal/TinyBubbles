@@ -26,7 +26,7 @@ require (
 
 require (
 	charm.land/bubbles/v2 v2.1.0
-	nimbleterminal.dev/tinybubbles v0.0.0
+	nimbleterminal.dev/tinybubbles v0.1.0
 	tinygo.org/x/drivers v0.36.0
 )
 

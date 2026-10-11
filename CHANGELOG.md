@@ -7,9 +7,9 @@ release may change public APIs; the notes will say so.
 
 ## Unreleased
 
-This will become **v0.1.0**, the first release. Everything below is new, so the
-entries are grouped by area instead of by Added, Changed, and Fixed. Later
-releases will use those categories.
+## v0.1.0 — 2026-10-11
+
+First release. Entries are grouped by area.
 
 ### Runtimes
 
@@ -116,7 +116,7 @@ and each stays readable in monochrome. See the
   on the Feather, before heap and stacks. Small RP2040 and nRF52 boards have
   not been measured.
 
-### Fixes before v0.1.0
+### Reliability and shared helpers
 
 - Cooperative firmware retries transient display failures through paced Step
   loops. Both runtimes document Run as fail-fast and identify display errors.
