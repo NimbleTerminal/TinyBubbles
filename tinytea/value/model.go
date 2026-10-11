@@ -6,8 +6,8 @@ import (
 	cells "nimbleterminal.dev/tinybubbles/widgets/value"
 )
 
-type AppliedMsg struct{ Value int32 }
-type CancelledMsg struct{ Value int32 }
+type AppliedMsg = cells.AppliedMsg
+type CancelledMsg = cells.CancelledMsg
 type Model struct{ *cells.Model }
 
 func New(config cells.Config) (*Model, error) {
@@ -30,10 +30,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyRight:
 			m.Adjust(1)
 		case tea.KeyEnter:
-			event := AppliedMsg{m.Apply()}
+			event := AppliedMsg{Value: m.Apply()}
 			return m, func() tea.Msg { return event }
 		case tea.KeyEscape:
-			event := CancelledMsg{m.Cancel()}
+			event := CancelledMsg{Value: m.Cancel()}
 			return m, func() tea.Msg { return event }
 		}
 	}

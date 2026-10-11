@@ -3,6 +3,7 @@ package value
 
 import (
 	"errors"
+	"nimbleterminal.dev/tinybubbles/layout"
 	"strconv"
 
 	bubbles "nimbleterminal.dev/tinybubbles"
@@ -68,11 +69,7 @@ func (m *Model) Adjust(direction int) bool {
 func (m *Model) Apply() int32  { m.applied = m.value; return m.applied }
 func (m *Model) Cancel() int32 { m.value = m.applied; m.refresh(); return m.value }
 func (m *Model) SetSize(width, height int) {
-	width, height = max(0, width), max(0, height)
-	w, h := m.buffer.Size()
-	if w != width || h != height {
-		m.buffer = bubbles.NewBuffer(width, height)
-	}
+	m.buffer.Resize(width, height)
 }
 
 // CellView reuses its grid. Small layouts keep the value and omit extra details.
@@ -85,13 +82,13 @@ func (m *Model) CellView() *bubbles.Buffer {
 	}
 	row := 0
 	if h >= 3 {
-		center(b, 0, m.config.Label, bubbles.Accent)
+		layout.ClipText(b, layout.Rect{Y: 0, Width: w, Height: 1}, m.config.Label, bubbles.Accent, layout.Center)
 		row = h/2 - 1
 	}
 	if h >= 3 && row == 0 {
 		row = 1
 	}
-	center(b, row, m.text, bubbles.Selected)
+	layout.ClipText(b, layout.Rect{Y: row, Width: w, Height: 1}, m.text, bubbles.Selected, layout.Center)
 	if h >= 4 && w >= 3 {
 		filled := 0
 		if m.config.Max != m.config.Min {
@@ -108,37 +105,20 @@ func (m *Model) CellView() *bubbles.Buffer {
 		}
 	}
 	if h >= 6 {
-		center(b, h-2, m.bounds, bubbles.Muted)
+		layout.ClipText(b, layout.Rect{Y: h - 2, Width: w, Height: 1}, m.bounds, bubbles.Muted, layout.Center)
 	}
 	if h >= 4 {
 		state := "Applied"
 		if m.Dirty() {
 			state = "Unsaved"
 		}
-		center(b, h-1, state, bubbles.Muted)
+		layout.ClipText(b, layout.Rect{Y: h - 1, Width: w, Height: 1}, state, bubbles.Muted, layout.Center)
 	}
 	return b
 }
 
-func center(b *bubbles.Buffer, row int, text string, style bubbles.StyleID) {
-	w, _ := b.Size()
-	// Ignore controls without letting a label or unit write another row.
-	count := 0
-	for _, r := range text {
-		if r >= 32 && r != 127 {
-			count++
-		}
-	}
-	x := max(0, (w-count)/2)
-	for _, r := range text {
-		if r < 32 || r == 127 {
-			continue
-		}
-		if x >= w {
-			b.Set(w-1, row, bubbles.Cell{Rune: '.', Style: style})
-			break
-		}
-		b.Set(x, row, bubbles.Cell{Rune: r, Style: style})
-		x++
-	}
-}
+// AppliedMsg captures the result emitted by runtime adapters.
+type AppliedMsg struct{ Value int32 }
+
+// CancelledMsg captures the result emitted by runtime adapters.
+type CancelledMsg struct{ Value int32 }

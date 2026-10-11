@@ -304,3 +304,11 @@ preset and use More for top/bottom controls.
 
 The shared widget and both adapters have host tests. `make ci` also compiles
 the gallery with TinyGo 0.43 and checks the TinyTea widget adapters in firmware.
+
+## Shared implementation
+
+Widget labels use `layout.ClipText` for consistent clipping and alignment, and
+widget grids use `Buffer.Resize`. Result messages are defined in `widgets/<name>`
+and aliased by both runtime adapters. Existing adapter-qualified message names
+still work and now identify the same Go type across runtimes. Parents handling
+both runtimes should use one case for the shared type in a type switch.

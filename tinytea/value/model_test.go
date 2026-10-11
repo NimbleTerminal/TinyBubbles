@@ -15,11 +15,11 @@ func TestApplyCancel(t *testing.T) {
 	m.Update(tea.KeyPressMsg{Code: tea.KeyLeft})
 	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	m.Update(tea.KeyPressMsg{Code: tea.KeyRight})
-	if cmd().(AppliedMsg).Value != -5 {
+	if cmd().(cells.AppliedMsg).Value != -5 {
 		t.Fatal("apply changed after another key")
 	}
 	_, cmd = m.Update(tea.KeyPressMsg{Code: tea.KeyEscape})
-	if cmd().(CancelledMsg).Value != -5 || m.Value() != -5 {
+	if cmd().(cells.CancelledMsg).Value != -5 || m.Value() != -5 {
 		t.Fatal("cancel failed")
 	}
 	if _, err := New(cells.Config{}); err == nil {

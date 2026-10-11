@@ -6,7 +6,7 @@ import (
 	cells "nimbleterminal.dev/tinybubbles/widgets/dialog"
 )
 
-type ResultMsg struct{ Confirmed bool }
+type ResultMsg = cells.ResultMsg
 type Model struct{ *cells.Model }
 
 func New(config cells.Config) *Model { return &Model{cells.New(config)} }
@@ -31,7 +31,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	if resolved {
-		event := ResultMsg{result.Confirmed}
+		event := ResultMsg{Confirmed: result.Confirmed}
 		return m, func() tea.Msg { return event }
 	}
 	return m, nil

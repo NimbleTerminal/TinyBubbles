@@ -18,7 +18,7 @@ func TestDecisionCommandsAndHelp(t *testing.T) {
 		t.Fatal("duplicate result")
 	}
 	m.Reset()
-	if !cmd().(ResultMsg).Confirmed {
+	if !cmd().(cells.ResultMsg).Confirmed {
 		t.Fatal("result changed after reset")
 	}
 	if !m.Keys().Select.Enabled() {
@@ -30,7 +30,7 @@ func TestDecisionCommandsAndHelp(t *testing.T) {
 		t.Fatal("disabled binding moved selection")
 	}
 	_, cmd = m.Update(tea.KeyPressMsg{Code: tea.KeyEscape})
-	if cmd().(ResultMsg).Confirmed {
+	if cmd().(cells.ResultMsg).Confirmed {
 		t.Fatal("escape confirmed")
 	}
 }

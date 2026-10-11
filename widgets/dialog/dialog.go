@@ -3,12 +3,16 @@ package dialog
 
 import (
 	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/layout"
 	"strings"
 	"unicode/utf8"
 )
 
 type Config struct{ Title, Body, Confirm, Cancel string }
-type Result struct{ Confirmed bool }
+type ResultMsg struct{ Confirmed bool }
+
+// Result is the core confirmation result.
+type Result = ResultMsg
 
 // Model starts on Cancel and resolves at most once until Reset is called.
 type Model struct {
@@ -50,13 +54,10 @@ func (m *Model) finish(confirm bool) (Result, bool) {
 	return m.result, true
 }
 func (m *Model) SetSize(width, height int) {
-	width, height = max(0, width), max(0, height)
-	w, h := m.buffer.Size()
-	if w == width && h == height {
-		return
+	if m.buffer.Resize(width, height) {
+		w, h := m.buffer.Size()
+		m.lines = wrap(m.config.Body, w, max(0, h-3))
 	}
-	m.buffer = bubbles.NewBuffer(width, height)
-	m.lines = wrap(m.config.Body, width, max(0, height-3))
 }
 
 // CellView reserves two rows for the choices so both stay visible on an OLED.
@@ -74,14 +75,14 @@ func (m *Model) CellView() *bubbles.Buffer {
 			label = m.config.Confirm
 		}
 		b.Set(0, 0, bubbles.Cell{Rune: '>', Style: bubbles.Selected})
-		rowAt(b, 2, 0, label, bubbles.Selected)
+		layout.ClipText(b, layout.Rect{X: 2, Width: w - 2, Height: 1}, label, bubbles.Selected, layout.Start)
 		return b
 	}
 	if h >= 3 {
-		row(b, 0, m.config.Title, bubbles.Accent)
+		layout.ClipText(b, layout.Rect{Width: w, Height: 1}, m.config.Title, bubbles.Accent, layout.Start)
 	}
 	for i, line := range m.lines {
-		row(b, i+1, line, bubbles.Normal)
+		layout.ClipText(b, layout.Rect{Y: i + 1, Width: w, Height: 1}, line, bubbles.Normal, layout.Start)
 	}
 	labels := [2]string{m.config.Cancel, m.config.Confirm}
 	for i, label := range labels {
@@ -97,29 +98,9 @@ func (m *Model) CellView() *bubbles.Buffer {
 			b.Set(x, h-2+i, bubbles.Cell{Style: style})
 		}
 		b.Set(0, h-2+i, bubbles.Cell{Rune: marker, Style: style})
-		rowAt(b, 2, h-2+i, label, style)
+		layout.ClipText(b, layout.Rect{X: 2, Y: h - 2 + i, Width: w - 2, Height: 1}, label, style, layout.Start)
 	}
 	return b
-}
-func row(b *bubbles.Buffer, y int, text string, style bubbles.StyleID) {
-	rowAt(b, 0, y, text, style)
-}
-func rowAt(b *bubbles.Buffer, x, y int, text string, style bubbles.StyleID) {
-	w, _ := b.Size()
-	if x >= w {
-		return
-	}
-	for _, r := range text {
-		if r < 32 || r == 127 {
-			continue
-		}
-		if x >= w {
-			b.Set(w-1, y, bubbles.Cell{Rune: '.', Style: style})
-			break
-		}
-		b.Set(x, y, bubbles.Cell{Rune: r, Style: style})
-		x++
-	}
 }
 
 // Wrap once when sizing, keeping redraws free of text layout allocations.

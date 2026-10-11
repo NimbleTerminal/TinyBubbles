@@ -1,7 +1,10 @@
 // Package status displays a compact, text-labelled device state.
 package status
 
-import bubbles "nimbleterminal.dev/tinybubbles"
+import (
+	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/layout"
+)
 
 type State uint8
 
@@ -69,11 +72,7 @@ func (m *Model) SetStatus(state State, detail string) {
 	}
 }
 func (m *Model) SetSize(w, h int) {
-	w, h = max(0, w), max(0, h)
-	ow, oh := m.buffer.Size()
-	if w != ow || h != oh {
-		m.buffer = bubbles.NewBuffer(w, h)
-	}
+	m.buffer.Resize(w, h)
 }
 
 // CellView keeps the state first when space is tight. Detail occupies the second
@@ -85,26 +84,9 @@ func (m *Model) CellView() *bubbles.Buffer {
 	if w == 0 || h == 0 {
 		return b
 	}
-	write(b, 0, m.heading, m.Styles[m.state])
+	layout.ClipText(b, layout.Rect{Y: 0, Width: w, Height: 1}, m.heading, m.Styles[m.state], layout.Start)
 	if h > 1 {
-		write(b, 1, m.detail, bubbles.Muted)
+		layout.ClipText(b, layout.Rect{Y: 1, Width: w, Height: 1}, m.detail, bubbles.Muted, layout.Start)
 	}
 	return b
-}
-func write(b *bubbles.Buffer, y int, text string, style bubbles.StyleID) {
-	w, _ := b.Size()
-	x := 0
-	for _, r := range text {
-		if r < 32 || r == 127 {
-			continue
-		}
-		if x >= w {
-			if w > 1 {
-				b.Set(w-1, y, bubbles.Cell{Rune: '.', Style: style})
-			}
-			break
-		}
-		b.Set(x, y, bubbles.Cell{Rune: r, Style: style})
-		x++
-	}
 }

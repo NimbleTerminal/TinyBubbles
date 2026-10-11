@@ -11,7 +11,7 @@ func TestActivationAndHelp(t *testing.T) {
 	m.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	m.Move(1)
-	selected := cmd().(SelectedMsg)
+	selected := cmd().(cells.SelectedMsg)
 	if selected.Item.ID != "b" || selected.Index != 1 {
 		t.Fatal("activation did not capture selection")
 	}

@@ -1,6 +1,9 @@
 package choice
 
-import "testing"
+import (
+	"nimbleterminal.dev/tinybubbles/widgets/value"
+	"testing"
+)
 
 func TestChoices(t *testing.T) {
 	for _, c := range []Config{{}, {Options: []string{"a"}, Value: -1}, {Options: []string{"a"}, Value: 1}} {
@@ -60,6 +63,22 @@ func TestViewReuse(t *testing.T) {
 		}
 		if n := testing.AllocsPerRun(10, func() { m.CellView() }); n != 0 {
 			t.Fatalf("view allocations: %v", n)
+		}
+	}
+}
+
+func TestLabelsMatchValuePickerWithControls(t *testing.T) {
+	label := "\nA\tβ\r\x7f"
+	c, _ := New(Config{Label: label, Options: []string{"One"}})
+	v, _ := value.New(value.Config{Label: label, Min: 0, Max: 10, Step: 1})
+	for _, width := range []int{1, 2, 3, 8} {
+		c.SetSize(width, 4)
+		v.SetSize(width, 4)
+		cb, vb := c.CellView(), v.CellView()
+		for x := 0; x < width; x++ {
+			if cb.At(x, 0) != vb.At(x, 0) {
+				t.Fatalf("width %d column %d labels differ", width, x)
+			}
 		}
 	}
 }

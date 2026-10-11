@@ -6,14 +6,8 @@ import (
 	cells "nimbleterminal.dev/tinybubbles/widgets/choice"
 )
 
-type AppliedMsg struct {
-	Index int
-	Label string
-}
-type CancelledMsg struct {
-	Index int
-	Label string
-}
+type AppliedMsg = cells.AppliedMsg
+type CancelledMsg = cells.CancelledMsg
 type Model struct{ *cells.Model }
 
 func New(config cells.Config) (*Model, error) {
@@ -36,10 +30,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyRight:
 			m.Move(1)
 		case tea.KeyEnter:
-			event := AppliedMsg{m.Apply(), m.Label()}
+			event := AppliedMsg{Index: m.Apply(), Label: m.Label()}
 			return m, func() tea.Msg { return event }
 		case tea.KeyEscape:
-			event := CancelledMsg{m.Cancel(), m.Label()}
+			event := CancelledMsg{Index: m.Cancel(), Label: m.Label()}
 			return m, func() tea.Msg { return event }
 		}
 	}

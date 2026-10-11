@@ -1,7 +1,10 @@
 // Package list provides a scrolling selection list for small cell displays.
 package list
 
-import bubbles "nimbleterminal.dev/tinybubbles"
+import (
+	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/layout"
+)
 
 // Item identifies an application action. Disabled items remain visible.
 type Item struct {
@@ -44,11 +47,7 @@ func (m *Model) SetItems(items []Item) {
 }
 
 func (m *Model) SetSize(width, height int) {
-	width, height = max(0, width), max(0, height)
-	w, h := m.buffer.Size()
-	if w != width || h != height {
-		m.buffer = bubbles.NewBuffer(width, height)
-	}
+	m.buffer.Resize(width, height)
 	m.reveal()
 }
 
@@ -107,7 +106,7 @@ func (m *Model) CellView() *bubbles.Buffer {
 		return b
 	}
 	if len(m.items) == 0 {
-		line(b, 0, 0, "(empty)", width, bubbles.Muted)
+		layout.ClipText(b, layout.Rect{Width: width, Height: 1}, "(empty)", bubbles.Muted, layout.Start)
 		return b
 	}
 	textWidth := width
@@ -135,7 +134,7 @@ func (m *Model) CellView() *bubbles.Buffer {
 			marker = '-'
 		}
 		b.Set(0, y, bubbles.Cell{Rune: marker, Style: style})
-		line(b, 1, y, m.items[i].Label, textWidth, style)
+		layout.ClipText(b, layout.Rect{X: 1, Y: y, Width: textWidth - 1, Height: 1}, m.items[i].Label, style, layout.Start)
 	}
 	if scroll {
 		for y := 0; y < height; y++ {
@@ -147,19 +146,8 @@ func (m *Model) CellView() *bubbles.Buffer {
 	return b
 }
 
-func line(b *bubbles.Buffer, x, y int, text string, width int, style bubbles.StyleID) {
-	if x >= width {
-		return
-	}
-	for _, r := range text {
-		if r < 32 || r == 127 {
-			continue
-		}
-		if x >= width {
-			b.Set(width-1, y, bubbles.Cell{Rune: '.', Style: style})
-			break
-		}
-		b.Set(x, y, bubbles.Cell{Rune: r, Style: style})
-		x++
-	}
+// SelectedMsg captures the result emitted by runtime adapters.
+type SelectedMsg struct {
+	Item  Item
+	Index int
 }

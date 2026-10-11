@@ -12,7 +12,7 @@ func TestActivation(t *testing.T) {
 	m.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	m.Move(-1)
-	if cmd().(SelectedMsg).Item.ID != "b" {
+	if cmd().(cells.SelectedMsg).Item.ID != "b" {
 		t.Fatal("activation did not capture selected item")
 	}
 	m.SetItems(nil)

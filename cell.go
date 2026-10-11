@@ -28,10 +28,24 @@ type Buffer struct {
 
 // NewBuffer allocates a grid. Nonpositive dimensions produce an empty buffer.
 func NewBuffer(width, height int) *Buffer {
+	b := &Buffer{}
+	b.Resize(width, height)
+	return b
+}
+
+// Resize clears and reallocates the grid only when its dimensions change.
+// Unchanged dimensions preserve cells and allocate nothing. Nonpositive
+// dimensions normalize to an empty 0×0 grid. It reports whether the size changed.
+func (b *Buffer) Resize(width, height int) bool {
 	if width <= 0 || height <= 0 {
-		return &Buffer{}
+		width, height = 0, 0
 	}
-	return &Buffer{width: width, height: height, cells: make([]Cell, width*height)}
+	if b.width == width && b.height == height {
+		return false
+	}
+	b.width, b.height = width, height
+	b.cells = make([]Cell, width*height)
+	return true
 }
 
 func (b *Buffer) Size() (int, int) { return b.width, b.height }

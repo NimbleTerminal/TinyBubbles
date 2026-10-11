@@ -7,8 +7,8 @@ import (
 	cells "nimbleterminal.dev/tinybubbles/widgets/value"
 )
 
-type AppliedMsg struct{ Value int32 }
-type CancelledMsg struct{ Value int32 }
+type AppliedMsg = cells.AppliedMsg
+type CancelledMsg = cells.CancelledMsg
 type KeyMap struct{ Decrease, Increase, Apply, Cancel key.Binding }
 
 func DefaultKeys() KeyMap {
@@ -54,10 +54,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Increase):
 			m.Adjust(1)
 		case key.Matches(msg, keys.Apply):
-			event := AppliedMsg{m.Apply()}
+			event := AppliedMsg{Value: m.Apply()}
 			return m, func() tea.Msg { return event }
 		case key.Matches(msg, keys.Cancel):
-			event := CancelledMsg{m.Cancel()}
+			event := CancelledMsg{Value: m.Cancel()}
 			return m, func() tea.Msg { return event }
 		}
 	}

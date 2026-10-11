@@ -9,10 +9,7 @@ import (
 )
 
 // SelectedMsg reports activation, separate from moving the highlight.
-type SelectedMsg struct {
-	Item  cells.Item
-	Index int
-}
+type SelectedMsg = cells.SelectedMsg
 
 type KeyMap struct{ Previous, Next, Select key.Binding }
 

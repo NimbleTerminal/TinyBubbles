@@ -3,8 +3,8 @@ package choice
 
 import (
 	"errors"
+	"nimbleterminal.dev/tinybubbles/layout"
 	"strconv"
-	"unicode/utf8"
 
 	bubbles "nimbleterminal.dev/tinybubbles"
 )
@@ -73,11 +73,7 @@ func (m *Model) Move(direction int) bool {
 func (m *Model) Apply() int  { m.applied = m.value; return m.value }
 func (m *Model) Cancel() int { m.value = m.applied; m.refresh(); return m.value }
 func (m *Model) SetSize(w, h int) {
-	w, h = max(0, w), max(0, h)
-	oldW, oldH := m.buffer.Size()
-	if w != oldW || h != oldH {
-		m.buffer = bubbles.NewBuffer(w, h)
-	}
+	m.buffer.Resize(w, h)
 }
 func (m *Model) CellView() *bubbles.Buffer {
 	b := m.buffer
@@ -88,34 +84,31 @@ func (m *Model) CellView() *bubbles.Buffer {
 	}
 	row := 0
 	if h >= 3 {
-		center(b, 0, m.label, bubbles.Accent)
+		layout.ClipText(b, layout.Rect{Y: 0, Width: w, Height: 1}, m.label, bubbles.Accent, layout.Center)
 		row = max(1, h/2-1)
 	}
-	center(b, row, m.Label(), bubbles.Selected)
+	layout.ClipText(b, layout.Rect{Y: row, Width: w, Height: 1}, m.Label(), bubbles.Selected, layout.Center)
 	if h >= 5 {
-		center(b, row+1, m.position, bubbles.Muted)
+		layout.ClipText(b, layout.Rect{Y: row + 1, Width: w, Height: 1}, m.position, bubbles.Muted, layout.Center)
 	}
 	if h >= 4 {
 		status := "Applied"
 		if m.Dirty() {
 			status = "Unsaved"
 		}
-		center(b, h-1, status, bubbles.Muted)
+		layout.ClipText(b, layout.Rect{Y: h - 1, Width: w, Height: 1}, status, bubbles.Muted, layout.Center)
 	}
 	return b
 }
-func center(b *bubbles.Buffer, y int, text string, style bubbles.StyleID) {
-	w, _ := b.Size()
-	x := max(0, (w-utf8.RuneCountInString(text))/2)
-	for _, r := range text {
-		if r < 32 || r == 127 {
-			continue
-		}
-		if x >= w {
-			b.Set(w-1, y, bubbles.Cell{Rune: '.', Style: style})
-			break
-		}
-		b.Set(x, y, bubbles.Cell{Rune: r, Style: style})
-		x++
-	}
+
+// AppliedMsg captures the result emitted by runtime adapters.
+type AppliedMsg struct {
+	Index int
+	Label string
+}
+
+// CancelledMsg captures the result emitted by runtime adapters.
+type CancelledMsg struct {
+	Index int
+	Label string
 }

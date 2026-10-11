@@ -6,10 +6,7 @@ import (
 	cells "nimbleterminal.dev/tinybubbles/widgets/list"
 )
 
-type SelectedMsg struct {
-	Item  cells.Item
-	Index int
-}
+type SelectedMsg = cells.SelectedMsg
 type Model struct{ *cells.Model }
 
 func New(items []cells.Item) *Model { return &Model{cells.New(items)} }

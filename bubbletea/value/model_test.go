@@ -18,11 +18,11 @@ func TestKeysAndCapturedEvents(t *testing.T) {
 	}
 	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	m.Adjust(-1)
-	if cmd().(AppliedMsg).Value != 10 {
+	if cmd().(cells.AppliedMsg).Value != 10 {
 		t.Fatal("apply did not capture value")
 	}
 	_, cmd = m.Update(tea.KeyPressMsg{Code: tea.KeyEscape})
-	if cmd().(CancelledMsg).Value != 10 || m.Value() != 10 {
+	if cmd().(cells.CancelledMsg).Value != 10 || m.Value() != 10 {
 		t.Fatal("cancel did not restore")
 	}
 	m.SetValue(0)

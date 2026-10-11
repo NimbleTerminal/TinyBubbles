@@ -54,6 +54,11 @@ are supported. Buffers must not be mutated concurrently.
 to the next row; carriage returns reset the column. Other ASCII controls are
 ignored. Text does not wrap automatically; use the viewport for wrapped content.
 
+`ClipText(destination, region, text, style, alignment)` draws one line and skips
+ASCII controls, including newlines. Alignment uses only visible runes. Overflow
+ends in a dot; a one-cell region keeps the first rune so status symbols remain
+useful. Use this helper for widget labels rather than separate clipping loops.
+
 Clear the parent before each composition to remove stale content. Keep and reuse
 child buffers; these helpers create none. Each existing grid still costs about
 eight bytes per cell, and the renderer has its own grid. Clipping a child into a

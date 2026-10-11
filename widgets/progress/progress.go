@@ -3,6 +3,7 @@ package progress
 
 import (
 	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/layout"
 	"strconv"
 )
 
@@ -56,10 +57,7 @@ func (m *Model) Advance() {
 	}
 }
 func (m *Model) SetSize(w, h int) {
-	w, h = max(0, w), max(0, h)
-	ow, oh := m.buffer.Size()
-	if w != ow || h != oh {
-		m.buffer = bubbles.NewBuffer(w, h)
+	if m.buffer.Resize(w, h) {
 		m.phase = 0
 	}
 }
@@ -80,7 +78,7 @@ func (m *Model) CellView() *bubbles.Buffer {
 	}
 	row := 0
 	if h >= 3 {
-		write(b, 0, m.label, bubbles.Accent)
+		layout.ClipText(b, layout.Rect{Y: 0, Width: w, Height: 1}, m.label, bubbles.Accent, layout.Start)
 		row = h / 2
 	}
 	n, start := innerWidth(w), 0
@@ -105,22 +103,7 @@ func (m *Model) CellView() *bubbles.Buffer {
 		b.Set(start+x, row, bubbles.Cell{Rune: r, Style: style})
 	}
 	if h >= 2 {
-		write(b, row+1, m.text, bubbles.Normal)
+		layout.ClipText(b, layout.Rect{Y: row + 1, Width: w, Height: 1}, m.text, bubbles.Normal, layout.Start)
 	}
 	return b
-}
-func write(b *bubbles.Buffer, y int, text string, style bubbles.StyleID) {
-	w, _ := b.Size()
-	x := 0
-	for _, r := range text {
-		if r < 32 || r == 127 {
-			continue
-		}
-		if x >= w {
-			b.Set(w-1, y, bubbles.Cell{Rune: '.', Style: style})
-			break
-		}
-		b.Set(x, y, bubbles.Cell{Rune: r, Style: style})
-		x++
-	}
 }

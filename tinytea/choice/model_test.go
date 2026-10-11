@@ -11,11 +11,11 @@ func TestCaptureAndHelp(t *testing.T) {
 	m.Update(tea.KeyPressMsg{Code: tea.KeyRight})
 	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	m.Move(1)
-	if got := cmd().(AppliedMsg); got.Index != 1 || got.Label != "On" {
+	if got := cmd().(cells.AppliedMsg); got.Index != 1 || got.Label != "On" {
 		t.Fatal(got)
 	}
 	_, cmd = m.Update(tea.KeyPressMsg{Code: tea.KeyEscape})
-	if got := cmd().(CancelledMsg); got.Index != 1 || m.Value() != 1 {
+	if got := cmd().(cells.CancelledMsg); got.Index != 1 || m.Value() != 1 {
 		t.Fatal(got)
 	}
 }

@@ -127,3 +127,35 @@ func Text(dst *bubbles.Buffer, region Rect, text string, style bubbles.StyleID) 
 		}
 	}
 }
+
+// ClipText draws one line, ignoring ASCII controls (including newline and DEL).
+// Each remaining rune occupies one cell. Overflow replaces the last cell with
+// a dot; width one preserves the first rune. Alignment counts only displayed runes. It allocates
+// nothing and leaves cells outside the text unchanged.
+func ClipText(dst *bubbles.Buffer, region Rect, text string, style bubbles.StyleID, align Alignment) {
+	if dst == nil || region.Width <= 0 || region.Height <= 0 {
+		return
+	}
+	count := 0
+	for _, r := range text {
+		if r >= 32 && r != 127 {
+			count++
+		}
+	}
+	width := min(count, region.Width)
+	x := region.X + offset(region.Width-width, align)
+	end := x + width
+	for _, r := range text {
+		if r < 32 || r == 127 {
+			continue
+		}
+		if x >= end {
+			break
+		}
+		if region.Width > 1 && count > region.Width && x == end-1 {
+			r = '.'
+		}
+		dst.Set(x, region.Y, bubbles.Cell{Rune: r, Style: style})
+		x++
+	}
+}

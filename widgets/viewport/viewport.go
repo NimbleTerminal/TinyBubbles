@@ -77,16 +77,14 @@ func (m *Model) GotoBottom() { m.offset = m.limit() }
 // SetSize uses cells. Reflow keeps the old top line's first character visible,
 // then clamps to the final page. A column is reserved for the scrollbar at widths >=2.
 func (m *Model) SetSize(w, h int) {
-	w, h = max(0, w), max(0, h)
-	if w == m.width && h == m.height {
+	if !m.buffer.Resize(w, h) {
 		return
 	}
 	anchor := 0
 	if len(m.lines) > 0 {
 		anchor = m.lines[m.offset].start
 	}
-	m.width, m.height = w, h
-	m.buffer = bubbles.NewBuffer(w, h)
+	m.width, m.height = m.buffer.Size()
 	m.layout(anchor)
 }
 func (m *Model) layout(anchor int) {

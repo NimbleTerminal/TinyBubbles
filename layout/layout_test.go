@@ -91,3 +91,40 @@ func TestTextAndAllocations(t *testing.T) {
 		t.Fatal(n)
 	}
 }
+
+func TestClipText(t *testing.T) {
+	for _, tc := range []struct {
+		text  string
+		width int
+		align Alignment
+		want  string
+	}{
+		{"ab", 1, Start, "a"}, {"abcd", 3, Start, "ab."}, {"abc", 3, Start, "abc"},
+		{"\nA\tβ\r\x7f", 6, Center, "  Aβ  "}, {"A", 4, End, "   A"},
+		{"\n\t", 3, Center, "   "}, {"abc", 0, Start, ""},
+	} {
+		b := bubbles.NewBuffer(8, 2)
+		ClipText(b, Rect{X: 1, Width: tc.width, Height: 1}, tc.text, bubbles.Accent, tc.align)
+		got := ""
+		for x := 1; x <= tc.width; x++ {
+			c := b.At(x, 0)
+			r := c.Rune
+			if r == 0 {
+				r = ' '
+			} else if c.Style != bubbles.Accent {
+				t.Fatal("style lost")
+			}
+			got += string(r)
+		}
+		if got != tc.want {
+			t.Fatalf("%q width %d: %q want %q", tc.text, tc.width, got, tc.want)
+		}
+		if b.At(0, 0).Rune != 0 || b.At(0, 1).Rune != 0 {
+			t.Fatal("wrote outside line")
+		}
+	}
+	b := bubbles.NewBuffer(8, 2)
+	if n := testing.AllocsPerRun(100, func() { ClipText(b, Bounds(b), "a\tb", bubbles.Normal, Center) }); n != 0 {
+		t.Fatal(n)
+	}
+}
