@@ -7,7 +7,7 @@ prepare:
 	go mod vendor
 	python3 prepare.py
 
-test:
+test: prepare
 	go test -race ./...
 
 firmware: prepare

@@ -9,7 +9,6 @@ ci:
 	$(MAKE) check
 	$(MAKE) hello-preview snapshot
 	$(MAKE) firmware
-	$(MAKE) -C bubbletea prepare
 	$(MAKE) -C bubbletea test
 	$(MAKE) -C bubbletea firmware TINYGO="$(TINYGO)"
 	$(MAKE) -C web test build
