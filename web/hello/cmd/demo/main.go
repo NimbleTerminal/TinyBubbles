@@ -32,7 +32,7 @@ func main() {
 		Demos: []browser.Demo{{ID: "hello", Title: "Hello, tiny world", Description: "Animation, custom fonts, and a counter on a tiny display.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/hello", Runtimes: []browser.Runtime{
 			{ID: "bubbletea", Label: "Bubble Tea", Description: "Commands and timers run through Bubble Tea’s event loop."},
 			{ID: "tinytea", Label: "TinyTea", Description: "Cooperative commands; the host supplies animation ticks."},
-		}}, {ID: "list", Title: "Scrolling menu", Description: "A small-screen list with selection, disabled items, and wraparound navigation.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/list"}, {ID: "value", Title: "Value picker", Description: "Adjust a bounded setting, apply it, or cancel changes.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/value"}},
+		}}, {ID: "settings", Title: "Settings", Description: "Compose a menu, volume, on/off and playback choices, and a reset dialog.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/settings"}, {ID: "list", Title: "Scrolling menu", Description: "A small-screen list with selection, disabled items, and wraparound navigation.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/list"}, {ID: "value", Title: "Value picker", Description: "Adjust a bounded setting, apply it, or cancel changes.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/value"}, {ID: "dialog", Title: "Confirmation dialog", Description: "A small-screen prompt with a safe default and one result per decision.", Source: "https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/dialog"}},
 	})
 	display := browser.NewCanvasDisplay("display", selected.Screen.Width, selected.Screen.Height)
 	if selected.Runtime.ID == "tinytea" {
@@ -45,6 +45,10 @@ func main() {
 		newDemo = demo.NewListDemo
 	case "value":
 		newDemo = demo.NewValueDemo
+	case "settings":
+		newDemo = demo.NewSettingsDemo
+	case "dialog":
+		newDemo = demo.NewDialogDemo
 	}
 	model, pixels, err := newDemo(display, selected.Screen.Monochrome)
 	if err != nil {

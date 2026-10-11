@@ -46,6 +46,8 @@ firmware:
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/esp32s3-check.elf ./internal/compilecheck
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/tinytea-check.elf ./internal/tinyteacheck
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/value-check.elf ./internal/valuecheck
+	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/dialog-check.elf ./internal/dialogcheck
+	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/choice-check.elf ./internal/choicecheck
 	$(MAKE) hello-tinytea
 
 hello:

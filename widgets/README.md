@@ -104,14 +104,94 @@ The grid is reused while drawing. Number strings are cached outside
 `CellView`, which allocates nothing. The cell grid uses about eight bytes per
 cell, plus the renderer's own grid.
 
+## Confirmation dialog
+
+The dialog asks for a decision with two choices. It defaults to Cancel, wraps
+the prompt, and keeps both choices visible in separate rows on a small display.
+
+```go
+import (
+    dialogtea "nimbleterminal.dev/tinybubbles/bubbletea/dialog"
+    "nimbleterminal.dev/tinybubbles/widgets/dialog"
+)
+
+prompt := dialogtea.New(dialog.Config{
+    Title: "Reset settings?",
+    Body: "Restore the default volume and brightness?",
+    Confirm: "Reset", Cancel: "Keep settings",
+})
+```
+
+Forward messages and return the command. The parent handles
+`dialogtea.ResultMsg{Confirmed: ...}` and performs any confirmed action.
+Left or Right changes the selected choice, Enter resolves it, and Escape always
+cancels. The short help map exposes Next, Select, and Cancel for three-button
+navigation. The Bubble Tea `KeyMap` is configurable.
+
+A decision sets `Done()` immediately and disables all dialog bindings. Further
+input produces no second result. `Reset()` reopens the prompt with Cancel
+selected; it preserves the text and size. Result commands capture the decision,
+so resetting does not change an already returned command. The parent should
+consume the result before reopening the dialog.
+
+Give the dialog the focused input while it is open. It provides its own cell
+view; the parent owns any overlay, screen transition, or background view.
+The widget never resets hardware or writes settings itself.
+
+Use at least four cell rows for a title, prompt, and both choices. Body text
+wraps at words, splits long words at rune boundaries, and truncates with a dot
+when it runs out of rows. Whitespace in the body is collapsed. Shorter layouts
+prioritize choices; a one-row layout shows only the selected choice. Check that
+important prompt text fits your smallest supported display.
+
+The core is `widgets/dialog`. `tinytea/dialog` uses the same state and rendering
+with fixed Left/Right/Enter/Escape keys and a TinyTea `ResultMsg`. Text layout is
+cached when the size changes, and `CellView` allocates nothing. The dialog owns
+one cell grid plus its wrapped text; the renderer owns another grid.
+
+## Choice picker and toggles
+
+`widgets/choice` edits an index into a fixed set of named options. Left and Right
+wrap, Enter applies, and Escape restores the applied option. Use
+`bubbletea/choice.New(choice.Config{Label: "Playback", Options: []string{"Single",
+"Repeat", "Shuffle"}, Value: 0})` and check its error. Options must be nonempty
+and the initial index must be valid. Construction copies the options.
+
+`Value()` and `Applied()` return indices; `Label()` returns the draft option text.
+`SetValue(index)` replaces both values and returns false for an invalid index.
+The adapter emits `AppliedMsg` or `CancelledMsg` with the captured `Index` and
+`Label`. It exposes configurable bindings through `KeyMap` and `Keys()`; a single
+option disables navigation. For a toggle, use options `Off` and `On`. The core
+also offers `NewToggle(label, enabled)`.
+
+`tinytea/choice` supplies the same messages with fixed keys and no Bubbles help.
+Rendering uses one reused grid, clips long labels, and allocates nothing in
+`CellView`. Labels use the display font, including its glyph limitations.
+
+## Composing a settings screen
+
+[bubbletea/settings](../bubbletea/settings/model.go) combines the list, value
+picker, choice picker, and dialog. The parent forwards input only to the focused
+widget and exposes that widget's help bindings. Selecting a menu item opens its
+editor; Apply or Cancel returns to the same menu selection. Input waits until a
+child's result command is consumed, preventing repeated presses from crossing
+screen transitions. Reset defaults asks for confirmation and starts on Cancel.
+
+`settings.New()` implements `tea.Model` and `CellView`; `Values()` returns a copy
+of the applied settings. This is an in-memory example: it does not write storage
+or change hardware. Each child retains a cell grid, so composition uses more RAM
+than a single widget. Device apps can create editors on demand to reduce memory.
+
 ## Try it
 
 Run `make web-serve` and choose **Scrolling menu** in the gallery. Try the
 128×64 OLED preset to see scrolling, then the TFT presets for longer labels.
 The demo reports the chosen item rather than opening settings screens.
 Choose **Value picker** to adjust a volume setting, apply it, and cancel edits.
-The picker is a UI demo and does not control audio. Both widget demos run Bubble
-Tea; Hello World retains its runtime selector.
+The picker is a UI demo and does not control audio. Choose **Confirmation dialog**
+to confirm or cancel a mock settings reset. Choose **Settings** to try all four
+widgets together, including on/off and playback choices. The widget demos run Bubble Tea;
+Hello World retains its runtime selector.
 
 The shared widget and both adapters have host tests. `make ci` also compiles
-the gallery with TinyGo 0.43 and checks both TinyTea adapters in firmware.
+the gallery with TinyGo 0.43 and checks the TinyTea widget adapters in firmware.
