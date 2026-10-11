@@ -7,8 +7,11 @@ shared example models, board entry points, and ordinary-Go preview tools.
 
 ## Where this fits
 
-- Bubble Tea supplies the architectural inspiration. TinyBubbles does not import
-  Bubble Tea and does not implement terminal I/O, ANSI output, or terminal events.
+- Bubble Tea supplies the architectural inspiration. The core does not import
+  Bubble Tea or implement terminal I/O. `experimental/bubbletea` is a separate
+  module targeting real Bubble Tea v2.1.0 with TinyGo 0.43 and Go 1.26. Read its
+  README before changing it; regenerate its ignored vendor tree with `make prepare`.
+  Keep its terminal portability patches and dependencies out of the core.
 - tinyterm is a terminal renderer/emulator; TinyBubbles owns an application loop
   and cell views. ANSI parsing is currently outside the implementation.
 - tinypod supplies the precedent for Config plus separate device mains. Keep

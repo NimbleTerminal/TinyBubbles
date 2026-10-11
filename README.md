@@ -43,6 +43,10 @@ one program. The core has no terminal, ANSI, OS, or board-specific imports.
 See the [API guide](./API.md), [device guide](./DEVICES.md), and
 [hello demo instructions](./devices/feather-reverse-tft/README.md).
 
+An optional [Bubble Tea v2.1 experiment](experimental/bubbletea/README.md) runs
+Bubble Tea's actual program loop with this display renderer, including custom
+font sizes. It uses a separate module and bare-metal portability patches.
+
 ## Quickstart
 
 Requires **TinyGo v0.43.0 or newer** and a Go installation supported by your
@@ -154,9 +158,10 @@ Pico, Pico 2, CLUE, the ESP32-S3 core check, and the Reverse TFT Feather with
 14 days. CI validates builds; it does not flash connected hardware or publish
 releases. `make check` also requires Python 3 for local documentation checks.
 
-The module declares Go 1.23 language compatibility and pins drivers v0.36.0 and
-TinyFont v0.7.0. TinyBubbles uses the TEA architecture but does not depend on
-Bubble Tea or accept ANSI views. To port a terminal model, use buffer writes and
+The core module declares Go 1.23 language compatibility and pins drivers v0.36.0 and
+TinyFont v0.7.0. The core uses the TEA architecture without depending on
+Bubble Tea or accepting ANSI views. The separate Bubble Tea experiment has its
+own host tests and Feather firmware CI job. To port a terminal model, use buffer writes and
 palette styles in `View`; see the [rendering guide](./API.md#displayer-and-rendering).
 
 To refresh the README animation after a demo change:
