@@ -23,9 +23,9 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `program.go` | Original cooperative runtime used by TinyTea and older demos |
 | `demo/hello/` | Shared greeting, custom font tiles, enlarged counter |
 | `demo/model.go` | Counter used by Pico and CLUE |
-| `widgets/list/`, `widgets/value/`, `widgets/dialog/`, `widgets/choice/`, `widgets/progress/`, `widgets/status/` | Shared widget state and cell layouts |
-| `bubbletea/list/`, `bubbletea/value/`, `bubbletea/dialog/`, `bubbletea/choice/`, `bubbletea/progress/`, `bubbletea/status/` | Bubble Tea widgets and Bubbles help bindings |
-| `tinytea/list/`, `tinytea/value/`, `tinytea/dialog/`, `tinytea/choice/`, `tinytea/progress/`, `tinytea/status/` | Cooperative widget adapters |
+| `widgets/list/`, `widgets/value/`, `widgets/dialog/`, `widgets/choice/`, `widgets/progress/`, `widgets/status/`, `widgets/viewport/` | Shared widget state and cell layouts |
+| `bubbletea/list/`, `bubbletea/value/`, `bubbletea/dialog/`, `bubbletea/choice/`, `bubbletea/progress/`, `bubbletea/status/`, `bubbletea/viewport/` | Bubble Tea widgets and Bubbles help bindings |
+| `tinytea/list/`, `tinytea/value/`, `tinytea/dialog/`, `tinytea/choice/`, `tinytea/progress/`, `tinytea/status/`, `tinytea/viewport/` | Cooperative widget adapters |
 | `devices/` | Board setup, pins, drivers, and local targets |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
 | `web/hello/` | Separate Hello World consumer module and WASM main |
@@ -69,7 +69,9 @@ Choice pickers use the same draft/apply/cancel pattern for named options.
 accepting more input. Dialogs default to Cancel and emit one decision until reset. Parents own focus
 and the confirmed action. Progress bars receive counts and pulses from the parent;
 they own no timers, key bindings, or completion effects. Status indicators receive
-state and detail from the parent; keep symbols and text meaningful without color. See [widgets/README.md](widgets/README.md).
+state and detail from the parent; keep symbols and text meaningful without color.
+Text viewports cache line boundaries, preserve plain-text spacing, and allocate
+only a visible grid. Parents bound document size and route focused input. See [widgets/README.md](widgets/README.md).
 
 ## Runtime rules
 

@@ -249,6 +249,42 @@ allocates nothing; the grid uses about eight bytes per cell.
 to add semantic colors. The browser demo uses green, amber, and red for Ready,
 Warning, and Error on color displays. These colors supplement the text.
 
+## Text viewport
+
+`widgets/viewport` displays a scrollable plain-text document. It preserves blank
+lines and indentation, wraps at rune boundaries, and reserves the rightmost
+column for a scrollbar when the width is at least two cells. It does not parse
+ANSI, wrap at words, or support horizontal scrolling. Each rune occupies one cell.
+
+```go
+import viewporttea "nimbleterminal.dev/tinybubbles/bubbletea/viewport"
+
+view := viewporttea.New("Device information\n\nFirmware ready.")
+```
+
+Forward size and key messages to the focused viewport. Up/Down scroll one row;
+Left/Right move a page with one row of overlap. Home/End
+jump to the top/bottom. `KeyMap` is configurable, and `Keys()` disables actions
+at the boundaries. Scrolling clamps and never wraps. Parents own Back and Quit;
+three-button devices can use Up, Down, and Back.
+
+`SetContent(text)` replaces the document and returns to the top. CRLF becomes a
+newline, tabs become four spaces, and other ASCII controls are removed. It is
+not a terminal emulator or a bounded log store: parents must limit retained text.
+`Scroll(rows)`, `Page(direction)`, `GotoTop()`, and `GotoBottom()` also work without
+a runtime. `Offset()` reports the first visible wrapped row; `TotalLines()` counts
+wrapped rows. `AtTop()` and `AtBottom()` report navigation boundaries.
+
+Resizing reflows text and keeps the previous top line's first character visible
+where possible, then clamps to the final page. A zero-size viewport cannot scroll.
+`tinytea/viewport` supports fixed Up/Down and Left/Right keys; Home/End and Bubbles
+help bindings are available through the Bubble Tea adapter only.
+
+Content and size changes cache line boundaries. Scrolling and `CellView` allocate
+nothing. Memory includes normalized UTF-8 text, two integers per wrapped row
+(about eight bytes per row on 32-bit targets), and one visible cell grid. The
+renderer owns a second grid. No grid is allocated for offscreen content.
+
 ## Try it
 
 Run `make web-serve` and choose **Scrolling menu** in the gallery. Try the
@@ -262,6 +298,8 @@ Hello World retains its runtime selector. **Progress bar** simulates a load with
 Pause/Resume, Start over, and Known/Unknown total controls. Its timer belongs to
 the demo; switching browser tabs can slow it down. **Status indicator** cycles
 through simulated connection states; it does not read real network status.
+**Text viewport** contains a device guide and sample log; try paging on the OLED
+preset and use More for top/bottom controls.
 
 The shared widget and both adapters have host tests. `make ci` also compiles
 the gallery with TinyGo 0.43 and checks the TinyTea widget adapters in firmware.
