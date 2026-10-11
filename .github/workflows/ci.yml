@@ -15,7 +15,10 @@ jobs:
   web-tinygo:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    container: tinygo/tinygo:0.43.0
+    container:
+      image: tinygo/tinygo:0.43.0
+      # Actions writes runner-mounted files; the image defaults to a different UID.
+      options: --user 0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -80,7 +83,10 @@ jobs:
   firmware:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    container: tinygo/tinygo:0.43.0
+    container:
+      image: tinygo/tinygo:0.43.0
+      # Actions writes runner-mounted files; the image defaults to a different UID.
+      options: --user 0
     steps:
       - uses: actions/checkout@v4
       - name: Build all firmware with the minimum supported TinyGo
@@ -101,7 +107,10 @@ jobs:
   bubbletea:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    container: tinygo/tinygo:0.43.0
+    container:
+      image: tinygo/tinygo:0.43.0
+      # Actions writes runner-mounted files; the image defaults to a different UID.
+      options: --user 0
     defaults:
       run:
         working-directory: bubbletea
