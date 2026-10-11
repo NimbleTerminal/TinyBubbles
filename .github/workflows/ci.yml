@@ -20,10 +20,10 @@ jobs:
       # Actions writes runner-mounted files; the image defaults to a different UID.
       options: --user 0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trust the mounted checkout for TinyGo VCS stamping
         run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26.8'
           cache-dependency-path: |
@@ -33,7 +33,7 @@ jobs:
         run: apt-get update && apt-get install -y --no-install-recommends python3
       - name: Build TinyGo WASM site
         run: make web-tinygo
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: web-demo-tinygo
           path: build/web/
@@ -43,19 +43,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26.8'
           cache-dependency-path: |
             web/go.sum
             web/hello/go.sum
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
       - name: Test browser bridge and build WASM site
         run: make -C web test build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: web-demo
           path: build/web/
@@ -65,15 +65,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26.x'
       - name: Check formatting, modules, docs, tests, and host builds
         run: make check
       - name: Render desktop demos
         run: make hello-preview snapshot
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: demo-previews
           path: |
@@ -90,12 +90,12 @@ jobs:
       # Actions writes runner-mounted files; the image defaults to a different UID.
       options: --user 0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trust the mounted checkout for TinyGo VCS stamping
         run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - name: Build all firmware with the minimum supported TinyGo
         run: make firmware
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: firmware
           path: |
@@ -119,10 +119,10 @@ jobs:
       run:
         working-directory: bubbletea
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trust the mounted checkout for TinyGo VCS stamping
         run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26.0'
           cache-dependency-path: bubbletea/go.sum
@@ -132,7 +132,7 @@ jobs:
         run: make prepare test
       - name: Build Bubble Tea Feather firmware
         run: make firmware
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bubbletea
           path: build/bubbletea-feather.bin
