@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,7 +12,7 @@ import (
 )
 
 func main() {
-	force := flag.Bool("force", false, "replace existing generated files")
+	force := flag.Bool("force", false, "replace generated files and prune obsolete assets")
 	assets := flag.Bool("assets", false, "build page, Booba assets, and license notices")
 	module := flag.String("module", "", "create a Go module for a new app")
 	local := flag.String("local-harness", "", "local harness module directory for --module")
@@ -84,21 +83,5 @@ func run(target string, force, assets bool) error {
 			return err
 		}
 	}
-	return filepath.WalkDir(stage, func(path string, entry fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if entry.IsDir() {
-			return nil
-		}
-		name, err := filepath.Rel(stage, path)
-		if err != nil {
-			return err
-		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		return scaffold.WriteFile(filepath.Join(target, name), data, force)
-	})
+	return publishAssets(stage, target, force)
 }

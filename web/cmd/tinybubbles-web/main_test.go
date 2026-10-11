@@ -47,3 +47,53 @@ func TestForcePreservesConsumerModule(t *testing.T) {
 		t.Fatalf("force did not refresh the page: %v", err)
 	}
 }
+
+func TestAssetRefreshPrunesOnlyHarnessFiles(t *testing.T) {
+	stage, target := t.TempDir(), t.TempDir()
+	write := func(dir, name string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(name), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write(stage, "obsolete.js")
+	write(stage, "main.js")
+	if err := publishAssets(stage, target, true); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"app.wasm", "go.mod", "custom.png", "demos.js"} {
+		write(target, name)
+	}
+	if err := os.Remove(filepath.Join(stage, "obsolete.js")); err != nil {
+		t.Fatal(err)
+	}
+	if err := publishAssets(stage, target, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(target, "obsolete.js")); err != nil {
+		t.Fatal("non-force removed file", err)
+	}
+	if err := publishAssets(stage, target, true); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"obsolete.js", "demos.js"} {
+		if _, err := os.Stat(filepath.Join(target, name)); !os.IsNotExist(err) {
+			t.Fatal("stale file survived", name, err)
+		}
+	}
+	for _, name := range []string{"app.wasm", "go.mod", "custom.png", "main.js"} {
+		if _, err := os.Stat(filepath.Join(target, name)); err != nil {
+			t.Fatal("lost file", name, err)
+		}
+	}
+}
+
+func TestAssetManifestRejectsEscapes(t *testing.T) {
+	stage, target := t.TempDir(), t.TempDir()
+	if err := os.WriteFile(filepath.Join(target, assetManifest), []byte(`["../outside"]`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := publishAssets(stage, target, true); err == nil {
+		t.Fatal("accepted traversal")
+	}
+}

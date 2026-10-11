@@ -62,7 +62,10 @@ go tool tinybubbles-web --assets --force build
 ```
 
 That command runs `booba-assets`, generates dependency notices, and writes the
-shared page into `build/`. The application still builds its own `app.wasm`.
+shared page into `build/`. The application still builds its own `app.wasm`. A `.tinybubbles-assets.json`
+manifest tracks generated files. `--assets --force` removes tracked files no
+longer shipped by the harness, plus the legacy `demos.js`. It preserves app
+binaries and untracked custom assets. Keep the manifest between local builds.
 The consumer Makefile can include `application.mk` from the harness module; see
 [hello/Makefile](./hello/Makefile). Set `MAIN`, `OUT`, and `PORT` as needed.
 `make serve` builds before serving. Go and TinyGo builds install matching

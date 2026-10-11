@@ -131,3 +131,11 @@ and each stays readable in monochrome. See the
   between Pico and CLUE.
 
 - Updated the browser harness, demo, and scaffold to go-booba v0.9.1.
+
+- Preserved viewport position across collapsed layouts and kept bottom-pinned
+  viewports at the end after reflow.
+- Allocated fallback text grids only for plain-text models and removed redundant
+  background fills during full repaints.
+- Pruned obsolete generated browser assets during forced refreshes.
+- Kept narrow indeterminate progress bars animated and made nil buffers behave
+  consistently as empty grids.
