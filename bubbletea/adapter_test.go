@@ -1,15 +1,50 @@
 package displaytea
 
 import (
-	tea "charm.land/bubbletea/v2"
+	"bytes"
 	"errors"
 	"image/color"
-	bubbles "nimbleterminal.dev/tinybubbles"
 	"testing"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
+	bubbles "nimbleterminal.dev/tinybubbles"
 	"tinygo.org/x/drivers"
 )
+
+type rawModel struct{ testModel }
+
+func (rawModel) Init() tea.Cmd { return tea.Sequence(tea.Raw("control metadata"), tea.Quit) }
+
+func TestHostedProgramKeepsRawOutputAndPhysicalSize(t *testing.T) {
+	d := &testDisplay{}
+	m, err := NewModel(rawModel{}, d, nil, bubbles.DefaultTheme(false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer m.Close()
+	m.Update(tea.WindowSizeMsg{Width: 999, Height: 999})
+	if m.Model().(testModel).width != 20 {
+		t.Fatal("host resize changed the display grid")
+	}
+	// Restore the model whose Init publishes a control message.
+	m.model = rawModel{}
+	var out bytes.Buffer
+	p := tea.NewProgram(m, tea.WithContext(m.Context()), tea.WithInput(nil), tea.WithOutput(&out),
+		tea.WithoutRenderer(), tea.WithoutSignalHandler(), tea.WithoutCatchPanics(),
+		tea.WithEnvironment([]string{}), tea.WithWindowSize(20, 8))
+	timer := time.AfterFunc(3*time.Second, p.Kill)
+	defer timer.Stop()
+	if _, err := p.Run(); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(out.Bytes(), []byte("control metadata")) {
+		t.Fatalf("Raw output lost: %q", out.String())
+	}
+	if d.flushes == 0 {
+		t.Fatal("hosted model did not render")
+	}
+}
 
 type testDisplay struct {
 	flushes int
