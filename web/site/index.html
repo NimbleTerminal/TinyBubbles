@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TinyBubbles — Demo playground</title>
+<link rel="stylesheet" href="style.css">
+<script src="wasm_exec.js"></script>
+</head>
+<body>
+<header><a class="brand" href="./"><span class="mark" aria-hidden="true">▦</span> TinyBubbles</a><a href="https://github.com/NimbleTerminal/TinyBubbles">Source ↗</a></header>
+<main>
+<div class="intro"><h1>Bubble Tea for tiny screens</h1><p><strong>TinyGo</strong> compiles Go for microcontrollers. <strong>Bubble Tea</strong> is a Go framework for interactive terminal apps. <strong>TinyBubbles</strong> brings Bubble Tea to small embedded displays, so you can try a Go interface in your browser and run the same UI on hardware.</p></div>
+<div class="gallery">
+<aside class="catalog"><nav id="demo-nav" aria-label="Demos"></nav><p class="catalog-note">Widget demos will join the gallery as they land.</p></aside>
+<div class="demo-content">
+<section class="playground" aria-labelledby="demo-title">
+<div class="demo-heading"><div><h2 id="demo-title">Hello, tiny world</h2><p id="demo-description"></p></div><a id="demo-source" href="https://github.com/NimbleTerminal/TinyBubbles/tree/main/bubbletea/hello">View source ↗</a></div>
+<div class="demo-grid">
+<div class="screen-area">
+<div class="screen-settings"><label for="screen">Display</label><select id="screen"><option value="feather">Feather TFT · 240 × 135</option><option value="oled">Monochrome OLED · 128 × 64</option><option value="large">Large TFT · 320 × 240</option></select></div>
+<div class="device"><div class="device-top"><span class="led"></span><span id="device-label">REVERSE TFT FEATHER</span><span>TB / 01</span></div><canvas id="display" width="240" height="135" tabindex="0" aria-label="Interactive pixel display. Focus here to use the keyboard."></canvas><div class="device-bottom"><span>TINYBUBBLES</span><span>POWERED BY BUBBLE TEA 2.1</span></div></div>
+<p class="caption">Pixel-perfect rendering. Select the screen to use your keyboard.</p>
+</div>
+<aside class="controls-panel" aria-labelledby="controls-title"><h3 id="controls-title">Controls</h3><p id="demo-instructions">Pop a bubble, try a new palette, or pause the scene.</p><div id="actions" aria-label="Available demo actions"></div><p id="status" role="status" aria-live="polite">Loading the demo…</p><button id="restart" class="restart" type="button">Restart demo ↻</button><div class="note"><span class="note-icon" aria-hidden="true">↔</span><p>These buttons come from the Go model’s help map. When an action changes, its button changes too.</p></div></aside>
+</div>
+</section>
+<details class="about"><summary>About these demos</summary><p>The same models, fonts, and cell renderer run on embedded displays and in your browser. HTML controls follow each model’s help map.</p><div class="about-links"><a href="https://github.com/NimbleTerminal/TinyBubbles/blob/main/RUNTIMES.md">Bubble Tea &amp; TinyTea ↗</a><a href="https://github.com/NimbleMarkets/go-booba/blob/main/docs/TERMINAL_ACTIONS.md">How the controls work ↗</a></div></details>
+</div>
+</div>
+</main>
+<footer><span>A little screen. A lot of possibility. <a href="THIRD_PARTY_NOTICES.txt">Licenses</a></span><a href="https://github.com/NimbleTerminal">NimbleTerminal ↗</a></footer>
+<!-- A transport endpoint, not the visual demo. Keep dimensions for Ghostty's parser. -->
+<div id="protocol-terminal" aria-hidden="true" inert></div>
+<script type="module" src="main.js"></script>
+</body></html>

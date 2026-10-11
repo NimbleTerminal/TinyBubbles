@@ -1,6 +1,6 @@
 TINYGO ?= tinygo
 
-.PHONY: ci check check-format check-modules check-docs test firmware snapshot hello hello-tinytea hello-preview
+.PHONY: ci check check-format check-modules check-docs test firmware snapshot hello hello-tinytea hello-preview web web-serve web-tinygo
 check: check-format check-modules check-docs test
 	go build ./...
 
@@ -12,6 +12,17 @@ ci:
 	$(MAKE) -C bubbletea prepare
 	$(MAKE) -C bubbletea test
 	$(MAKE) -C bubbletea firmware TINYGO="$(TINYGO)"
+	$(MAKE) -C web test build
+	$(MAKE) web-tinygo
+
+web:
+	$(MAKE) -C web build
+
+web-tinygo:
+	$(MAKE) -C web build-tinygo TINYGO="$(TINYGO)"
+
+web-serve: web
+	$(MAKE) -C web serve
 
 check-format:
 	@files="$$(git ls-files --cached --others --exclude-standard '*.go' | while IFS= read -r file; do if [ -f "$$file" ]; then gofmt -l "$$file"; fi; done)"; if [ -n "$$files" ]; then echo "Run gofmt on:"; echo "$$files"; exit 1; fi

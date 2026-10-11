@@ -126,9 +126,20 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 ## Development
 
+### Interactive browser demo
+
+Run `make web-serve`, then open <http://127.0.0.1:8080>. The shared hello model
+runs as WASM with OLED and TFT presets. Booba builds HTML controls from its
+Bubbles help map: Pause becomes Resume, and Color is disabled for monochrome.
+The simulated screen retains the custom fonts and enlarged counter, without
+on-screen help text. See [the browser guide](./web/README.md) for architecture,
+dependencies, and static hosting.
+
 | Command | Purpose |
 | :--- | :--- |
-| `make ci` | Run all CI checks locally, generate previews, and build core and Bubble Tea firmware. |
+| `make ci` | Run all CI checks locally, generate previews, and build firmware and the WASM site. |
+| `make web` | Build the static browser demo in `build/web/`. |
+| `make web-serve` | Build and serve the interactive demo on port 8080. |
 | `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
 | `make test` | Run race-enabled Go tests with coverage and vet. |
 | `make firmware` | Compile all device examples and the ESP32-S3 core check. |
@@ -144,6 +155,9 @@ Pico, Pico 2, CLUE, the ESP32-S3 core check, and the Reverse TFT Feather with
 **TinyGo v0.43.0**. Successful jobs upload firmware and preview artifacts for
 14 days. CI validates builds; it does not flash connected hardware or publish
 releases. `make check` also requires Python 3 for local documentation checks.
+The web job uses Go 1.26.8 and Node.js 22, tests the action bridge, and uploads
+the static `web-demo` artifact. It does not automatically deploy a public site.
+A separate job builds `web-demo-tinygo` with TinyGo v0.43 and the matching runtime shim.
 
 The core module declares Go 1.23 language compatibility and pins drivers v0.36.0 and
 TinyFont v0.7.0. The core uses the TEA architecture without depending on
@@ -169,8 +183,9 @@ scrolling options, editable values, and a confirmation dialog.
   events, suitable for devices with only a few buttons.
 - [ ] **TinyTea cooperative timers:** reusable ticks and delayed messages with cancellation,
   keeping commands short and avoiding application-specific scheduling boilerplate.
-- [ ] **Interactive desktop simulator:** keyboard-controlled display with OLED and
-  TFT presets for testing navigation and layouts without flashing.
+- [x] **Interactive browser simulator:** WASM hello demo with OLED/TFT presets,
+  keyboard input, and HTML controls generated from the model's help map.
+- [ ] **Browser widget gallery:** add widget demos as the embedded widgets land.
 - [ ] **Rendering benchmarks:** measure frame time, allocations, and display writes
   on the Feather; use the results to evaluate glyph caching and batched transfers.
 - [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical

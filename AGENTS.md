@@ -30,6 +30,7 @@ at `devices/feather-reverse-tft/README.md`.
 | Location | Responsibility |
 | --- | --- |
 | `bubbletea/` | Primary Bubble Tea backend, portability preparation, Feather demo |
+| `web/` | Isolated WASM module, canvas Displayer, Booba help-to-HTML actions, static site |
 | `tinytea/` | Optional cooperative subset with Bubble Tea-shaped models |
 | `program.go` | Model, Msg, Cmd, Config, lifecycle, bounded command queue |
 | `cell.go` | Reusable cell buffer, text placement, clipping |
@@ -105,6 +106,8 @@ make hello          # primary build/bubbletea-feather.bin
 make hello-tinytea  # original cooperative build/feather-reverse-tft.bin
 make hello-preview  # build/hello.png and build/hello.gif
 make snapshot       # snapshot.png for the shared counter
+make web-serve      # build and serve WASM hello with generated HTML controls
+make -C web test    # Go bridge tests, module checks, vet, Node key encoder tests
 ```
 
 Pushes, pull requests, and manual dispatch run `.github/workflows/ci.yml`.
@@ -112,6 +115,15 @@ CI runs `make check`, generates previews, and compiles the firmware matrix with
 TinyGo v0.43.0. Only explicitly listed previews and firmware files are uploaded
 as artifacts; never broaden uploads to the entire `build/` directory.
 The documentation check requires Python 3 and checks tracked and unignored new Markdown files.
+
+Web CI builds standard Go WASM using Go 1.26.8 and Node.js 22, plus a separate
+TinyGo v0.43 WASM build with a 128 KiB stack. Its only artifact directory is
+`build/web/`. Keep Booba and its Bubble Tea WASM fork
+replacement isolated in `web/go.mod`; hardware uses upstream v2.1. Browser
+controls derive from Bubbles key bindings used by the model's Update method,
+not a separate JavaScript action list. Read `web/README.md` for the
+WithoutRenderer/raw-output contract. Test metadata changes and browser lifecycle
+alongside the display behavior. Browser work does not authorize flashing hardware.
 
 `TINYGO=/path/to/tinygo make firmware` selects a compiler binary. Use a Go version
 supported by that compiler. Run `gofmt` on changed Go files. Add focused behavioral
