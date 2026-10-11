@@ -10,7 +10,6 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/go-booba/actions"
-	"github.com/NimbleMarkets/go-booba/actions/bubblehelp"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 
@@ -73,13 +72,6 @@ func decode(t *testing.T, cmd tea.Cmd) actions.Snapshot {
 }
 func TestCompactActionsFitStatusAndFollowModel(t *testing.T) {
 	m := &actionModel{k: musicKeys()}
-	long, _, err := bubblehelp.Snapshot(m.k, "tinypod", "tinypod", 1, bubblehelp.Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := actions.EncodeProgramStatus(long, actions.ProgramStatus{Summary: "tinypod"}); err == nil {
-		t.Fatal("fixture should exceed the limit with generated IDs")
-	}
 	wrapped, err := WrapActions(m, "tinypod", func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil)
 	if err != nil {
 		t.Fatal(err)

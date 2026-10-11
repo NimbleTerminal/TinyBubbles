@@ -129,3 +129,5 @@ and each stays readable in monochrome. See the
   One-cell labels retain their first character; centered labels ignore controls.
 - Shared Feather board initialization between runtimes and button polling
   between Pico and CLUE.
+
+- Updated the browser harness, demo, and scaffold to go-booba v0.9.1.

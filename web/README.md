@@ -5,7 +5,7 @@
 LEDs, HTML controls from a Bubbles help map, and a shared page and build scaffold.
 It does not require TinyBubbles cells, fonts, or the displaytea adapter.
 
-This is a separate Go 1.26.8 module. It pins Booba v0.8.0 and the Bubble Tea WASM
+This is a separate Go 1.26.8 module. It pins Booba v0.9.1 and the Bubble Tea WASM
 fork at `c397c32a5074`. The root TinyBubbles module stays Go 1.23 with no Bubble
 Tea dependency. **Each application's web module must repeat the Bubble Tea
 replace directive** because Go does not inherit dependency replacements.

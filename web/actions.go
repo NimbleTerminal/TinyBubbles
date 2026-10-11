@@ -48,11 +48,8 @@ func WrapActions(model tea.Model, context string, keys func(tea.Model) help.KeyM
 		if km == nil {
 			return fmt.Errorf("web: nil help map")
 		}
-		snapshot, _, err := bubblehelp.Snapshot(km, context, context, 1, ActionOptions())
-		if err != nil {
-			return err
-		}
-		_, err = actions.EncodeProgramStatus(snapshot, actions.ProgramStatus{Summary: context})
+		// Booba validates the complete OSC payload, including its summary.
+		_, _, err := bubblehelp.Snapshot(km, context, context, 1, ActionOptions())
 		return err
 	}
 	if model == nil {

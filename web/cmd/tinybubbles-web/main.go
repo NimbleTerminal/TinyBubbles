@@ -44,7 +44,7 @@ go 1.26.8
 
 require (
  nimbleterminal.dev/tinybubbles/web %s
- github.com/NimbleMarkets/go-booba v0.8.0
+ github.com/NimbleMarkets/go-booba v0.9.1
 )
 
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261009201241-c397c32a5074
@@ -76,7 +76,7 @@ func run(target string, force, assets bool) error {
 	if err := scaffold.Write(stage, true, true); err != nil {
 		return err
 	}
-	for _, args := range [][]string{{"go", "tool", "booba-assets", stage}, {"python3", filepath.Join(stage, "notices.py"), stage}} {
+	for _, args := range [][]string{{"go", "tool", "booba-assets", "--no-index", stage}, {"python3", filepath.Join(stage, "notices.py"), stage}} {
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
