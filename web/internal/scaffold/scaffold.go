@@ -19,6 +19,11 @@ func Write(target string, force, assets bool) error {
 			return nil
 		}
 		name := path[len("files/"):]
+		// Consumers own only page markup/styles and their build entry point.
+		// JavaScript and support assets always come from the installed harness.
+		if !assets && name != "index.html" && name != "style.css" && name != "Makefile" {
+			return nil
+		}
 		if assets && name == "Makefile" {
 			return nil
 		}
@@ -50,4 +55,9 @@ func WriteFile(path string, data []byte, force bool) error {
 		return err
 	}
 	return closeErr
+}
+
+// WriteModule creates a consumer module once. Asset refreshes never replace it.
+func WriteModule(target string, data []byte) error {
+	return WriteFile(filepath.Join(target, "go.mod"), data, false)
 }

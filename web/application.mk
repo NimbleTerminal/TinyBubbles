@@ -7,7 +7,7 @@ TINYGO ?= tinygo
 .PHONY: assets build build-tinygo test serve
 assets:
 	go tool tinybubbles-web --assets --force $(OUT)
-	@if [ -n "$(SITE)" ]; then cp "$(SITE)/index.html" "$(SITE)/style.css" "$(SITE)/main.js" "$(SITE)/keys.js" "$(OUT)/"; fi
+	@if [ -n "$(SITE)" ]; then cp "$(SITE)/index.html" "$(SITE)/style.css" "$(OUT)/"; fi
 build: assets
 	GOOS=js GOARCH=wasm go build -trimpath -o $(OUT)/app.wasm $(MAIN)
 build-tinygo: assets

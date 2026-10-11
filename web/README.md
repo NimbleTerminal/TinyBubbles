@@ -36,9 +36,10 @@ go tool tinybubbles-web --module example.org/player/web \
   --local-harness "$PWD" /path/to/player/web
 ```
 
-This writes `go.mod`, a Makefile, page assets, and notices support. Add your Go
+This creates `go.mod`, a Makefile, `index.html`, and `style.css`. Add your Go
 main under `cmd/demo`, then run `go mod tidy` and `make serve` in the new module.
-Existing files are left alone unless you pass `--force`. For a published harness
+Existing page and build files are left alone unless you pass `--force`.
+An existing `go.mod` is always preserved, even with `--force`. For a published harness
 release, use `--harness-version <version>` instead of `--local-harness`.
 
 In an existing web module, add these tools and the harness dependency:
@@ -68,7 +69,13 @@ The consumer Makefile can include `application.mk` from the harness module; see
 `wasm_exec.js` files. Never mix their binaries and runtime shims.
 
 Builds need Go 1.26.8 and Python 3. Harness JavaScript tests need Node.js 22+.
-The tool owns the shared licenses and notices script; consumers do not copy them.
+Only `index.html` and `style.css` are consumer-owned page files. `SITE` overrides
+those two files; JavaScript, logos, licenses, and notices always come from the
+current harness during the build. Old scaffolded copies of `main.js`, `keys.js`,
+`package.json`, `bubbles.svg`, `notices.py`, and `licenses/` are no longer used
+and can be removed from consumer source trees after checking for local changes.
+Do not carry JavaScript customizations forward by copying them over generated
+assets; make shared harness changes instead.
 
 ## Go API
 

@@ -54,7 +54,7 @@ tool (
  github.com/NimbleMarkets/go-booba/cmd/booba-assets
 )
 `, *module, v, replacement)
-		if err := scaffold.WriteFile(filepath.Join(flag.Arg(0), "go.mod"), []byte(data), *force); err != nil {
+		if err := scaffold.WriteModule(flag.Arg(0), []byte(data)); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
