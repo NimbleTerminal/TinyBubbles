@@ -14,7 +14,7 @@ use the original cooperative TinyTea scheduler. See [runtime differences](RUNTIM
 
 ## Devices and wiring
 
-Device-specific imports stay under `devices/<name>/main.go`, following the
+Device-specific imports stay under `devices/<name>/`, following the
 Config + device-entry-point separation used by tinypod. Build tags keep `machine`
 out of normal host builds.
 
@@ -69,3 +69,8 @@ tinygo flash -target=clue ./devices/clue
 For the primary Bubble Tea Feather image, use `make hello` and follow the
 [backend flashing guide](bubbletea/README.md#build-and-test).
 `make hello-tinytea` builds the original cooperative Feather image.
+
+The two Feather runtimes share [the board package](devices/feather-reverse-tft/board/board.go)
+for power, SPI, panel configuration, and button polarity. Each main keeps its
+runtime loop and control mapping. Pico and CLUE use the shared `ButtonPoller`
+with device-local pin reads.

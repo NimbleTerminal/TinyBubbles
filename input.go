@@ -41,3 +41,23 @@ func (b *Button) Update(pressed bool, now time.Time) (KeyMsg, bool) {
 	}
 	return KeyMsg{}, false
 }
+
+// ButtonPoller polls buttons in rotating order, returning at most one press.
+// It stops sampling when it emits a press so simultaneous events are preserved
+// for later polls. The caller owns Buttons and supplies logical pressed states.
+// Like Button, it must be used from a single loop.
+type ButtonPoller struct {
+	Buttons []Button
+	next    int
+}
+
+func (p *ButtonPoller) Poll(now time.Time, pressed func(int) bool) Msg {
+	for n := 0; n < len(p.Buttons); n++ {
+		i := (p.next + n) % len(p.Buttons)
+		if msg, ok := p.Buttons[i].Update(pressed(i), now); ok {
+			p.next = (i + 1) % len(p.Buttons)
+			return msg
+		}
+	}
+	return nil
+}

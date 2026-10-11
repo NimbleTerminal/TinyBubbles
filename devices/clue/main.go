@@ -22,32 +22,13 @@ func main() {
 	machine.TFT_LITE.High()
 	machine.BUTTON_LEFT.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
 	machine.BUTTON_RIGHT.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
-	left := bubbles.Button{Key: bubbles.KeyLeft, Debounce: 25 * time.Millisecond}
-	right := bubbles.Button{Key: bubbles.KeyRight, Debounce: 25 * time.Millisecond}
-	nextRight := false
-	input := func() bubbles.Msg {
-		now := time.Now()
-		if nextRight {
-			if msg, ok := right.Update(!machine.BUTTON_RIGHT.Get(), now); ok {
-				nextRight = false
-				return msg
-			}
-			if msg, ok := left.Update(!machine.BUTTON_LEFT.Get(), now); ok {
-				nextRight = true
-				return msg
-			}
-		} else {
-			if msg, ok := left.Update(!machine.BUTTON_LEFT.Get(), now); ok {
-				nextRight = true
-				return msg
-			}
-			if msg, ok := right.Update(!machine.BUTTON_RIGHT.Get(), now); ok {
-				nextRight = false
-				return msg
-			}
-		}
-		return nil
-	}
+	poller := bubbles.ButtonPoller{Buttons: []bubbles.Button{
+		{Key: bubbles.KeyLeft, Debounce: 25 * time.Millisecond},
+		{Key: bubbles.KeyRight, Debounce: 25 * time.Millisecond},
+	}}
+	pins := [2]machine.Pin{machine.BUTTON_LEFT, machine.BUTTON_RIGHT}
+	pressed := func(i int) bool { return !pins[i].Get() }
+	input := func() bubbles.Msg { return poller.Poll(time.Now(), pressed) }
 	p, err := bubbles.NewProgram(demo.New(), bubbles.Config{Display: &display, Input: input})
 	if err != nil {
 		panic(err)

@@ -43,3 +43,25 @@ func TestBufferClippingAndUnicode(t *testing.T) {
 		t.Fatal("negative dimensions")
 	}
 }
+
+func TestButtonPollerPreservesSimultaneousPresses(t *testing.T) {
+	p := ButtonPoller{Buttons: []Button{{Key: KeyLeft, Debounce: time.Millisecond}, {Key: KeyRight, Debounce: time.Millisecond}}}
+	now := time.Now()
+	pressed := func(int) bool { return true }
+	if msg := p.Poll(now, pressed); msg != nil {
+		t.Fatal("debounce bypassed")
+	}
+	for _, key := range []Key{KeyLeft, KeyRight} {
+		msg := p.Poll(now.Add(time.Millisecond), pressed)
+		if msg != (KeyMsg{key}) {
+			t.Fatalf("got %v want %v", msg, key)
+		}
+	}
+	if msg := p.Poll(now.Add(2*time.Millisecond), pressed); msg != nil {
+		t.Fatal("held key repeated")
+	}
+	empty := ButtonPoller{}
+	if msg := empty.Poll(now, pressed); msg != nil {
+		t.Fatal(msg)
+	}
+}

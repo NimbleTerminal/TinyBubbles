@@ -57,7 +57,7 @@ tinygo flash \
 
 This compiles and uploads using TinyGo's built-in ESP32 flasher. The local target
 inherits `esp32s3-generic`, with a dedicated build tag; all physical pins are
-explicitly configured here. Use this target JSON, not `xiao-esp32s3` or a target
+configured in the shared [board package](board/board.go). Use this target JSON, not `xiao-esp32s3` or a target
 for the original ESP32. The 4 MB flash is ample; this demo uses internal SRAM
 and does not initialize the board's external PSRAM.
 
