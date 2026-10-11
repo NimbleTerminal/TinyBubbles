@@ -17,11 +17,9 @@ Bubble Tea v2.1 is the primary runtime. [TinyTea](RUNTIMES.md) is an optional,
 smaller replacement with limited functionality. Both use the same cells,
 fonts, and renderer.
 
-<p align="center">
-    <a href="./devices/feather-reverse-tft/README.md"><b>Hello, Tiny World</b></a>
-    (<a href="./demo/hello/model.go">source</a>)<br>
-    <a href="./devices/feather-reverse-tft/README.md"><img src="docs/assets/hello.gif" alt="Hello, Tiny World: floating bubbles, color changes, and an enlarged pop counter" width="600"></a>
-</p>
+[![Hello, Tiny World: floating bubbles, color changes, and an enlarged pop counter](docs/assets/hello.gif)](devices/feather-reverse-tft/README.md)
+
+**Hello, Tiny World** · [Source](demo/hello/model.go) · [Device guide](devices/feather-reverse-tft/README.md)
 
 The preview renders the actual demo model and font on the desktop, enlarged 3×.
 The demo also runs on the **Adafruit ESP32-S3 Reverse TFT Feather**: D0 pops bubbles,
