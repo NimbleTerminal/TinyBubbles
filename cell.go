@@ -1,4 +1,6 @@
-// Package tinybubbles provides a cooperative Model/Update/View loop for embedded displays.
+// Package tinybubbles provides cell rendering, fonts, and themes for embedded
+// displays. Use the bubbletea module for the primary runtime or tinytea for the
+// cooperative subset. The original root runtime remains for compatibility.
 package tinybubbles
 
 // StyleID indexes the renderer's eight-entry theme palette.

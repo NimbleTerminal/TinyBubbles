@@ -6,9 +6,9 @@ package main
 import (
 	tea "charm.land/bubbletea/v2"
 	bubbles "github.com/NimbleTerminal/TinyBubbles"
+	displaytea "github.com/NimbleTerminal/TinyBubbles/bubbletea"
+	teamodel "github.com/NimbleTerminal/TinyBubbles/bubbletea/hello"
 	"github.com/NimbleTerminal/TinyBubbles/demo/hello"
-	displaytea "github.com/NimbleTerminal/TinyBubbles/experimental/bubbletea"
-	teamodel "github.com/NimbleTerminal/TinyBubbles/experimental/bubbletea/hello"
 	"machine"
 	"time"
 	"tinygo.org/x/drivers/st7789"

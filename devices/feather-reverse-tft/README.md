@@ -1,5 +1,9 @@
 # Hello, Tiny World — Reverse TFT Feather
 
+For the primary **Bubble Tea** firmware, use the
+[Bubble Tea backend guide](../../bubbletea/README.md). This page describes the
+original cooperative demo; build it with `make hello-tinytea`.
+
 For the **Adafruit ESP32-S3 Reverse TFT Feather, product 5691**. Uses the built-in
 240x135 ST7789 and three buttons; no extra wiring, network, or PSRAM is needed.
 Requires TinyGo **v0.43.0 or newer**.
@@ -20,7 +24,7 @@ tiles through the ordinary cell renderer. Animation is a custom `TickMsg` every
 From the repository root:
 
 ```sh
-make hello                       # build/feather-reverse-tft.bin
+make hello-tinytea                       # build/feather-reverse-tft.bin
 make hello-preview               # build/hello.png and build/hello.gif
 ```
 

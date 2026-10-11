@@ -8,6 +8,10 @@ their physical display and button operation has not yet been verified.
 
 For the Feather, see the [hello demo and flashing instructions](./devices/feather-reverse-tft/README.md).
 
+The primary Bubble Tea Feather entry point lives in
+[bubbletea/devices/feather](bubbletea/devices/feather). The root device examples
+use the original cooperative TinyTea scheduler. See [runtime differences](RUNTIMES.md).
+
 ## Devices and wiring
 
 Device-specific imports stay under `devices/<name>/main.go`, following the
@@ -61,6 +65,7 @@ tinygo flash -target=pico2 ./devices/pico-oled
 tinygo flash -target=clue ./devices/clue
 ```
 
-`make firmware` builds all device examples plus an ESP32-S3 core compile check.
-For the Feather, `make hello` builds its image; follow its device guide to enter
-ROM download mode and choose the correct serial port before flashing.
+`make firmware` builds the cooperative device examples and ESP32-S3 compile checks.
+For the primary Bubble Tea Feather image, use `make hello` and follow the
+[backend flashing guide](bubbletea/README.md#build-and-test).
+`make hello-tinytea` builds the original cooperative Feather image.

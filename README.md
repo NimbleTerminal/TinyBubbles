@@ -8,7 +8,9 @@
 </p>
 
 `TinyBubbles` brings the [Bubble Tea](https://github.com/charmbracelet/bubbletea)
-Model / Update / View pattern to [TinyGo](https://tinygo.org) embedded displays.
+v2.1 runtime to [TinyGo](https://tinygo.org) embedded displays, with cell rendering,
+custom fonts, and a focus on small-screen widgets. **Bubble Tea is the primary
+runtime; TinyTea is the optional lightweight replacement.**
 
 Small screens, big possibilities!
 
@@ -22,101 +24,80 @@ The preview renders the actual demo model and font on the desktop, enlarged 3×.
 The demo also runs on the **Adafruit ESP32-S3 Reverse TFT Feather**: D0 pops bubbles,
 D1 changes colors, and D2 pauses or resumes animation.
 
-```go
-import bubbles "github.com/NimbleTerminal/TinyBubbles"
-```
-
-Views produce character grids that render through
-[`drivers.Displayer`](https://github.com/tinygo-org/drivers/blob/v0.36.0/displayer.go).
-Initialize your display and buttons in a device entry point, then pass them into
-one program. The core has no terminal, ANSI, OS, or board-specific imports.
+Initialize any [`drivers.Displayer`](https://github.com/tinygo-org/drivers/blob/v0.36.0/displayer.go)
+in a device entry point, then pass it to the Bubble Tea display backend. Models
+use real Bubble Tea commands, timers, and messages. Views can provide plain text
+or reusable cell buffers with custom fonts, including large glyphs and counters.
 
 | Component | Description |
 | :--- | :--- |
-| [Program](./API.md#model-commands-and-a-ready-display) | Model / Update / View with messages, commands, and a cooperative event loop. |
-| [Cell buffer](./cell.go) | Reusable character grids with UTF-8 text, newlines, and clipped writes. |
-| [Renderer](./API.md#displayer-and-rendering) | Changed-cell drawing through Displayer, with optional `FillRectangle` acceleration. |
-| [Fonts and themes](./API.md#fonts-and-themes) | TinyFont or custom glyphs, a compact style palette, and monochrome/color defaults. |
-| [Input](./input.go) | Standard directional, Select, Back, and Quit events, plus debounced buttons and custom messages. |
-| [Devices](./DEVICES.md) | Separate entry points for concrete displays, buttons, buses, and power controls. |
-
-See the [API guide](./API.md), [device guide](./DEVICES.md), and
-[hello demo instructions](./devices/feather-reverse-tft/README.md).
-
-An optional [Bubble Tea v2.1 experiment](experimental/bubbletea/README.md) runs
-Bubble Tea's actual program loop with this display renderer, including custom
-font sizes. It uses a separate module and bare-metal portability patches.
+| [Bubble Tea backend](bubbletea/README.md) | Real Bubble Tea v2.1 Program with a Displayer renderer. |
+| [TinyTea](RUNTIMES.md) | Optional cooperative subset with a similar model API for smaller devices. |
+| [Cell buffer](cell.go) | Reusable character grids with UTF-8 text and clipped writes. |
+| [Renderer](API.md#displayer-and-rendering) | Changed-cell drawing and optional FillRectangle acceleration. |
+| [Fonts and themes](API.md#fonts-and-themes) | TinyFont, custom glyphs, palettes, and monochrome/color defaults. |
+| [Devices](DEVICES.md) | Hardware initialization, buttons, buses, and power controls. |
 
 ## Quickstart
 
-Requires **TinyGo v0.43.0 or newer** and a Go installation supported by your
-TinyGo compiler. Ordinary Go can run the tests and desktop previews.
-
-From a checkout:
-
-```sh
-make hello-preview  # build/hello.png and build/hello.gif
-make hello          # build/feather-reverse-tft.bin
-```
-
-Follow the [Feather flashing instructions](./devices/feather-reverse-tft/README.md#flash)
-to run the demo on hardware. For an SSD1306 connected to a Pico:
+Use **TinyGo 0.43.0 and Go 1.26** for the Bubble Tea backend. Its Makefile selects
+the Go toolchain and prepares the required bare-metal portability patches.
+The backend is the primary development path, but remains an early port with
+[documented limitations](bubbletea/README.md#portability-changes).
 
 ```sh
-tinygo flash -target=pico ./devices/pico-oled
+make hello          # Bubble Tea Feather firmware: build/bubbletea-feather.bin
+make hello-preview  # desktop PNG/GIF of the shared greeting and fonts
 ```
 
-The [device guide](./DEVICES.md) covers wiring and adding a board.
+See the [Bubble Tea backend guide](bubbletea/README.md) for build and flash
+instructions. The top-left header on that firmware reads **BUBBLE TEA 2.1**.
+The [device guide](DEVICES.md) covers wiring and adding a board.
 
 ## Usage
 
-Implement the model interface:
+Use Bubble Tea's model interface and the display backend from the `bubbletea`
+module (a separate module keeps these dependencies out of TinyTea):
 
 ```go
-type Model interface {
-    Init() Cmd
-    Update(Msg) (Model, Cmd)
-    View() *Buffer
+import (
+    tea "charm.land/bubbletea/v2"
+    bubbles "github.com/NimbleTerminal/TinyBubbles"
+    displaytea "github.com/NimbleTerminal/TinyBubbles/bubbletea"
+)
+
+type model struct{}
+func (model) Init() tea.Cmd { return nil }
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    if key, ok := msg.(tea.KeyPressMsg); ok && key.Code == 'q' {
+        return m, tea.Quit
+    }
+    return m, nil
 }
+func (model) View() tea.View { return tea.NewView("Hello, tiny world!") }
+
+// Inside your initialized device main:
+p, err := displaytea.NewProgram(model{}, display, nil, bubbles.DefaultTheme(false))
+if err != nil { panic(err) }
+if _, err := p.Run(); err != nil { panic(err) }
 ```
 
-`Update` handles button events or your own messages. `View` fills a reusable
-buffer. `Cmd` performs short work and returns a message to the model.
+Send keys and custom messages through `p.Send`. Add `CellView() *bubbles.Buffer`
+to render styled cells or custom font tiles. Plain View content is clipped to
+the grid; ANSI and terminal graphics are not interpreted. Read the
+[backend guide](bubbletea/README.md) before using terminal-specific libraries.
 
-The [counter model](./demo/model.go) runs on both the Pico OLED and CLUE TFT.
-After initializing a display and a nonblocking input function in your device's
-`main`, pass them into a program:
-
-```go
-// Imports:
-// bubbles "github.com/NimbleTerminal/TinyBubbles"
-// "github.com/NimbleTerminal/TinyBubbles/demo"
-
-p, err := bubbles.NewProgram(demo.New(), bubbles.Config{
-    Display:    display, // initialized drivers.Displayer
-    Monochrome: true,    // false for a color display
-    Input:      poll,    // func() bubbles.Msg; nil when idle
-})
-if err != nil {
-    panic(err)
-}
-if err := p.Run(); err != nil {
-    panic(err)
-}
-```
-
-The framework sends `WindowSizeMsg` before the first view so your model can adapt
-its layout. `Run` polls input and processes one command per step; use `Step` to
-integrate with your own device loop. Commands execute cooperatively without
-framework-created goroutines, and must not block on input, timers, or network
-responses. The [API guide](./API.md) includes a complete model, lifecycle details,
-error handling, and command-queue limits.
+For a smaller cooperative runtime, use [TinyTea](tinytea/tea.go). It supports the
+basic model signatures and the same cell rendering, but has different command,
+timer, and input semantics. The [runtime comparison and migration guide](RUNTIMES.md)
+explains the supported subset and how to switch. Device-focused widgets can share
+state and cell layouts across both runtimes.
 
 ## Demo Apps
 
 | Demo | Source | What it shows |
 | :--- | :--- | :--- |
-| Hello, Tiny World | [demo/hello](./demo/hello) | Floating bubbles, large text and counter, four palettes, and pause/resume on the Reverse TFT Feather. |
+| Hello, Tiny World | [bubbletea/hello](./bubbletea/hello) | Floating bubbles, large text and counter, four palettes, and pause/resume on the Reverse TFT Feather. |
 | Counter | [demo](./demo/model.go) | One model adapting to a monochrome OLED or color TFT. |
 | Hello preview | [examples/hello-preview](./examples/hello-preview) | The hello demo rendered to PNG and an animated GIF with ordinary Go. |
 | Counter snapshot | [examples/snapshot](./examples/snapshot) | A desktop Displayer implementation that writes a PNG. |
@@ -143,11 +124,12 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 | Command | Purpose |
 | :--- | :--- |
-| `make ci` | Run all CI checks locally, generate previews, and build core and experimental Bubble Tea firmware. |
+| `make ci` | Run all CI checks locally, generate previews, and build core and Bubble Tea firmware. |
 | `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
 | `make test` | Run race-enabled Go tests with coverage and vet. |
 | `make firmware` | Compile all device examples and the ESP32-S3 core check. |
-| `make hello` | Build the Reverse TFT Feather firmware. |
+| `make hello` | Build the primary Bubble Tea Reverse TFT Feather firmware. |
+| `make hello-tinytea` | Build the original cooperative Feather demo. |
 | `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
 | `make snapshot` | Render the counter to `snapshot.png`. |
 
@@ -161,8 +143,8 @@ releases. `make check` also requires Python 3 for local documentation checks.
 
 The core module declares Go 1.23 language compatibility and pins drivers v0.36.0 and
 TinyFont v0.7.0. The core uses the TEA architecture without depending on
-Bubble Tea or accepting ANSI views. The separate Bubble Tea experiment has its
-own host tests and Feather firmware CI job. To port a terminal model, use buffer writes and
+Bubble Tea or accepting ANSI views. The primary Bubble Tea backend has its
+own module, host tests, and Feather firmware CI job. To port a terminal model, use buffer writes and
 palette styles in `View`; see the [rendering guide](./API.md#displayer-and-rendering).
 
 To refresh the README animation after a demo change:
@@ -181,7 +163,7 @@ scrolling options, editable values, and a confirmation dialog.
   add buffer composition and alignment helpers.
 - [ ] **Button interactions:** optional hold-to-repeat, long-press, and release
   events, suitable for devices with only a few buttons.
-- [ ] **Cooperative timers:** reusable ticks and delayed messages with cancellation,
+- [ ] **TinyTea cooperative timers:** reusable ticks and delayed messages with cancellation,
   keeping commands short and avoiding application-specific scheduling boilerplate.
 - [ ] **Interactive desktop simulator:** keyboard-controlled display with OLED and
   TFT presets for testing navigation and layouts without flashing.

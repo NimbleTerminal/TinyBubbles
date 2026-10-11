@@ -1,9 +1,9 @@
-# Bubble Tea v2.1 experiment
+# Bubble Tea v2.1 display backend
 
-This optional module runs the **actual `charm.land/bubbletea/v2` v2.1.0 Program**
+This primary backend module runs the **actual `charm.land/bubbletea/v2` v2.1.0 Program**
 with TinyBubbles' Displayer renderer. Bubble Tea owns the event loop, commands,
-goroutines, timers, and message delivery. The core TinyBubbles module keeps its
-small cooperative runtime and does not depend on Bubble Tea.
+goroutines, timers, and message delivery. The rendering core and optional [TinyTea replacement](../RUNTIMES.md) remain
+independent of Bubble Tea dependencies.
 
 The adapter wraps a `tea.Model`, disables terminal I/O, and renders during the
 wrapped model's `View` call. Bubble Tea's renderer interface is private, so this
@@ -31,12 +31,20 @@ make test          # actual Bubble Tea loop, commands, timer, and display tests
 make firmware      # build/bubbletea-feather.bin in the repository root
 ```
 
+To flash the Reverse TFT Feather from this directory after identifying its port:
+
+```sh
+GOROOT="$(GOTOOLCHAIN=go1.26.0 go env GOROOT)" tinygo flash \
+  -target=../devices/feather-reverse-tft/target.json \
+  -port=<current-serial-port> ./devices/feather
+```
+
 The Makefile selects `GOTOOLCHAIN=go1.26.0` and passes its `GOROOT` to TinyGo.
 Go downloads that toolchain if needed. Override `GOTOOLCHAIN` to select another
 Go 1.26 patch release, or `TINYGO` to select the compiler binary.
 
 Firmware uses the same Reverse TFT Feather configuration and controls as the
-[working demo](../../devices/feather-reverse-tft/README.md): D0 pop, D1 color,
+[working demo](../devices/feather-reverse-tft/README.md): D0 pop, D1 color,
 D2 pause. The top-left header reads **BUBBLE TEA 2.1**, identifying this runtime
 on the physical screen. It retains the existing fonts and large counter.
 Building does not flash.
@@ -69,7 +77,7 @@ Measured with TinyGo 0.43 / Go 1.26 on ESP32-S3:
 | Firmware | Flash bytes | Static RAM bytes |
 | --- | ---: | ---: |
 | Headless Bubble Tea probe | 242,285 | 88,192 |
-| Feather greeting with ST7789 and custom fonts | 265,734 | 93,464 |
+| Feather greeting with ST7789 and custom fonts | 265,718 | 93,464 |
 
 These figures exclude dynamic heap use and task stacks and are not a minimum RAM
 guarantee. Keeping the terminal renderer and

@@ -21,12 +21,14 @@ def anchors(text):
 def main():
     root = Path(__file__).resolve().parent.parent
     names = subprocess.check_output(
-        ["git", "ls-files", "-z", "--", "*.md"], cwd=root
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"], cwd=root
     ).decode().split("\0")
     errors = []
     checked = 0
-    for name in filter(None, names):
+    for name in sorted(set(filter(None, names))):
         path = root / name
+        if not path.is_file():
+            continue
         text = path.read_text()
         if text.count("```") % 2:
             errors.append(f"{name}: unmatched code fence")

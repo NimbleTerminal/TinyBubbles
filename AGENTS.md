@@ -1,25 +1,25 @@
 # Working on TinyBubbles
 
-TinyBubbles is a lightweight Model / Update / View framework for TinyGo embedded
-displays. It applies the TEA/Bubble Tea architecture to character buffers rendered
-through `tinygo.org/x/drivers.Displayer`. This repository contains the framework,
-shared example models, board entry points, and ordinary-Go preview tools.
+TinyBubbles provides display rendering and device-focused UI for TinyGo, with
+**Bubble Tea v2.1 as the primary runtime**. TinyTea is an optional cooperative
+replacement with a documented subset of Bubble Tea's model API. Read
+`RUNTIMES.md` before introducing dependencies or changing runtime semantics.
 
 ## Where this fits
 
-- Bubble Tea supplies the architectural inspiration. The core does not import
-  Bubble Tea or implement terminal I/O. `experimental/bubbletea` is a separate
-  module targeting real Bubble Tea v2.1.0 with TinyGo 0.43 and Go 1.26. Read its
-  README before changing it; regenerate its ignored vendor tree with `make prepare`.
-  Keep its terminal portability patches and dependencies out of the core.
-- tinyterm is a terminal renderer/emulator; TinyBubbles owns an application loop
-  and cell views. ANSI parsing is currently outside the implementation.
-- tinypod supplies the precedent for Config plus separate device mains. Keep
-  application state independent of peripheral setup.
-- tinygui follows an immediate-mode approach. TinyBubbles uses messages, model
-  updates, commands, and views instead.
-- ntcharts and ntcharts3d are sibling Nimble projects, useful as documentation
-  style references. Their terminal/chart dependencies do not belong in this core.
+- `bubbletea/` is a separate module importing real Bubble Tea v2.1.0. It is the
+  primary backend, using TinyGo 0.43 and Go 1.26 plus reproducible bare-metal
+  portability patches. Run `make prepare` there after changes to local dependencies.
+- `tinytea/` exposes the supported Bubble Tea-shaped model API without importing
+  Bubble Tea. Keep it small; unsupported timers and terminal APIs must stay explicit.
+- The root package owns shared cells, fonts, themes, buttons, and rendering. Its
+  original cooperative Program/Model API remains for compatibility with old demos.
+- Widgets should prioritize small displays, three-button focus/navigation,
+  monochrome/color adaptation, and mixed-size fonts. Reuse cell layouts and widget
+  state; keep runtime-specific command scheduling in the owning model.
+- tinypod supplies the Config plus devices precedent. tinyterm is a terminal
+  renderer, and tinygui follows an immediate-mode paradigm. ntcharts and ntcharts3d
+  are sibling documentation references, not dependencies for the rendering core.
 
 Read `README.md` for the overview, `API.md` for framework semantics and memory
 budgets, and `DEVICES.md` for wiring and adding targets. The Feather guide lives
@@ -29,6 +29,8 @@ at `devices/feather-reverse-tft/README.md`.
 
 | Location | Responsibility |
 | --- | --- |
+| `bubbletea/` | Primary Bubble Tea backend, portability preparation, Feather demo |
+| `tinytea/` | Optional cooperative subset with Bubble Tea-shaped models |
 | `program.go` | Model, Msg, Cmd, Config, lifecycle, bounded command queue |
 | `cell.go` | Reusable cell buffer, text placement, clipping |
 | `renderer.go` | Changed-cell rendering, optional rectangle fill, flush/retry |
@@ -48,6 +50,10 @@ issue links, and remotes.
 
 ## Framework conventions
 
+The cooperative lifecycle rules below describe TinyTea and the original root
+runtime. Bubble Tea retains upstream scheduling and message semantics; consult
+`RUNTIMES.md` instead of applying these rules to its program.
+
 - Keep `machine`, bus initialization, display power/rotation, and physical pin
   assignments in `devices/<name>/main.go`. Use TinyGo/board build tags so ordinary
   `go test ./...` never imports `machine`.
@@ -56,7 +62,9 @@ issue links, and remotes.
   retain the SetPixel fallback. Do not require a richer driver interface.
 - Keep the core free of terminal/OS APIs and heavy dependencies. TinyGo v0.43.0
   is the minimum supported compiler. The module language version is Go 1.23.
-- `Model` implements `Init() Cmd`, `Update(Msg) (Model, Cmd)`, and `View() *Buffer`.
+- The original root `Model` implements `Init() Cmd`, `Update(Msg) (Model, Cmd)`,
+  and `View() *Buffer`. TinyTea instead uses `View() tinytea.View` with optional
+  `CellView() *Buffer`, matching the supported Bubble Tea-shaped API.
   Any Go value can be a custom message. Reuse buffers rather than allocating one
   on every frame; keep animation state changes in `Update`, not `View`.
 - `Start` queues Init's command, sends the initial `WindowSizeMsg`, and renders.
@@ -91,9 +99,10 @@ Run commands from the repository root:
 ```sh
 make test           # race-enabled Go tests and vet
 make check          # formatting, modules, docs, tests, vet, and host builds
-make ci             # all CI checks, previews, and core/experimental firmware
+make ci             # all CI checks, previews, and TinyTea/Bubble Tea firmware
 make firmware       # Pico, Pico 2, CLUE, ESP32-S3 check, Reverse TFT Feather
-make hello          # build/feather-reverse-tft.bin
+make hello          # primary build/bubbletea-feather.bin
+make hello-tinytea  # original cooperative build/feather-reverse-tft.bin
 make hello-preview  # build/hello.png and build/hello.gif
 make snapshot       # snapshot.png for the shared counter
 ```
@@ -102,7 +111,7 @@ Pushes, pull requests, and manual dispatch run `.github/workflows/ci.yml`.
 CI runs `make check`, generates previews, and compiles the firmware matrix with
 TinyGo v0.43.0. Only explicitly listed previews and firmware files are uploaded
 as artifacts; never broaden uploads to the entire `build/` directory.
-The documentation check requires Python 3 and checks tracked Markdown files.
+The documentation check requires Python 3 and checks tracked and unignored new Markdown files.
 
 `TINYGO=/path/to/tinygo make firmware` selects a compiler binary. Use a Go version
 supported by that compiler. Run `gofmt` on changed Go files. Add focused behavioral
@@ -116,7 +125,7 @@ changes, build that target and run relevant host/model tests. Cross-compilation
 does not validate wiring or physical rendering. State separately what compiled,
 what ran on the host, and what a person confirmed on hardware.
 
-After changing the hello demo, regenerate the README animation when applicable:
+After changing the shared `demo/hello` visual model, regenerate the README animation when applicable:
 
 ```sh
 make hello-preview

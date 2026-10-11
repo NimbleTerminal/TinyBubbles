@@ -1,6 +1,6 @@
 TINYGO ?= tinygo
 
-.PHONY: ci check check-format check-modules check-docs test firmware snapshot hello hello-preview
+.PHONY: ci check check-format check-modules check-docs test firmware snapshot hello hello-tinytea hello-preview
 check: check-format check-modules check-docs test
 	go build ./...
 
@@ -9,12 +9,12 @@ ci:
 	$(MAKE) check
 	$(MAKE) hello-preview snapshot
 	$(MAKE) firmware
-	$(MAKE) -C experimental/bubbletea prepare
-	$(MAKE) -C experimental/bubbletea test
-	$(MAKE) -C experimental/bubbletea firmware TINYGO="$(TINYGO)"
+	$(MAKE) -C bubbletea prepare
+	$(MAKE) -C bubbletea test
+	$(MAKE) -C bubbletea firmware TINYGO="$(TINYGO)"
 
 check-format:
-	@files="$$(gofmt -l $$(git ls-files '*.go'))"; if [ -n "$$files" ]; then echo "Run gofmt on:"; echo "$$files"; exit 1; fi
+	@files="$$(git ls-files --cached --others --exclude-standard '*.go' | while IFS= read -r file; do if [ -f "$$file" ]; then gofmt -l "$$file"; fi; done)"; if [ -n "$$files" ]; then echo "Run gofmt on:"; echo "$$files"; exit 1; fi
 
 check-modules:
 	go mod tidy -diff
@@ -33,9 +33,13 @@ firmware:
 	$(TINYGO) build -target=pico2 -size=short -o build/pico2-oled.uf2 ./devices/pico-oled
 	$(TINYGO) build -target=clue -size=short -o build/clue.uf2 ./devices/clue
 	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/esp32s3-check.elf ./internal/compilecheck
-	$(MAKE) hello
+	$(TINYGO) build -target=xiao-esp32s3 -size=short -o build/tinytea-check.elf ./internal/tinyteacheck
+	$(MAKE) hello-tinytea
 
 hello:
+	$(MAKE) -C bubbletea firmware TINYGO="$(TINYGO)"
+
+hello-tinytea:
 	mkdir -p build
 	$(TINYGO) build -target=./devices/feather-reverse-tft/target.json -size=short -o build/feather-reverse-tft.bin ./devices/feather-reverse-tft
 

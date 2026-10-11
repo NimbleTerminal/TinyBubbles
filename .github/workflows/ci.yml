@@ -49,23 +49,24 @@ jobs:
             build/pico2-oled.uf2
             build/clue.uf2
             build/esp32s3-check.elf
+            build/tinytea-check.elf
             build/feather-reverse-tft.bin
           if-no-files-found: error
           retention-days: 14
 
-  bubbletea-experiment:
+  bubbletea:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     container: tinygo/tinygo:0.43.0
     defaults:
       run:
-        working-directory: experimental/bubbletea
+        working-directory: bubbletea
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.0'
-          cache-dependency-path: experimental/bubbletea/go.sum
+          cache-dependency-path: bubbletea/go.sum
       - name: Install portability script runtime
         run: apt-get update && apt-get install -y --no-install-recommends python3
       - name: Prepare and test Bubble Tea v2.1 adapter
@@ -74,7 +75,7 @@ jobs:
         run: make firmware
       - uses: actions/upload-artifact@v4
         with:
-          name: bubbletea-experiment
+          name: bubbletea
           path: build/bubbletea-feather.bin
           if-no-files-found: error
           retention-days: 14

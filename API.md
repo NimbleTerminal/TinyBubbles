@@ -2,6 +2,10 @@
 
 [Back to the README](./README.md) · [Device guide](./DEVICES.md)
 
+This guide covers shared rendering and the original cooperative runtime API.
+Start with the [Bubble Tea backend](bubbletea/README.md) for new applications;
+see [TinyTea and runtime differences](RUNTIMES.md) for the lightweight replacement.
+
 ## Model, commands, and a ready display
 
 ```go
