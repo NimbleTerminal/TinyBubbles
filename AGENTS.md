@@ -100,6 +100,9 @@ These rules apply only to TinyTea and the original root runtime:
   and reports `ErrCommandQueueFull` on overflow.
 - Keep program operations on one loop. Interrupts and other tasks must hand
   events to that loop rather than call `Send` directly.
+- `Run` is fail-fast in both runtimes. Rendering failures use `*DisplayError`.
+  Cooperative device mains retry only those errors in paced Step loops; model
+  and queue errors remain fatal. Bubble Tea cancels on display failure.
 - `KeyQuit` reaches the model; `QuitMsg` stops the program.
 
 ## Browser demos
@@ -134,8 +137,9 @@ callbacks enqueue input. Firmware uses `make hello` or `make hello-tinytea`.
   and select one using the returned selection. Links preserve presets and reload.
 - Keep app models and renderer dependencies in `web/hello`, not the reusable
   harness. Consumers generate pages with `go tool tinybubbles-web --assets`;
-  do not copy its JavaScript, notices, or licenses. Each consumer web module
-  must repeat the Bubble Tea WASM replacement. Go replacements are not inherited.
+  only `index.html` and `style.css` may override generated page assets. Do not
+  copy JavaScript, logos, notices, or licenses. Scaffold refreshes preserve go.mod.
+  Each consumer web module must repeat the Bubble Tea WASM replacement. Go replacements are not inherited.
 - `WrapActions` uses short key IDs and validates the initial OSC payload. Keep
   host tests for ID collisions and the 2048-byte message limit. Keyboard input
   must be restricted to enabled bindings in the current help map.
@@ -160,7 +164,7 @@ make snapshot       # counter snapshot.png
 make web-serve      # build Go WASM and serve on port 8080
 make web-tinygo     # build TinyGo WASM with a 128 KiB stack
 make -C web test    # Go bridge tests, vet, module checks, JS encoder tests
-make -C bubbletea prepare test  # prepare dependencies and test the adapter
+make -C bubbletea test  # refresh vendored dependencies and test the adapter
 ```
 
 Root tests do not cover the nested modules. Firmware selects Go 1.26.0; web

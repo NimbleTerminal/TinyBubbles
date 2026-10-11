@@ -115,3 +115,12 @@ and each stays readable in monochrome. See the
 - The Bubble Tea runtime costs about 260 KiB of flash and 91 KiB of static RAM
   on the Feather, before heap and stacks. Small RP2040 and nRF52 boards have
   not been measured.
+
+### Fixes before v0.1.0
+
+- Cooperative firmware retries transient display failures through paced Step
+  loops. Both runtimes document Run as fail-fast and identify display errors.
+- Browser scaffolds keep harness JavaScript and support assets out of consumer
+  source trees. Builds override only consumer HTML and CSS.
+- Scaffold refreshes preserve existing go.mod files, including with --force.
+- Bubble Tea adapter tests refresh vendored dependencies before running.
