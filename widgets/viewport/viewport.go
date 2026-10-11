@@ -14,6 +14,8 @@ type Model struct {
 	text          string
 	lines         []line
 	offset        int
+	anchor        int
+	bottom        bool
 	width, height int
 	buffer        *bubbles.Buffer
 }
@@ -38,7 +40,7 @@ func (m *Model) SetContent(content string) {
 		}
 	}
 	m.text = b.String()
-	m.offset = 0
+	m.offset, m.anchor, m.bottom = 0, 0, false
 	m.layout(0)
 }
 func (m *Model) Offset() int     { return m.offset }
@@ -54,6 +56,9 @@ func (m *Model) AtBottom() bool { return m.offset >= m.limit() }
 
 // Scroll moves visual rows, clamps at both ends, and never wraps.
 func (m *Model) Scroll(delta int) bool {
+	if m.width == 0 || m.height == 0 {
+		return false
+	}
 	old := m.offset
 	if delta > 0 {
 		m.offset += min(delta, m.limit()-m.offset)
@@ -71,22 +76,30 @@ func (m *Model) Page(direction int) bool {
 	}
 	return false
 }
-func (m *Model) GotoTop()    { m.offset = 0 }
-func (m *Model) GotoBottom() { m.offset = m.limit() }
+func (m *Model) GotoTop()    { m.offset, m.anchor, m.bottom = 0, 0, false }
+func (m *Model) GotoBottom() { m.offset = m.limit(); m.bottom = true }
 
 // SetSize uses cells. Reflow keeps the old top line's first character visible,
 // then clamps to the final page. A column is reserved for the scrollbar at widths >=2.
 func (m *Model) SetSize(w, h int) {
+	oldW, oldH := m.buffer.Size()
 	if !m.buffer.Resize(w, h) {
 		return
 	}
-	anchor := 0
-	if len(m.lines) > 0 {
-		anchor = m.lines[m.offset].start
+	if oldW > 0 && oldH > 0 {
+		m.bottom = m.AtBottom()
+		m.anchor = 0
+		if len(m.lines) > 0 {
+			m.anchor = m.lines[m.offset].start
+		}
 	}
 	m.width, m.height = m.buffer.Size()
-	m.layout(anchor)
+	m.layout(m.anchor)
+	if m.width > 0 && m.height > 0 && m.bottom {
+		m.GotoBottom()
+	}
 }
+
 func (m *Model) layout(anchor int) {
 	m.lines = m.lines[:0]
 	m.offset = 0

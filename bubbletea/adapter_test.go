@@ -187,3 +187,30 @@ func TestPeripheralMessages(t *testing.T) {
 		t.Fatalf("lost button message: %+v", final)
 	}
 }
+
+func TestFallbackGridIsLazyAndReusable(t *testing.T) {
+	m, err := NewModel(&cellModel{cells: bubbles.NewBuffer(20, 8)}, &testDisplay{}, nil, bubbles.DefaultTheme(false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer m.Close()
+	m.View()
+	if m.buffer != nil {
+		t.Fatal("cell model allocated fallback grid")
+	}
+	m.model = testModel{}
+	m.View()
+	if m.buffer == nil || m.buffer.At(0, 0).Rune != 'R' {
+		t.Fatal("plain model did not render")
+	}
+	grid := m.buffer
+	m.View()
+	if m.buffer != grid {
+		t.Fatal("fallback grid not reused")
+	}
+	m.model = &cellModel{cells: bubbles.NewBuffer(20, 8)}
+	m.View()
+	if m.Err() != nil {
+		t.Fatal(m.Err())
+	}
+}

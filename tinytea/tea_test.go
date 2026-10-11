@@ -110,3 +110,24 @@ func TestCustomCellRendering(t *testing.T) {
 		t.Fatalf("custom font/style lost: %+v", f)
 	}
 }
+
+func TestFallbackGridIsLazyAndReusable(t *testing.T) {
+	a := &adapter{model: &cellModel{cells: bubbles.NewBuffer(20, 8)}}
+	a.Update(bubbles.WindowSizeMsg{Width: 20, Height: 8})
+	a.View()
+	if a.buffer != nil {
+		t.Fatal("cell model allocated fallback grid")
+	}
+	a.model = &model{}
+	b := a.View()
+	if b.At(0, 0).Rune != 'T' {
+		t.Fatal("plain view missing")
+	}
+	if a.View() != b {
+		t.Fatal("fallback grid not reused")
+	}
+	a.Update(bubbles.WindowSizeMsg{Width: 10, Height: 4})
+	if w, h := a.View().Size(); w != 10 || h != 4 {
+		t.Fatal(w, h)
+	}
+}

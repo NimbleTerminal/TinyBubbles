@@ -53,7 +53,7 @@ func (m *Model) SetProgress(done, total uint32) {
 func (m *Model) Advance() {
 	if m.Indeterminate() {
 		w, _ := m.buffer.Size()
-		m.phase = (m.phase + 1) % max(1, innerWidth(w))
+		m.phase = (m.phase + 1) % max(2, innerWidth(w))
 	}
 }
 func (m *Model) SetSize(w, h int) {
@@ -95,7 +95,11 @@ func (m *Model) CellView() *bubbles.Buffer {
 		r, style := '-', bubbles.Muted
 		active := x < filled
 		if m.Indeterminate() {
-			active = (x-m.phase+n)%n < max(1, n/4)
+			if n == 1 {
+				active = m.phase%2 == 0
+			} else {
+				active = (x-m.phase+n)%n < max(1, n/4)
+			}
 		}
 		if active {
 			r, style = '=', bubbles.Accent

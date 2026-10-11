@@ -312,3 +312,7 @@ widget grids use `Buffer.Resize`. Result messages are defined in `widgets/<name>
 and aliased by both runtime adapters. Existing adapter-qualified message names
 still work and now identify the same Go type across runtimes. Parents handling
 both runtimes should use one case for the shared type in a type switch.
+
+Viewport position survives a temporary zero-size layout. A viewport at the bottom
+stays at the bottom after reflow; replacing content still returns to the top.
+An indeterminate progress bar blinks when only one interior cell is available.

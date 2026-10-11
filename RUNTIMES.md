@@ -101,4 +101,5 @@ for preparation, firmware builds, and measured resource costs.
 The existing Feather measurements are about 33 KiB flash / 13 KiB static RAM
 for the original cooperative demo versus 260 KiB / 91 KiB for Bubble Tea.
 They exclude heap allocations and task stacks; the new TinyTea compatibility
-adapter adds code and a fallback grid, so these are not its exact footprint.
+adapter adds code and allocates a fallback grid only for plain-text views, so
+these are not its exact footprint.

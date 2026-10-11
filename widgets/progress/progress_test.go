@@ -78,3 +78,29 @@ func TestLayouts(t *testing.T) {
 		m.CellView()
 	}
 }
+
+func TestNarrowIndeterminateKeepsMoving(t *testing.T) {
+	for _, w := range []int{1, 2, 3, 4, 5} {
+		m := New(Config{})
+		m.SetSize(w, 1)
+		before := make([]rune, w)
+		b := m.CellView()
+		for x := range before {
+			before[x] = b.At(x, 0).Rune
+		}
+		m.Advance()
+		b = m.CellView()
+		changed := false
+		for x := range before {
+			if b.At(x, 0).Rune != before[x] {
+				changed = true
+			}
+		}
+		if !changed {
+			t.Fatalf("width %d did not animate", w)
+		}
+		if m.Complete() {
+			t.Fatal("indeterminate marked complete")
+		}
+	}
+}

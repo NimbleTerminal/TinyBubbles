@@ -78,9 +78,11 @@ func (r *Renderer) Render(view *Buffer) error {
 			changed = true
 			style := r.theme.style(cell.Style)
 			px, py := int16(x)*r.cw, int16(y)*r.ch
-			if err := r.fill(px, py, r.cw, r.ch, style.Background); err != nil {
-				r.valid = false
-				return err
+			if !full || style.Background != r.theme.Styles[Normal].Background {
+				if err := r.fill(px, py, r.cw, r.ch, style.Background); err != nil {
+					r.valid = false
+					return err
+				}
 			}
 			if cell.Rune != 0 && cell.Rune != ' ' {
 				r.clip.x, r.clip.y, r.clip.w, r.clip.h = px, py, r.cw, r.ch

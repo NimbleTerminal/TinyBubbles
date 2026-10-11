@@ -97,3 +97,43 @@ func TestScrollbarAndReuse(t *testing.T) {
 		m.Scroll(-1)
 	}
 }
+
+func TestResizePreservesPositionThroughCollapse(t *testing.T) {
+	for _, size := range [][2]int{{0, 0}, {10, 0}, {0, 3}} {
+		m := New("one\ntwo\nthree\nfour\nfive\nsix\nseven\neight")
+		m.SetSize(10, 3)
+		m.Scroll(2)
+		m.SetSize(size[0], size[1])
+		m.SetSize(0, 0)
+		m.SetSize(10, 3)
+		if m.Offset() != 2 {
+			t.Fatalf("collapse %v lost offset: %d", size, m.Offset())
+		}
+		m.GotoBottom()
+		m.SetSize(0, 0)
+		m.SetSize(5, 2)
+		if !m.AtBottom() {
+			t.Fatal("collapsed tail lost bottom")
+		}
+	}
+}
+
+func TestResizeFollowsBottomButStartupStartsAtTop(t *testing.T) {
+	m := New("abcdefghij\nklmnopqrst\nuvwxyz\nlast")
+	m.SetSize(0, 0)
+	m.SetSize(12, 2)
+	if !m.AtTop() {
+		t.Fatal("startup jumped to end")
+	}
+	m.GotoBottom()
+	m.SetSize(5, 2)
+	if !m.AtBottom() {
+		t.Fatal("width reflow lost bottom")
+	}
+	m.SetSize(0, 0)
+	m.SetContent("new\ndocument\nthird\nfourth")
+	m.SetSize(5, 2)
+	if !m.AtTop() {
+		t.Fatal("new content inherited old tail")
+	}
+}

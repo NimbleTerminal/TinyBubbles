@@ -20,6 +20,8 @@ type Cell struct {
 }
 
 // Buffer is a row-major character grid. Reuse it between View calls.
+// A nil buffer behaves as an empty grid: reads return zero values and writes,
+// clears, and resizes do nothing. Resize cannot create a buffer through a nil pointer.
 // Each rune occupies one cell; combining and wide characters are not composed.
 type Buffer struct {
 	width, height int
@@ -37,6 +39,9 @@ func NewBuffer(width, height int) *Buffer {
 // Unchanged dimensions preserve cells and allocate nothing. Nonpositive
 // dimensions normalize to an empty 0×0 grid. It reports whether the size changed.
 func (b *Buffer) Resize(width, height int) bool {
+	if b == nil {
+		return false
+	}
 	if width <= 0 || height <= 0 {
 		width, height = 0, 0
 	}
@@ -48,11 +53,16 @@ func (b *Buffer) Resize(width, height int) bool {
 	return true
 }
 
-func (b *Buffer) Size() (int, int) { return b.width, b.height }
+func (b *Buffer) Size() (int, int) {
+	if b == nil {
+		return 0, 0
+	}
+	return b.width, b.height
+}
 
 // Set clips writes outside the grid.
 func (b *Buffer) Set(x, y int, cell Cell) {
-	if x >= 0 && y >= 0 && x < b.width && y < b.height {
+	if b != nil && x >= 0 && y >= 0 && x < b.width && y < b.height {
 		b.cells[y*b.width+x] = cell
 	}
 }
@@ -66,6 +76,9 @@ func (b *Buffer) At(x, y int) Cell {
 }
 
 func (b *Buffer) Clear(style StyleID) {
+	if b == nil {
+		return
+	}
 	for i := range b.cells {
 		b.cells[i] = Cell{Style: style}
 	}
@@ -74,6 +87,9 @@ func (b *Buffer) Clear(style StyleID) {
 // Text writes UTF-8 text, clipping at the right edge. Newlines return to x.
 // Carriage returns return to x; other control characters are ignored.
 func (b *Buffer) Text(x, y int, text string, style StyleID) {
+	if b == nil {
+		return
+	}
 	start := x
 	for _, r := range text {
 		switch r {

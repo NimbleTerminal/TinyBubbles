@@ -136,7 +136,7 @@ func TestFillAccelerationAndErrorRetry(t *testing.T) {
 	if err := r.Render(b); err != nil {
 		t.Fatal(err)
 	}
-	if d.fills-fills != 5 {
+	if d.fills-fills != 1 {
 		t.Fatal("failed frame must be redrawn completely")
 	}
 	fills = d.fills
@@ -189,5 +189,34 @@ func TestDefaultTinyFont(t *testing.T) {
 	}
 	if lit == 0 {
 		t.Fatal("font drew nothing")
+	}
+}
+
+func TestFullRepaintSkipsMatchingBackgroundFills(t *testing.T) {
+	d := &fillDisplay{testDisplay: newDisplay(4, 6)}
+	theme := DefaultTheme(false)
+	theme.Styles[Selected].Background = color.RGBA{R: 111, A: 255}
+	r, err := NewRenderer(d, testFont{}, theme)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := NewBuffer(2, 2)
+	b.Set(1, 1, Cell{Style: Selected})
+	if err := r.Render(b); err != nil {
+		t.Fatal(err)
+	}
+	if d.fills != 2 {
+		t.Fatalf("want clear plus different background, got %d", d.fills)
+	}
+	if d.pixels[5*4+3] != theme.Styles[Selected].Background || d.pixels[0] != theme.Styles[Normal].Background {
+		t.Fatal("background colors lost")
+	}
+	b.Set(1, 1, Cell{})
+	before := d.fills
+	if err := r.Render(b); err != nil {
+		t.Fatal(err)
+	}
+	if d.fills != before+1 || d.pixels[5*4+3] != theme.Styles[Normal].Background {
+		t.Fatal("incremental clear skipped")
 	}
 }

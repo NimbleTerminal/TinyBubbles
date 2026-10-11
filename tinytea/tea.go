@@ -66,8 +66,9 @@ func (p *Program) Run() (Model, error) {
 }
 
 type adapter struct {
-	model  Model
-	buffer *bubbles.Buffer
+	model         Model
+	buffer        *bubbles.Buffer
+	width, height int
 }
 
 func command(cmd Cmd) bubbles.Cmd {
@@ -89,7 +90,10 @@ func (a *adapter) Update(msg bubbles.Msg) (bubbles.Model, bubbles.Cmd) {
 	case QuitMsg:
 		return a, bubbles.Quit
 	case bubbles.WindowSizeMsg:
-		a.buffer = bubbles.NewBuffer(msg.Width, msg.Height)
+		a.width, a.height = msg.Width, msg.Height
+		if a.buffer != nil {
+			a.buffer.Resize(a.width, a.height)
+		}
 		event = WindowSizeMsg{Width: msg.Width, Height: msg.Height}
 	case bubbles.KeyMsg:
 		switch msg.Key {
@@ -119,6 +123,9 @@ func (a *adapter) Update(msg bubbles.Msg) (bubbles.Model, bubbles.Cmd) {
 func (a *adapter) View() *bubbles.Buffer {
 	if m, ok := a.model.(CellViewer); ok {
 		return m.CellView()
+	}
+	if a.buffer == nil {
+		a.buffer = bubbles.NewBuffer(a.width, a.height)
 	}
 	a.buffer.Clear(bubbles.Normal)
 	a.buffer.Text(0, 0, a.model.View().Content, bubbles.Normal)

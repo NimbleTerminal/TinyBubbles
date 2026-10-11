@@ -220,3 +220,12 @@ reflow cached text only when needed.
 and call `Poll(now, pressed)` with a function returning each button's logical
 pressed state. It emits at most one press per call and preserves simultaneous
 presses for later polls. Pin reads and polarity remain in device code.
+
+A nil `*Buffer` behaves as an empty grid. Size and At return zero values; Set,
+Clear, Text, and Resize do nothing. Resize on nil returns false; use NewBuffer
+to create a grid.
+
+Runtime adapters allocate a fallback text grid only on the first plain-text view.
+Custom CellView models need no fallback grid, saving about 5 KiB at 40×16 cells.
+Full repaints clear the screen once and fill individual backgrounds only when
+they differ from that clear color. Incremental updates still clear changed cells.

@@ -28,3 +28,16 @@ func TestBufferResize(t *testing.T) {
 		t.Fatal("regrow failed")
 	}
 }
+
+func TestNilBufferIsEmpty(t *testing.T) {
+	var b *Buffer
+	if w, h := b.Size(); w != 0 || h != 0 {
+		t.Fatal(w, h)
+	}
+	if b.At(0, 0) != (Cell{}) || b.Resize(4, 4) {
+		t.Fatal("nil buffer not empty")
+	}
+	b.Set(0, 0, Cell{Rune: 'x'})
+	b.Clear(Accent)
+	b.Text(0, 0, "hello\nworld", Normal)
+}

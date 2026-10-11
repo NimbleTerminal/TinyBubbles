@@ -58,9 +58,8 @@ func NewModel(model tea.Model, display drivers.Displayer, font bubbles.Font, the
 	if err != nil {
 		return nil, err
 	}
-	cols, rows := renderer.Size()
 	ctx, cancel := context.WithCancel(context.Background())
-	return &DisplayModel{model: model, renderer: renderer, buffer: bubbles.NewBuffer(cols, rows), ctx: ctx, cancel: cancel}, nil
+	return &DisplayModel{model: model, renderer: renderer, ctx: ctx, cancel: cancel}, nil
 }
 
 // Context is canceled on a display error or Close.
@@ -104,6 +103,10 @@ func (a *DisplayModel) View() tea.View {
 	if m, ok := a.model.(CellViewer); ok {
 		cells = m.CellView()
 	} else {
+		if a.buffer == nil {
+			cols, rows := a.Size()
+			a.buffer = bubbles.NewBuffer(cols, rows)
+		}
 		a.buffer.Clear(bubbles.Normal)
 		a.buffer.Text(0, 0, view.Content, bubbles.Normal)
 		cells = a.buffer
