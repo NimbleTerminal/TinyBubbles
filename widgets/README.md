@@ -215,6 +215,40 @@ filled and empty cells even on monochrome displays. The buffer is reused, drawin
 allocates nothing, and percentage arithmetic uses 64 bits to avoid count overflow.
 Memory is one cell grid (about eight bytes per cell), plus the renderer's grid.
 
+## Status indicator
+
+`widgets/status` shows Offline, Ready, Busy, Warning, or Error with a distinct
+ASCII symbol (`-`, `+`, `~`, `!`, `x`) and explicit state text. Color is optional;
+the state remains readable on monochrome displays.
+
+```go
+import (
+    statustea "nimbleterminal.dev/tinybubbles/bubbletea/status"
+    "nimbleterminal.dev/tinybubbles/widgets/status"
+)
+
+indicator := statustea.New(status.Config{
+    Label: "Wi-Fi", State: status.Ready, Detail: "Connected",
+})
+// In the parent's Update, forward state changes from your device:
+indicator.Update(statustea.UpdateMsg{State: status.Warning, Detail: "Weak signal"})
+```
+
+`SetStatus(state, detail)` replaces state and detail, retaining the label.
+`State()` and `Detail()` read them. Invalid states become Offline. The widget
+has no keys, timers, animation, or device effects. `tinytea/status` accepts the
+same messages with TinyTea's model interface.
+
+Give the widget one cell row for its heading, or two for optional detail. The
+heading puts the symbol and state before the device label so narrow screens keep
+the most useful information. Text clips with a dot and never wraps; a one-cell
+view keeps only the symbol. Extra rows are cleared. Drawing reuses the grid and
+allocates nothing; the grid uses about eight bytes per cell.
+
+`Styles[state]` selects a TinyBubbles style ID. Map those IDs in the parent theme
+to add semantic colors. The browser demo uses green, amber, and red for Ready,
+Warning, and Error on color displays. These colors supplement the text.
+
 ## Try it
 
 Run `make web-serve` and choose **Scrolling menu** in the gallery. Try the
@@ -226,7 +260,8 @@ to confirm or cancel a mock settings reset. Choose **Settings** to try all four
 widgets together, including on/off and playback choices. The widget demos run Bubble Tea;
 Hello World retains its runtime selector. **Progress bar** simulates a load with
 Pause/Resume, Start over, and Known/Unknown total controls. Its timer belongs to
-the demo; switching browser tabs can slow it down.
+the demo; switching browser tabs can slow it down. **Status indicator** cycles
+through simulated connection states; it does not read real network status.
 
 The shared widget and both adapters have host tests. `make ci` also compiles
 the gallery with TinyGo 0.43 and checks the TinyTea widget adapters in firmware.
