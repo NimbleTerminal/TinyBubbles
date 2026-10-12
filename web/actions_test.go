@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/base64"
 	"encoding/json"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -70,7 +71,7 @@ func decode(t *testing.T, cmd tea.Cmd) actions.Snapshot {
 	}
 	return snapshot
 }
-func TestCompactActionsFitStatusAndFollowModel(t *testing.T) {
+func TestActionsFitStatusAndFollowModel(t *testing.T) {
 	m := &actionModel{k: musicKeys()}
 	wrapped, err := WrapActions(m, "tinypod", func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil)
 	if err != nil {
@@ -81,9 +82,10 @@ func TestCompactActionsFitStatusAndFollowModel(t *testing.T) {
 	if len(snapshot.Actions) != 11 {
 		t.Fatalf("lost actions: %d", len(snapshot.Actions))
 	}
+	idPattern := regexp.MustCompile(`^[0-9a-f]{8}$`)
 	for _, a := range snapshot.Actions {
-		if len(a.ID) > 6 {
-			t.Fatalf("long ID: %s", a.ID)
+		if !idPattern.MatchString(a.ID) {
+			t.Fatalf("invalid upstream ID: %s", a.ID)
 		}
 	}
 	_, cmd = wrapped.Update(struct{}{})
@@ -93,13 +95,17 @@ func TestCompactActionsFitStatusAndFollowModel(t *testing.T) {
 	}
 }
 func TestActionValidation(t *testing.T) {
-	for _, k := range []keys{
-		{key.NewBinding(key.WithKeys("a"), key.WithHelp("a", strings.Repeat("x", 2000)))},
-		{key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "One")), key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "Two"))},
+	for _, tt := range []struct {
+		context string
+		label   string
+	}{
+		{"test", strings.Repeat("x", 2000)},
+		{strings.Repeat("x", 2000), "Action"},
 	} {
-		_, err := WrapActions(&actionModel{k: k}, "test", func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil)
+		k := keys{key.NewBinding(key.WithKeys("a"), key.WithHelp("a", tt.label))}
+		_, err := WrapActions(&actionModel{k: k}, tt.context, func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil)
 		if err == nil {
-			t.Fatal("expected invalid payload or ID collision error")
+			t.Fatal("expected oversized payload error")
 		}
 	}
 	m := &actionModel{k: keys{key.NewBinding(key.WithKeys("/"), key.WithHelp("/", "Find")), key.NewBinding(key.WithKeys("é"), key.WithHelp("é", "Accent"))}}
@@ -108,5 +114,21 @@ func TestActionValidation(t *testing.T) {
 	}
 	if _, err := WrapActions(m, "test", func(tea.Model) help.KeyMap { return nil }, nil); err == nil {
 		t.Fatal("nil key map accepted")
+	}
+}
+
+func TestSameKeyWithDifferentLabelsHasDistinctIDs(t *testing.T) {
+	m := &actionModel{k: keys{
+		key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "One")),
+		key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "Two")),
+	}}
+	wrapped, err := WrapActions(m, "test", func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, cmd := wrapped.Update(uv.UnknownOscEvent(actions.QueryProgramStatus))
+	snapshot := decode(t, cmd)
+	if len(snapshot.Actions) != 2 || snapshot.Actions[0].ID == snapshot.Actions[1].ID {
+		t.Fatalf("distinct bindings lost: %+v", snapshot.Actions)
 	}
 }

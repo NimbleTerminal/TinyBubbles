@@ -142,8 +142,8 @@ callbacks enqueue input. Firmware uses `make hello` or `make hello-tinytea`.
   only `index.html` and `style.css` may override generated page assets. Do not
   copy JavaScript, logos, notices, or licenses. Scaffold refreshes preserve go.mod.
   Each consumer web module must repeat the Bubble Tea WASM replacement. Go replacements are not inherited.
-- `WrapActions` uses short key IDs and validates the initial OSC payload. Keep
-  host tests for ID collisions and the 2048-byte message limit. Keyboard input
+- `WrapActions` uses Booba’s eight-character hashed IDs and validates the initial OSC payload. Keep
+  host tests for distinct binding IDs and the 2048-byte message limit. Keyboard input
   must be restricted to enabled bindings in the current help map.
 - Hidden browser tabs throttle timers to about once per second and slow every
   `time.Sleep`. Keep the page visible during timing checks. Do not add Web Audio
@@ -165,7 +165,7 @@ make hello-preview  # build/hello.png and build/hello.gif
 make snapshot       # counter snapshot.png
 make web-serve      # build Go WASM and serve on port 8080
 make web-tinygo     # build TinyGo WASM with a 128 KiB stack
-make -C web test    # Go bridge tests, vet, module checks, JS encoder tests
+make -C web test    # Go bridge tests, vet, module checks, JS key mapping tests
 make -C bubbletea test  # refresh vendored dependencies and test the adapter
 ```
 

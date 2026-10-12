@@ -1,5 +1,5 @@
 import { BoobaTerminal, installActionBar } from './booba/booba.js';
-import { encodeGesture, keyFromEvent, allowedKeys } from './keys.js';
+import { keyFromEvent, allowedKeys } from './keys.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('display');
@@ -87,7 +87,8 @@ try {
   terminal = new BoobaTerminal('protocol-terminal',{allowOSC7501Actions:true,renderer:'canvas2d',fontSize:12});
   await terminal.init();
   if (!terminal.supportsProgramStatus) throw new Error('Booba Terminal Actions is unavailable');
-  const encode = gesture => encodeGesture(gesture,terminal.getMode(1),allowedKeys(terminal.actions.snapshot));
+  const encode = gesture => allowedKeys(terminal.actions.snapshot).has(gesture.key) &&
+    gesture.modifiers.length === 0 ? terminal.encodeKey(gesture) : null;
   terminal.setActionKeyEncoder({canEncode:g => encode(g)!==null, encode});
   disposeControls = installActionBar(terminal.actions,{parent:$('actions')});
   unsubscribe = terminal.actions.subscribe(() => {

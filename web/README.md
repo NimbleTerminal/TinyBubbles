@@ -123,11 +123,10 @@ if err != nil { panic(err) }
 web.Run(wrapped, web.RunOptions{Error: model.Err})
 ```
 
-The wrapper uses key names as short action IDs. Punctuation that is invalid in
-an ID is escaped. Duplicate IDs with different bindings are errors. The initial
-snapshot must fit the OSC 7501 2048-byte message limit or construction fails.
-Later errors go to the callback; a nil callback logs them. Short IDs help ordinary
-key maps fit, but do not remove the protocol size limit.
+The wrapper uses Booba's eight-character hexadecimal action IDs. The initial
+snapshot, including its summary, must fit the OSC 7501 2048-byte message limit
+or construction fails with an error. Later errors go to the callback; a nil
+callback logs them.
 
 `Run` creates the Booba program with terminal rendering, signals, and panic
 recovery disabled. `RunOptions.Program` accepts extra Bubble Tea options, such
@@ -141,8 +140,9 @@ Booba's hidden terminal carries input and action metadata. `WithoutRenderer()`
 allows `tea.Raw` output; keep Booba's input and output connected. No terminal
 help view is drawn. HTML controls and canvas keyboard input use the current
 **enabled** help bindings. Unsupported keys and modifiers are declined.
-The encoder supports Booba's named keys and printable Unicode characters,
-including application-cursor mode. Shift used to type a character such as `+`
+Booba's key encoder supports named keys and printable Unicode characters and
+follows the live cursor, backarrow, and newline modes. It declines input when
+an extended keyboard protocol is active. Shift used to type a character such as `+`
 is part of the character; Shift+Arrow is a modified command and is declined.
 
 Hidden browser tabs throttle timers to about once per second. This slows every
@@ -169,8 +169,8 @@ NimbleTerminal attribution and dependency notices link.
 
 ## Checks and hosting
 
-`make -C web test` from the repository root tests the harness, key encoder, and
-the demo gallery. Tests cover compact action IDs, the status size limit, live help
+`make -C web test` from the repository root tests the harness, DOM key mapping, and
+the demo gallery. Tests cover upstream action IDs, the status size limit, live help
 updates, and preserving existing scaffold files. `make ci` also builds firmware
 and Go/TinyGo WASM. CI uploads only `build/web/` for the site, not all of `build/`.
 

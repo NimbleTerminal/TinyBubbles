@@ -3,39 +3,16 @@ package web
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"charm.land/bubbles/v2/help"
-	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/go-booba/actions"
 	"github.com/NimbleMarkets/go-booba/actions/bubblehelp"
 )
 
-// ActionOptions uses compact IDs so ordinary key maps fit in OSC 7501.
+// ActionOptions includes disabled bindings in the browser's action metadata.
 func ActionOptions() bubblehelp.Options {
-	return bubblehelp.Options{IncludeDisabled: true, Customize: shortID}
-}
-
-func shortID(_ key.Binding, action *actions.Action) error {
-	if len(action.Keys) == 0 {
-		return fmt.Errorf("action has no keys")
-	}
-	gesture := action.Keys[0]
-	id := strings.Join(gesture.Modifiers, "+")
-	if id != "" {
-		id += "+"
-	}
-	for _, r := range gesture.Key {
-		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || strings.ContainsRune("_.+-", r) {
-			id += string(r)
-		} else {
-			id += "_" + strconv.FormatInt(int64(r), 16) + "_"
-		}
-	}
-	action.ID = id
-	return nil
+	return bubblehelp.Options{IncludeDisabled: true}
 }
 
 // WrapActions reads the current key map after each update. Errors reach onError.

@@ -26,7 +26,7 @@ func TestValueDemoActions(t *testing.T) {
 	bounded := snapshot(t, cmd)
 	disabled := false
 	for _, a := range bounded.Actions {
-		if a.ID == "right" {
+		if len(a.Keys) == 1 && a.Keys[0].Key == "right" {
 			disabled = !a.Enabled
 		}
 	}
