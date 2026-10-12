@@ -7,6 +7,24 @@ release may change public APIs; the notes will say so.
 
 ## Unreleased
 
+## v0.1.1 — 2026-10-11
+
+### Browser
+
+- Published the [live demo gallery](https://nimbleterminal.github.io/TinyBubbles/)
+  on GitHub Pages. Successful CI runs on `main` deploy the TinyGo WASM build.
+- Replaced the harness's custom action IDs with Booba's eight-character hashed
+  IDs. Initial action metadata still fails clearly if it exceeds 2048 bytes,
+  including the summary. Action IDs are opaque; identify bindings by key metadata.
+- Replaced the local key encoder with Booba's encoder, which follows cursor,
+  backarrow, and newline modes. Enabled help bindings still control which keys
+  are accepted. Printable Unicode is supported without a fallback.
+- Added a GitHub logo to the gallery's Source link and linked it to the README.
+
+Downstream browser consumers can update `nimbleterminal.dev/tinybubbles/web`
+to v0.1.1 and rebuild to regenerate the harness assets. No firmware or widget
+behavior changed.
+
 ## v0.1.0 — 2026-10-11
 
 First release. Entries are grouped by area.
