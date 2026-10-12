@@ -181,6 +181,7 @@ browser bundle includes both runtimes, so it does not compare firmware sizes.
 | `make hello-tinytea` | Build the original cooperative Feather demo. |
 | `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
 | `make snapshot` | Render the counter to `snapshot.png`. |
+| `make -C devices/terminal check` | Build the [terminal target](devices/terminal/README.md) natively and for wasip1. |
 
 [CI](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)
 runs on pushes, pull requests, and manual dispatch. It checks code and docs,
@@ -189,7 +190,7 @@ sites. After all checks pass on `main`, CI publishes the TinyGo WASM gallery
 to GitHub Pages. Artifacts are kept for 14 days. CI does not flash hardware.
 `make ci` runs the same checks locally, without publishing.
 
-There are four Go modules. Root checks do not run the nested modules' tests:
+There are five Go modules. Root checks do not run the nested modules' tests:
 
 | Module | Toolchain and role |
 | :--- | :--- |
@@ -197,6 +198,7 @@ There are four Go modules. Root checks do not run the nested modules' tests:
 | `bubbletea/` | Go 1.26.0 and TinyGo 0.43; Bubble Tea v2.1 firmware with portability patches. |
 | `web/` | Go 1.26.8; reusable canvas, LEDs, Booba actions, and scaffold tool. |
 | `web/hello/` | Demo gallery consumer of the harness. TinyGo WASM uses a 128 KiB stack. |
+| `devices/terminal/` | Go 1.26.8; hello display in a terminal via ntcharts picture, native and wasip1 with Go or TinyGo. |
 
 Other TinyGo display projects can use the [browser harness](web/README.md) without
 TinyBubbles cells or fonts. Presets come from Go; the tool generates the page

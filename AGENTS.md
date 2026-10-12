@@ -29,6 +29,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `tinytea/<widget>/` | Cooperative widget adapters |
 | `bubbletea/settings/` | Composed menu, focus routing, and child command handling |
 | `devices/` | Board setup, pins, drivers, and local targets; shared Feather initialization in `feather-reverse-tft/board` |
+| `devices/terminal/` | Nested module: hello display drawn in a terminal through ntcharts picture; native and wasip1 builds |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
 | `web/hello/` | Demo gallery consumer module, layout playground, and WASM main |
 | `examples/` | Host PNG/GIF previews |
@@ -167,10 +168,11 @@ make web-serve      # build Go WASM and serve on port 8080
 make web-tinygo     # build TinyGo WASM with a 128 KiB stack
 make -C web test    # Go bridge tests, vet, module checks, JS key mapping tests
 make -C bubbletea test  # refresh vendored dependencies and test the adapter
+make -C devices/terminal check  # tidy, vet, and build the terminal target natively and for wasip1
 ```
 
-Root tests do not cover the nested modules. Firmware selects Go 1.26.0; web
-selects Go 1.26.8. Web tests need Node.js 22+. Docs and asset builds need Python 3.
+Root tests do not cover the nested modules. Firmware selects Go 1.26.0; web and
+the terminal target select Go 1.26.8. Web tests need Node.js 22+. Docs and asset builds need Python 3.
 Use `TINYGO=/path/to/tinygo` to select a compiler. Rebuild when switching WASM
 compilers so `wasm_exec.js` matches the binary.
 

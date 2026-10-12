@@ -74,3 +74,17 @@ The two Feather runtimes share [the board package](devices/feather-reverse-tft/b
 for power, SPI, panel configuration, and button polarity. Each main keeps its
 runtime loop and control mapping. Pico and CLUE use the shared `ButtonPoller`
 with device-local pin reads.
+
+## Terminal target
+
+[`devices/terminal`](devices/terminal/README.md) draws the hello display inside a
+terminal instead of on a panel. It uses the same model, fonts, and renderer as the
+Feather, with ntcharts picture showing the framebuffer as Kitty graphics or
+half-blocks. It builds natively and for WASI preview 1 with Go or TinyGo:
+
+```sh
+make -C devices/terminal build build-wasip1 build-tinygo
+devices/terminal/run.sh            # native
+devices/terminal/run.sh wasip1     # Go WASI under wasmtime
+devices/terminal/run.sh tinygo     # TinyGo WASI under wasmtime
+```
