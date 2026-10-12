@@ -94,20 +94,19 @@ func TestActionsFitStatusAndFollowModel(t *testing.T) {
 		t.Fatal("stale action state")
 	}
 }
-func TestActionValidation(t *testing.T) {
-	for _, tt := range []struct {
-		context string
-		label   string
-	}{
-		{"test", strings.Repeat("x", 2000)},
-		{strings.Repeat("x", 2000), "Action"},
-	} {
-		k := keys{key.NewBinding(key.WithKeys("a"), key.WithHelp("a", tt.label))}
-		_, err := WrapActions(&actionModel{k: k}, tt.context, func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil)
-		if err == nil {
-			t.Fatal("expected oversized payload error")
-		}
+func TestWrapActionsRejectsOversizedPayload(t *testing.T) {
+	// Each binding is valid on its own; the combined help map exceeds OSC 7501.
+	k := musicKeys()
+	for i := range k {
+		k[i].SetHelp(k[i].Help().Key, strings.Repeat("x", 128))
 	}
+	_, err := WrapActions(&actionModel{k: k}, "test", func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil)
+	if err == nil || !strings.Contains(err.Error(), "exceeds 2048") {
+		t.Fatalf("expected payload size error, got %v", err)
+	}
+}
+
+func TestActionValidation(t *testing.T) {
 	m := &actionModel{k: keys{key.NewBinding(key.WithKeys("/"), key.WithHelp("/", "Find")), key.NewBinding(key.WithKeys("é"), key.WithHelp("é", "Accent"))}}
 	if _, err := WrapActions(m, "test", func(m tea.Model) help.KeyMap { return m.(*actionModel).k }, nil); err != nil {
 		t.Fatal(err)

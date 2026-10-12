@@ -76,12 +76,10 @@ func TestAssetRefreshPrunesOnlyHarnessFiles(t *testing.T) {
 	if err := publishAssets(stage, target, true); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"obsolete.js", "demos.js"} {
-		if _, err := os.Stat(filepath.Join(target, name)); !os.IsNotExist(err) {
-			t.Fatal("stale file survived", name, err)
-		}
+	if _, err := os.Stat(filepath.Join(target, "obsolete.js")); !os.IsNotExist(err) {
+		t.Fatal("stale file survived", err)
 	}
-	for _, name := range []string{"app.wasm", "go.mod", "custom.png", "main.js"} {
+	for _, name := range []string{"app.wasm", "go.mod", "custom.png", "demos.js", "main.js"} {
 		if _, err := os.Stat(filepath.Join(target, name)); err != nil {
 			t.Fatal("lost file", name, err)
 		}

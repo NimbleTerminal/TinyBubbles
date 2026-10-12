@@ -4,6 +4,8 @@ Widgets share cell layouts across Bubble Tea and TinyTea. They use the display's
 font and theme. They do not draw ANSI text or own the display driver.
 Use [layout helpers](../layout/README.md) to size and compose their cell buffers.
 
+Create widgets with `New`; zero-value models do not initialize their cell buffers.
+
 ## Scrolling list
 
 The list draws one item per row, skips disabled items, and wraps at either end.

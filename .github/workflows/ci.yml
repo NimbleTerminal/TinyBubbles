@@ -9,7 +9,7 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   web-tinygo:
@@ -44,6 +44,8 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: build/web/
+          # Keep the local asset ownership manifest out of the published site.
+          include-hidden-files: false
   deploy-pages:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [host, web, firmware, bubbletea, web-tinygo]
