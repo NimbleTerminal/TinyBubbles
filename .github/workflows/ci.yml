@@ -94,8 +94,13 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: '1.26.x'
+          cache-dependency-path: |
+            go.sum
+            devices/terminal/go.sum
       - name: Check formatting, modules, docs, tests, and host builds
         run: make check
+      - name: Check the terminal target natively and for wasip1
+        run: make -C devices/terminal check
       - name: Render desktop demos
         run: make hello-preview snapshot
       - uses: actions/upload-artifact@v7

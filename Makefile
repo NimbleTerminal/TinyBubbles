@@ -11,6 +11,7 @@ ci:
 	$(MAKE) firmware
 	$(MAKE) -C bubbletea test
 	$(MAKE) -C bubbletea firmware TINYGO="$(TINYGO)"
+	$(MAKE) -C devices/terminal check
 	$(MAKE) -C web test build
 	$(MAKE) web-tinygo
 
