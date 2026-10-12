@@ -17,7 +17,7 @@ func main() {
 	selected := browser.Configure(browser.Config{
 		Title:  "TinyBubbles",
 		Logo:   "bubbles.svg",
-		Source: "https://github.com/NimbleTerminal/TinyBubbles",
+		Source: "https://github.com/NimbleTerminal/TinyBubbles#tinybubbles---tinygo-display-uis",
 		Introduction: []browser.TextPart{
 			{Text: "TinyGo", URL: "https://tinygo.org"},
 			{Text: " compiles Go for microcontrollers. "},

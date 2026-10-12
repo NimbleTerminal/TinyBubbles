@@ -15,6 +15,10 @@ header, main, footer { width:100%; margin:0; }
 
 header { padding:13px 28px; display:flex; align-items:center; justify-content:space-between; font-size:13px; border-bottom:1px solid var(--line); }
 
+#source { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+
+.source-logo { flex:none; }
+
 .brand { font-size:19px; font-weight:760; letter-spacing:-.6px; display:flex; align-items:center; gap:9px; }
 
 .mark { background:#ccebb4; font-size:24px; padding:0 6px; border-radius:7px; line-height:30px; }
