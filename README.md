@@ -19,7 +19,7 @@ fonts, and renderer.
 
 [![Hello, Tiny World: floating bubbles, color changes, and an enlarged pop counter](docs/assets/hello.gif)](devices/feather-reverse-tft/README.md)
 
-**Hello, Tiny World** · [Source](demo/hello/model.go) · [Device guide](devices/feather-reverse-tft/README.md)
+**Hello, Tiny World** · [Live demo](https://NimbleTerminal.github.io/TinyBubbles/) · [Source](demo/hello/model.go) · [Device guide](devices/feather-reverse-tft/README.md)
 
 The preview renders the actual demo model and font on the desktop, enlarged 3×.
 The demo also runs on the **Adafruit ESP32-S3 Reverse TFT Feather**: D0 pops bubbles,
@@ -44,7 +44,8 @@ or reusable cell buffers with custom fonts, including large glyphs and counters.
 
 ## Quickstart
 
-Try the browser demo from a checkout:
+Open the [live browser gallery](https://NimbleTerminal.github.io/TinyBubbles/),
+or run it from a checkout:
 
 ```sh
 make web-serve
@@ -184,8 +185,9 @@ browser bundle includes both runtimes, so it does not compare firmware sizes.
 [CI](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)
 runs on pushes, pull requests, and manual dispatch. It checks code and docs,
 renders previews, and builds the firmware matrix and both Go and TinyGo WASM
-sites. Artifacts are kept for 14 days. CI does not flash hardware or deploy the
-site. `make ci` runs the same checks locally.
+sites. After all checks pass on `main`, CI publishes the TinyGo WASM gallery
+to GitHub Pages. Artifacts are kept for 14 days. CI does not flash hardware.
+`make ci` runs the same checks locally, without publishing.
 
 There are four Go modules. Root checks do not run the nested modules' tests:
 

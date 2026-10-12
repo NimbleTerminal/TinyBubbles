@@ -39,6 +39,29 @@ jobs:
           path: build/web/
           if-no-files-found: error
           retention-days: 14
+      - name: Package Pages site
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/web/
+  deploy-pages:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [host, web, firmware, bubbletea, web-tinygo]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/configure-pages@v6
+      - name: Deploy browser gallery
+        id: deployment
+        uses: actions/deploy-pages@v5
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -175,4 +175,7 @@ updates, and preserving existing scaffold files. `make ci` also builds firmware
 and Go/TinyGo WASM. CI uploads only `build/web/` for the site, not all of `build/`.
 
 Generated assets use relative URLs and work under a hosting subpath. Public
-hosting is a separate step. Preserve `THIRD_PARTY_NOTICES.txt` when publishing.
+hosting for this repository uses [GitHub Pages](https://NimbleTerminal.github.io/TinyBubbles/).
+After all CI checks pass on `main`, the workflow publishes the TinyGo WASM
+site, including its matching runtime shim and dependency notices. Pull requests
+and tags do not deploy. Preserve `THIRD_PARTY_NOTICES.txt` when publishing elsewhere.

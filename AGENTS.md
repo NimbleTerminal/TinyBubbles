@@ -196,8 +196,9 @@ cp build/hello.gif docs/assets/hello.gif
 ```
 
 CI runs on pushes, pull requests, and manual dispatch. It uploads named previews,
-firmware files, and `build/web/`. It does not flash or deploy. Never upload the
-whole `build/` directory.
+firmware files, and `build/web/`. After all checks pass on `main`, it deploys
+the TinyGo WASM site to GitHub Pages. Pull requests and tags do not deploy.
+It does not flash hardware. Never upload the whole `build/` directory.
 
 ## Hardware and private files
 
