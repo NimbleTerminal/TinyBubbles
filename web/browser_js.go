@@ -70,7 +70,15 @@ func (l *LEDs) WriteColors(colors []color.RGBA) error {
 		if i >= l.Len() {
 			break
 		}
-		l.elements.Index(i).Get("style").Set("background", "rgb("+strconv.Itoa(int(c.R))+","+strconv.Itoa(int(c.G))+","+strconv.Itoa(int(c.B))+")")
+		style := l.elements.Index(i).Get("style")
+		if c.R == 0 && c.G == 0 && c.B == 0 {
+			style.Set("background", "#243639")
+			style.Set("boxShadow", "none")
+			continue
+		}
+		rgb := "rgb(" + strconv.Itoa(int(c.R)) + "," + strconv.Itoa(int(c.G)) + "," + strconv.Itoa(int(c.B)) + ")"
+		style.Set("background", rgb)
+		style.Set("boxShadow", "0 0 7px "+rgb)
 	}
 	return nil
 }

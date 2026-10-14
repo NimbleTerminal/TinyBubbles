@@ -308,3 +308,66 @@ func (d *SPIRegisterDevice) LastTx() []byte {
 	d.mu.Unlock()
 	return out
 }
+
+// I2CRegisterDevice models a register-mapped I2C peripheral (such as a sensor or GPIO expander).
+//
+// In each Tx(w, r):
+//   - If len(w) >= 1, w[0] selects the active register pointer and w[1:] writes sequential registers.
+//   - If len(r) >= 1, r is filled from sequential registers starting at the active register pointer.
+type I2CRegisterDevice struct {
+	addr         uint16
+	mu           sync.Mutex
+	regs         [256]byte
+	ptr          uint8
+	transactions int
+}
+
+// NewI2CRegisterDevice creates a register-mapped I2C peripheral at the 7-bit address addr.
+func NewI2CRegisterDevice(addr uint16) *I2CRegisterDevice {
+	return &I2CRegisterDevice{addr: addr}
+}
+
+// Address returns the 7-bit I2C address of the peripheral.
+func (d *I2CRegisterDevice) Address() uint16 {
+	return d.addr
+}
+
+// Tx processes an I2C register read/write transaction.
+func (d *I2CRegisterDevice) Tx(_ *HAL, w, r []byte) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.transactions++
+	if len(w) > 0 {
+		d.ptr = w[0]
+		for i, b := range w[1:] {
+			d.regs[d.ptr+uint8(i)] = b
+		}
+	}
+	for i := range r {
+		r[i] = d.regs[d.ptr+uint8(i)]
+	}
+	return nil
+}
+
+// Register returns the current byte stored at reg.
+func (d *I2CRegisterDevice) Register(reg uint8) byte {
+	d.mu.Lock()
+	v := d.regs[reg]
+	d.mu.Unlock()
+	return v
+}
+
+// SetRegister sets the byte stored at reg.
+func (d *I2CRegisterDevice) SetRegister(reg uint8, val byte) {
+	d.mu.Lock()
+	d.regs[reg] = val
+	d.mu.Unlock()
+}
+
+// Transactions returns the number of I2C transactions processed by the device.
+func (d *I2CRegisterDevice) Transactions() int {
+	d.mu.Lock()
+	n := d.transactions
+	d.mu.Unlock()
+	return n
+}

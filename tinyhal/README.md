@@ -37,11 +37,12 @@ framebuffers) and injects high-level user inputs (such as button presses).
 | --- | --- | --- |
 | [`hal.go`](./hal.go) | *(none)* | Core `HAL`, `Pin`, `PinMode`, GPIO/PWM/ADC/SPI/I2C/UART state, and `drivers.SPI` / `drivers.I2C` adapters |
 | [`events.go`](./events.go) | *(none)* | High-level output `Event` (`pin`, `led`, `button`, `framebuffer`, `uart`) and host `InputEvent` injection |
-| [`devices.go`](./devices.go) | *(none)* | `SPIDevice`, `I2CDevice`, `LED`, `Button`, and stateful `SPIRegisterDevice` models |
+| [`devices.go`](./devices.go) | *(none)* | `SPIDevice`, `I2CDevice`, `LED`, `Button`, `SPIRegisterDevice`, and `I2CRegisterDevice` models |
 | [`st7789.go`](./st7789.go) | *(none)* | Virtual `ST7789` SPI + GPIO TFT display model (`CASET`, `RASET`, `RAMWR`, `MADCTL`, `COLMOD`) |
 | [`ssd1306.go`](./ssd1306.go) | *(none)* | Virtual `SSD1306` I2C monochrome OLED display model |
 | [`hooks_tinygo.go`](./hooks_tinygo.go) | `tinygo && !baremetal` | `//export __tinygo_*` symbol implementations bridged to `tinyhal.Default()` |
 | [`bridge_js.go`](./bridge_js.go) | `js && wasm` | Minimal browser JS host bridge (`BindJS`) |
+| [`workbench/`](./workbench) | `tinygo && !baremetal` / host | Standalone MCU workbench demo (GPIO, PWM LEDs, 12-bit ADC oscilloscope, SPI ST7789/registers, I2C SSD1306/sensor, UART) without TinyBubbles cell buffers or widgets |
 | [`cmd/tinyhal-demo/`](./cmd/tinyhal-demo) | `tinygo && !baremetal` / host | Runnable example combining `machine`, `st7789`/`ssd1306`, `tinyhal`, and `tinytea` |
 
 The core package has no `machine` or `syscall/js` imports in untagged files, so
