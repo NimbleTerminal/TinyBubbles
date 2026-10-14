@@ -83,6 +83,14 @@ if kitty and b"\x1b_Ga=d,d=I" not in buf:
 if not kitty and idle == 0:
     print("no half-block output while idle", file=sys.stderr)
     sys.exit(1)
+# The pseudo-terminal never answers the OSC 7501 query, so the program hosts
+# its own action bar and turns on mouse reporting for it.
+if b"Pop" not in buf or b"More" not in buf or b"\x1b[?1002h" not in buf:
+    print("no hosted action bar", file=sys.stderr)
+    sys.exit(1)
+if b"\x1b]7501;state=idle" in buf:
+    print("action report leaked to the terminal", file=sys.stderr)
+    sys.exit(1)
 if not os.path.exists(snapshot):
     print("no snapshot written", file=sys.stderr)
     sys.exit(1)

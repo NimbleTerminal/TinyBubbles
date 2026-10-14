@@ -8,12 +8,14 @@ It is a development target: the same model and fonts as the Feather, no hardware
 
 The program builds natively and for WASI preview 1 with Go or TinyGo. The WASI
 builds need Bubble Tea's wasip1 stubs, so this module replaces Bubble Tea with the
-same fork commit that `web/go.mod` pins. ntpicture is not released yet, so the
-module also replaces it with the checkout next to this repository.
+same fork commit that `web/go.mod` pins. ntpicture and go-booba's `termhost` are
+not released yet, so the module replaces both with the checkouts next to this
+repository.
 
-The expected layout is sibling `TinyBubbles/` and `ntpicture/` directories
-(for example, under `~/projects`). Until ntpicture is published, a clean checkout
-and CI also need that source; the replacement is not a downloadable release.
+The expected layout is sibling `TinyBubbles/`, `ntpicture/`, and `go-booba/`
+directories (for example, under `~/projects`). The go-booba checkout must include
+`actions/termhost`. A clean checkout and CI also need these sources; the local
+replacements are not downloadable releases.
 At release, replace `v0.0.0` with the published version and remove the local
 `replace nimbleterminal.dev/ntpicture` directive.
 
@@ -25,6 +27,7 @@ and browser modules keep their existing dependencies.
 ## Build and run
 
 Run from this directory. The WASI builds run under [wasmtime](https://wasmtime.dev).
+TinyGo builds use the Boehm garbage collector (`-gc=boehm`).
 
 ```sh
 make build          # build/terminal/terminal (native)
@@ -38,8 +41,9 @@ make build-tinygo   # build/terminal/terminal-tinygo.wasm, TinyGo 0.43 with Go 1
 ```
 
 Enter pops a bubble, Right changes the palette, Esc pauses, k toggles between Kitty
-graphics and half-blocks, and q or Ctrl-C quits. The script reads the terminal size
-with `stty size` because `tput` fails for `TERM` values without local terminfo, such
+graphics and half-blocks, and q or Ctrl-C quits. The same bindings appear as a row
+of buttons under the picture that you can click with the mouse; More reveals Quit.
+The script reads the terminal size with `stty size` because `tput` fails for `TERM` values without local terminfo, such
 as `xterm-ghostty`. A terminal of at least 240×70 shows the display at one column per
 pixel; smaller terminals get a 120×34 picture. `COLUMNS` and `LINES` override detection.
 
@@ -47,6 +51,19 @@ pixel; smaller terminals get a 120×34 picture. `COLUMNS` and `LINES` override d
 also builds the TinyGo target and drives all three through a pseudo-terminal with
 `smoke.py`, checking that each draws, handles keys, and quits in half-block and
 forced Kitty modes. Kitty checks also require image transmission and deletion.
+
+## Buttons from the help map
+
+The program publishes its help map as Booba
+[Terminal Actions](https://github.com/NimbleMarkets/go-booba/blob/main/docs/TERMINAL_ACTIONS.md),
+the OSC 7501 convention that Booba's browser terminal turns into buttons, with
+the same `bubblehelp` wrapper the web gallery uses. A plain terminal never answers
+the capability query, so go-booba's `termhost` wrapper answers it itself, takes the
+reports out of the output stream before they reach the terminal, and draws them as
+the button row. Clicks become ordinary key presses through the program loop, which
+is why the hello model needs no knowledge of the bar. Under Booba the wrapper steps
+aside and the browser renders the buttons instead. The Kitty toggle's label and
+enabled state follow the picture, so the buttons always say what k will do.
 
 ## How the WASI builds differ
 

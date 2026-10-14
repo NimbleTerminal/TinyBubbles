@@ -80,7 +80,8 @@ with device-local pin reads.
 [`devices/terminal`](devices/terminal/README.md) draws the hello display inside a
 terminal instead of on a panel. It uses the same model, fonts, and renderer as the
 Feather, with ntpicture showing the framebuffer as Kitty graphics or
-half-blocks. It builds natively and for WASI preview 1 with Go or TinyGo:
+half-blocks and the key bindings hosted as clickable buttons under it. It builds
+natively and for WASI preview 1 with Go or TinyGo:
 
 ```sh
 make -C devices/terminal build build-wasip1 build-tinygo

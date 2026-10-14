@@ -29,7 +29,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `tinytea/<widget>/` | Cooperative widget adapters |
 | `bubbletea/settings/` | Composed menu, focus routing, and child command handling |
 | `devices/` | Board setup, pins, drivers, and local targets; shared Feather initialization in `feather-reverse-tft/board` |
-| `devices/terminal/` | Nested module: hello display drawn in a terminal through ntpicture; native and wasip1 builds |
+| `devices/terminal/` | Nested module: hello display drawn in a terminal through ntpicture, help bindings hosted as clickable Terminal Actions; native and wasip1 builds |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
 | `web/hello/` | Demo gallery consumer module, layout playground, and WASM main |
 | `examples/` | Host PNG/GIF previews |
@@ -123,7 +123,8 @@ supplies host ticks, and uses TinyTea commands for quitting. It is not a general
 Bubble Tea command adapter. Keep TinyTea program calls on one host loop; JS
 callbacks enqueue input. Firmware uses `make hello` or `make hello-tinytea`.
 
-- Keep Booba and its pinned Bubble Tea WASM fork in `web/go.mod`. The firmware
+- Keep Booba and its pinned Bubble Tea WASM fork in `web/go.mod`. The terminal
+  module also depends on go-booba, for Terminal Actions only. The firmware
   module uses upstream v2.1. Root module replacements do not inherit web settings.
 - Use `displaytea.NewModel` when Booba owns the program. Pass its context and
   cell size to the program, check `Err()` after Run, and call `Close()`.
