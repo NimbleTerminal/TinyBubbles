@@ -36,18 +36,21 @@ framebuffers) and injects high-level user inputs (such as button presses).
 | File | Build tags | Purpose |
 | --- | --- | --- |
 | [`hal.go`](./hal.go) | *(none)* | Core `HAL`, `Pin`, `PinMode`, GPIO/PWM/ADC/SPI/I2C/UART state, and `drivers.SPI` / `drivers.I2C` adapters |
-| [`events.go`](./events.go) | *(none)* | High-level output `Event` (`pin`, `led`, `button`, `framebuffer`, `uart`) and host `InputEvent` injection |
+| [`events.go`](./events.go) | *(none)* | High-level output `Event` (`pin`, `led`, `led_strip`, `button`, `framebuffer`, `uart`) and host `InputEvent` injection |
 | [`devices.go`](./devices.go) | *(none)* | `SPIDevice`, `I2CDevice`, `LED`, `Button`, `SPIRegisterDevice`, and `I2CRegisterDevice` models |
+| [`apa102.go`](./apa102.go) | *(none)* | Virtual `APA102` / DotStar SPI RGB LED strip model compatible with `tinygo.org/x/drivers/apa102` |
 | [`st7789.go`](./st7789.go) | *(none)* | Virtual `ST7789` SPI + GPIO TFT display model (`CASET`, `RASET`, `RAMWR`, `MADCTL`, `COLMOD`) |
 | [`ssd1306.go`](./ssd1306.go) | *(none)* | Virtual `SSD1306` I2C monochrome OLED display model |
+| [`trace.go`](./trace.go) | *(none)* | `TraceRecorder` capturing GPIO, PWM, SPI, I2C, and UART transitions and exporting IEEE 1364 `.vcd` waveforms |
 | [`hooks_tinygo.go`](./hooks_tinygo.go) | `tinygo && !baremetal` | `//export __tinygo_*` symbol implementations bridged to `tinyhal.Default()` |
 | [`bridge_js.go`](./bridge_js.go) | `js && wasm` | Minimal browser JS host bridge (`BindJS`) |
+| [`board_smoke_test.go`](./board_smoke_test.go) | *(none)* | Host smoke tests for the Pico OLED (`SSD1306` + `demo.New`), CLUE (`ST7789` + `demo.New`), and Feather Reverse TFT (`ST7789` + `hello.New`) board flows |
 | [`workbench/`](./workbench) | `tinygo && !baremetal` / host | Standalone MCU workbench demo (GPIO, PWM LEDs, 12-bit ADC oscilloscope, SPI ST7789/registers, I2C SSD1306/sensor, UART) without TinyBubbles cell buffers or widgets |
-| [`cmd/tinyhal-demo/`](./cmd/tinyhal-demo) | `tinygo && !baremetal` / host | Runnable example combining `machine`, `st7789`/`ssd1306`, `tinyhal`, and `tinytea` |
+| [`cmd/tinyhal-demo/`](./cmd/tinyhal-demo) | `tinygo && !baremetal` / host | Runnable example combining `machine`, `st7789`/`ssd1306`, `apa102`, `TraceRecorder`, `tinyhal`, and `tinytea` |
 
 The core package has no `machine` or `syscall/js` imports in untagged files, so
-`go test ./tinyhal/...` tests all bus logic and device state machines with
-standard Go on the host.
+`go test ./tinyhal/...` tests all bus logic, virtual peripherals, `.vcd` waveform
+export, and board smoke setups with standard Go on the host.
 
 ## Minimal JavaScript host interface
 

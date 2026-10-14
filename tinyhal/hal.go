@@ -142,6 +142,7 @@ type HAL struct {
 	events       []Event
 	maxEvents    int
 	onEvent      func(Event)
+	tracer       *TraceRecorder
 }
 
 var (
@@ -174,6 +175,21 @@ func New() *HAL {
 	return h
 }
 
+// SetTracer attaches or detaches a bus and pin trace recorder on h.
+func (h *HAL) SetTracer(tr *TraceRecorder) {
+	h.mu.Lock()
+	h.tracer = tr
+	h.mu.Unlock()
+}
+
+// Tracer returns the currently attached TraceRecorder, or nil if none is set.
+func (h *HAL) Tracer() *TraceRecorder {
+	h.mu.Lock()
+	tr := h.tracer
+	h.mu.Unlock()
+	return tr
+}
+
 // Reset clears all pin states, buses, registered peripherals, and queued events.
 func (h *HAL) Reset() {
 	h.mu.Lock()
@@ -186,6 +202,9 @@ func (h *HAL) Reset() {
 	h.uartBuses = make(map[uint8]*uartBusState)
 	h.buttons = make(map[string]*Button)
 	h.events = h.events[:0]
+	if h.tracer != nil {
+		h.tracer.Reset()
+	}
 	h.mu.Unlock()
 }
 
@@ -237,8 +256,12 @@ func (h *HAL) GPIOSet(pin Pin, high bool) {
 	}
 	h.pins[pin] = s
 	listeners := append([]PinChangeFunc(nil), h.pinListeners[pin]...)
+	tr := h.tracer
 	h.mu.Unlock()
 
+	if tr != nil {
+		tr.recordGPIO(pin, s.Level())
+	}
 	h.Emit(Event{
 		Kind: EventPin,
 		Pin:  pin,
@@ -287,8 +310,12 @@ func (h *HAL) SetPinInput(pin Pin, high bool) {
 	s.HasExternalInput = true
 	h.pins[pin] = s
 	listeners := append([]PinChangeFunc(nil), h.pinListeners[pin]...)
+	tr := h.tracer
 	h.mu.Unlock()
 
+	if tr != nil {
+		tr.recordGPIO(pin, s.Level())
+	}
 	h.Emit(Event{
 		Kind: EventPin,
 		Pin:  pin,
@@ -362,8 +389,12 @@ func (h *HAL) PWMChannelSet(instance int32, channel uint8, value uint32) {
 	s.Output = duty > 0
 	h.pins[pin] = s
 	listeners := append([]PinChangeFunc(nil), h.pinListeners[pin]...)
+	tr := h.tracer
 	h.mu.Unlock()
 
+	if tr != nil {
+		tr.recordPWM(pin, duty)
+	}
 	for _, fn := range listeners {
 		fn(h, pin, s)
 	}
@@ -445,6 +476,7 @@ func (h *HAL) SPITx(bus uint8, w, r []byte) {
 	h.mu.Lock()
 	b := h.spiBusLocked(bus)
 	devs := append([]SPIDevice(nil), b.devices...)
+	tr := h.tracer
 	h.mu.Unlock()
 
 	for i := range r {
@@ -452,6 +484,9 @@ func (h *HAL) SPITx(bus uint8, w, r []byte) {
 	}
 	for _, dev := range devs {
 		dev.Transfer(h, w, r)
+	}
+	if tr != nil {
+		tr.recordSPI(bus, w, r)
 	}
 }
 
@@ -525,6 +560,7 @@ func (h *HAL) I2CTransfer(bus uint8, addr uint16, w, r []byte) int {
 	h.mu.Lock()
 	b := h.i2cBusLocked(bus)
 	dev, ok := b.devices[addr]
+	tr := h.tracer
 	h.mu.Unlock()
 	if !ok {
 		return I2CErrNoDevices
@@ -534,6 +570,9 @@ func (h *HAL) I2CTransfer(bus uint8, addr uint16, w, r []byte) int {
 	}
 	if err := dev.Tx(h, w, r); err != nil {
 		return I2CErrBus
+	}
+	if tr != nil {
+		tr.recordI2C(bus, addr, w, r)
 	}
 	return I2COK
 }
@@ -610,8 +649,12 @@ func (h *HAL) UARTWrite(bus uint8, data []byte) int {
 	h.mu.Lock()
 	u := h.uartBusLocked(bus)
 	u.tx = append(u.tx, cp...)
+	tr := h.tracer
 	h.mu.Unlock()
 
+	if tr != nil {
+		tr.recordUART(bus, cp)
+	}
 	h.Emit(Event{
 		Kind: EventUART,
 		Bus:  bus,

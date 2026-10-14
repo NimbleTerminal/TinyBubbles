@@ -3,10 +3,12 @@ package tinyhal
 import (
 	"bytes"
 	"image/color"
+	"strings"
 	"testing"
 
 	bubbles "nimbleterminal.dev/tinybubbles"
 	"nimbleterminal.dev/tinybubbles/tinytea"
+	"tinygo.org/x/drivers/apa102"
 	"tinygo.org/x/drivers/ssd1306"
 )
 
@@ -327,5 +329,103 @@ func TestVirtualSSD1306WithTinyTea(t *testing.T) {
 	}
 	if len(target.pixels) == 0 {
 		t.Fatalf("expected TinyTea text rendering to light pixels on virtual SSD1306")
+	}
+}
+
+func TestVirtualAPA102WithDriver(t *testing.T) {
+	h := New()
+	writer := &recordLEDWriter{}
+	strip := AttachAPA102(h, APA102Config{
+		ID:     "dotstar",
+		Bus:    1,
+		Count:  3,
+		Order:  APA102OrderBGR,
+		Writer: writer,
+	})
+
+	var stripEvents int
+	h.OnEvent(func(ev Event) {
+		if ev.Kind == EventLEDStrip && ev.ID == "dotstar" && len(ev.Colors) == 3 {
+			stripEvents++
+		}
+	})
+
+	drv := apa102.New(h.SPI(1))
+	want := []color.RGBA{
+		{R: 255, G: 0, B: 0, A: 255},
+		{R: 0, G: 255, B: 0, A: 255},
+		{R: 0, G: 0, B: 255, A: 128},
+	}
+	if _, err := drv.WriteColors(want); err != nil {
+		t.Fatalf("apa102.WriteColors failed: %v", err)
+	}
+
+	if strip.Updates() != 1 || stripEvents != 1 {
+		t.Fatalf("expected 1 APA102 strip update and event, got updates=%d events=%d", strip.Updates(), stripEvents)
+	}
+	got := strip.Colors()
+	if len(got) != 3 || got[0].R != 255 || got[1].G != 255 || got[2].B == 0 || got[2].B >= 255 {
+		t.Fatalf("unexpected APA102 decoded colors: %+v", got)
+	}
+	if len(writer.colors) != 3 || writer.colors[0].R != 255 {
+		t.Fatalf("expected LEDWriter to receive 3 APA102 colors, got %+v", writer.colors)
+	}
+}
+
+func TestTraceRecorderAndVCDExport(t *testing.T) {
+	h := New()
+	tr := NewTraceRecorder()
+	h.SetTracer(tr)
+	if h.Tracer() != tr {
+		t.Fatalf("expected Tracer() to return registered TraceRecorder")
+	}
+
+	spiDev := NewSPIRegisterDevice(NoPin)
+	spiDev.SetRegister(0x0f, 0x33)
+	h.AttachSPI(0, spiDev)
+
+	i2cDev := NewI2CRegisterDevice(0x3c)
+	i2cDev.SetRegister(0x00, 0xaa)
+	h.AttachI2C(0, i2cDev)
+
+	h.GPIOConfigure(13, PinConfig{Mode: PinOutput})
+	h.GPIOSet(13, true)
+	h.GPIOSet(13, false)
+
+	h.PWMConfigure(0, 1000, 1000)
+	h.PWMChannelConfigure(0, 1, 15)
+	h.PWMChannelSet(0, 1, 500)
+
+	var spiRx [2]byte
+	h.SPITx(0, []byte{0x0f, 0x00}, spiRx[:])
+	if spiRx[1] != 0x33 {
+		t.Fatalf("unexpected SPI readback: rx=%x", spiRx)
+	}
+
+	var i2cRx [1]byte
+	if rc := h.I2CTransfer(0, 0x3c, []byte{0x00}, i2cRx[:]); rc != 0 || i2cRx[0] != 0xaa {
+		t.Fatalf("unexpected I2C readback: rc=%d rx=%x", rc, i2cRx)
+	}
+
+	h.UARTWrite(0, []byte("OK"))
+
+	if len(tr.Samples()) == 0 {
+		t.Fatalf("expected recorded trace samples")
+	}
+	vcd := tr.VCDString()
+	for _, want := range []string{
+		"$version tinyhal VCD recorder $end",
+		"$scope module tinyhal $end",
+		"gpio_13 $end",
+		"pwm_15 $end",
+		"spi0_mosi $end",
+		"spi0_miso $end",
+		"i2c0_addr $end",
+		"uart0_tx $end",
+		"#0",
+	} {
+		if !strings.Contains(vcd, want) {
+			t.Fatalf("expected VCD output to contain %q, got:\n%s", want, vcd)
+		}
 	}
 }

@@ -8,6 +8,7 @@ type EventKind string
 const (
 	EventPin         EventKind = "pin"
 	EventLED         EventKind = "led"
+	EventLEDStrip    EventKind = "led_strip"
 	EventButton      EventKind = "button"
 	EventFramebuffer EventKind = "framebuffer"
 	EventUART        EventKind = "uart"
@@ -15,18 +16,19 @@ const (
 
 // Event describes a high-level visual or peripheral update for a host or UI layer.
 type Event struct {
-	Kind       EventKind  `json:"kind"`
-	ID         string     `json:"id,omitempty"`
-	Bus        uint8      `json:"bus,omitempty"`
-	Pin        Pin        `json:"pin,omitempty"`
-	High       bool       `json:"high,omitempty"`
-	Brightness uint8      `json:"brightness,omitempty"`
-	Color      color.RGBA `json:"color,omitempty"`
-	Pressed    bool       `json:"pressed,omitempty"`
-	Width      int16      `json:"width,omitempty"`
-	Height     int16      `json:"height,omitempty"`
-	Pixels     []byte     `json:"-"`
-	Data       []byte     `json:"data,omitempty"`
+	Kind       EventKind    `json:"kind"`
+	ID         string       `json:"id,omitempty"`
+	Bus        uint8        `json:"bus,omitempty"`
+	Pin        Pin          `json:"pin,omitempty"`
+	High       bool         `json:"high,omitempty"`
+	Brightness uint8        `json:"brightness,omitempty"`
+	Color      color.RGBA   `json:"color,omitempty"`
+	Colors     []color.RGBA `json:"colors,omitempty"`
+	Pressed    bool         `json:"pressed,omitempty"`
+	Width      int16        `json:"width,omitempty"`
+	Height     int16        `json:"height,omitempty"`
+	Pixels     []byte       `json:"-"`
+	Data       []byte       `json:"data,omitempty"`
 }
 
 // InputKind identifies a high-level host input event injected into HAL.

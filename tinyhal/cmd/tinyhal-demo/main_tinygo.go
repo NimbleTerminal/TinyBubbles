@@ -54,6 +54,8 @@ func (m demoModel) View() tinytea.View {
 
 func main() {
 	hal := tinyhal.Default()
+	tracer := tinyhal.NewTraceRecorder()
+	hal.SetTracer(tracer)
 
 	// 1. Register virtual peripherals on the HAL netlist before running machine code.
 	led := tinyhal.AttachLED(hal, tinyhal.LEDConfig{
@@ -68,18 +70,27 @@ func main() {
 	spiSensor := tinyhal.NewSPIRegisterDevice(tinyhal.Pin(pinSPICS))
 	hal.AttachSPI(0, spiSensor)
 
-	tft := tinyhal.AttachST7789(hal, tinyhal.ST7789Config{
-		ID:        "tft",
-		Bus:       0,
-		Width:     240,
-		Height:    135,
-		Reset:     tinyhal.Pin(pinTFTReset),
-		DC:        tinyhal.Pin(pinTFTDC),
-		CS:        tinyhal.Pin(pinTFTCS),
-		Backlight: tinyhal.Pin(pinTFTLite),
+	strip := tinyhal.AttachAPA102(hal, tinyhal.APA102Config{
+		ID:    "dotstar",
+		Bus:   1,
+		Count: 2,
+		Order: tinyhal.APA102OrderBGR,
 	})
 
-	// 2. Standard TinyGo embedded code using machine.Pin and machine.SPI0.
+	tft := tinyhal.AttachST7789(hal, tinyhal.ST7789Config{
+		ID:           "tft",
+		Bus:          0,
+		Width:        240,
+		Height:       135,
+		RowOffset:    40,
+		ColumnOffset: 53,
+		Reset:        tinyhal.Pin(pinTFTReset),
+		DC:           tinyhal.Pin(pinTFTDC),
+		CS:           tinyhal.Pin(pinTFTCS),
+		Backlight:    tinyhal.Pin(pinTFTLite),
+	})
+
+	// 2. Standard TinyGo embedded code using machine.Pin, machine.SPI0, and machine.SPI1.
 	pinStatusLED.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	pinButtonD0.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
 	pinSPICS.Configure(machine.PinConfig{Mode: machine.PinOutput})
@@ -93,6 +104,17 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
+	if err := machine.SPI1.Configure(machine.SPIConfig{Frequency: 4_000_000}); err != nil {
+		panic(err)
+	}
+
+	// Write an APA102 2-LED frame over machine.SPI1 (start frame + 2 LED frames + end frame).
+	_ = machine.SPI1.Tx([]byte{
+		0x00, 0x00, 0x00, 0x00,
+		0xff, 0x00, 0x80, 0xff,
+		0xf0, 0xff, 0x40, 0x00,
+		0xff,
+	}, nil)
 
 	// Write and read back a register on the SPI peripheral using machine.SPI0.
 	pinSPICS.Low()
@@ -101,9 +123,16 @@ func main() {
 	_ = machine.SPI0.Tx([]byte{0x01, 0x00}, rx)
 	pinSPICS.High()
 
-	// Configure a real tinygo.org/x/drivers/st7789 display over machine.SPI0.
+	// Configure a real tinygo.org/x/drivers/st7789 display matching Feather Reverse TFT.
 	display := st7789.New(machine.SPI0, pinTFTReset, pinTFTDC, pinTFTCS, pinTFTLite)
-	display.Configure(st7789.Config{Width: 240, Height: 135})
+	display.IsBGR(true)
+	display.Configure(st7789.Config{
+		Width:        135,
+		Height:       240,
+		Rotation:     st7789.ROTATION_90,
+		RowOffset:    40,
+		ColumnOffset: 53,
+	})
 
 	// 3. Coexist with TinyTea rendering onto the ST7789 SPI display.
 	prog, err := tinytea.NewProgram(
@@ -135,6 +164,6 @@ func main() {
 		Pressed: false,
 	})
 
-	fmt.Printf("tinyhal demo complete: led_on=%v spi_reg=0x%02x tft_frames=%d events=%d\n",
-		led.On(), spiSensor.Register(0x01), tft.Frames(), len(hal.DrainEvents()))
+	fmt.Printf("tinyhal demo complete: led_on=%v spi_reg=0x%02x apa102_updates=%d tft_frames=%d trace_samples=%d events=%d\n",
+		led.On(), spiSensor.Register(0x01), strip.Updates(), tft.Frames(), len(tracer.Samples()), len(hal.DrainEvents()))
 }
