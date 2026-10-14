@@ -34,6 +34,7 @@ make build-tinygo   # build/terminal/terminal-tinygo.wasm, TinyGo 0.43 with Go 1
 ./run.sh wasip1
 ./run.sh tinygo
 ./run.sh wasip1 -glyph   # stay in half-block mode
+./run.sh native -uncapped -stats  # measure maximum picture throughput
 ```
 
 Enter pops a bubble, Right changes the palette, Esc pauses, k toggles between Kitty
@@ -62,8 +63,20 @@ forced Kitty modes. Kitty checks also require image transmission and deletion.
 
 ## Performance
 
+`-uncapped` removes the hello model's 100 ms animation wait for this terminal
+target. Each completed picture advances the next animation step, keeping one
+producer frame in flight. Animation therefore runs faster, rather than preserving
+wall-clock movement speed. Esc still pauses and resumes it.
+
+`-stats` reports framebuffer flushes and completed pictures separately.
+Picture completion means the component finished preparing/outputting the frame,
+not that a terminal painted it. Bubble Tea's text renderer is raised from its
+default 60 Hz to its maximum 120 Hz in uncapped mode; it may skip intermediate
+glyph pictures. Kitty image output uses raw protocol messages. A pseudo-terminal
+benchmark measures the producer/output pipeline, not actual display refresh.
+
 TinyBubbles' own rendering costs about 50 µs per frame. The hello model ticks every
-100 ms, so 10 frames per second is the ceiling on every target. Half-block mode
+100 ms by default, so 10 frames per second is the default ceiling. Half-block mode
 fits the image at one by two pixels per cell and builds about 100 KB of styled
 text per frame for 240×68 cells, in a few milliseconds on every target. Kitty mode
 sends a small bitmap instead. Two details keep it cheap: the image is encoded at

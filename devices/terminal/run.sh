@@ -1,12 +1,12 @@
 #!/bin/sh
-# Run the hello demo in this terminal: run.sh [native|wasip1|tinygo] [-glyph]
+# Run the hello demo: run.sh [native|wasip1|tinygo] [-glyph] [-uncapped] [-stats]
 # Build first with make build, build-wasip1, or build-tinygo in this directory.
 # Keys: Enter=Pop  Right=Color  Esc=Pause  k=toggle Kitty/half-blocks  q or Ctrl-C=Quit
 set -e
 here="$(cd "$(dirname "$0")" && pwd)"
 out="${OUT:-$here/../../build/terminal}"
 which="native"; mode=""
-for arg in "$@"; do case "$arg" in native|wasip1|tinygo) which="$arg";; -glyph) mode="-glyph";; esac; done
+for arg in "$@"; do case "$arg" in native|wasip1|tinygo) which="$arg";; -glyph|-uncapped|-stats) mode="$mode $arg";; *) echo "unknown argument: $arg" >&2; exit 1;; esac; done
 # stty asks the tty driver; tput fails when TERM (for example xterm-ghostty) has no local terminfo.
 set -- $(stty size </dev/tty 2>/dev/null || echo "0 0"); lines=$1; cols=$2
 [ "${COLUMNS:-0}" -gt 0 ] && cols=$COLUMNS

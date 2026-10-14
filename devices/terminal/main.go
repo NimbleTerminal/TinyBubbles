@@ -25,6 +25,22 @@ import (
 
 const width, height = 240, 135
 
+// unpacedHello leaves scheduling to the host's picture completion messages.
+// The shared hello model retains its 100 ms timer on every other target.
+type unpacedHello struct{ *teamodel.Model }
+
+func (*unpacedHello) Init() tea.Cmd {
+	return func() tea.Msg { return hello.TickMsg{} }
+}
+
+func (m *unpacedHello) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	_, cmd := m.Model.Update(msg)
+	if _, tick := msg.(hello.TickMsg); tick {
+		cmd = nil
+	}
+	return m, cmd
+}
+
 // display is the Displayer the TinyBubbles renderer draws into: a plain RGBA
 // framebuffer that the picture maps onto terminal cells.
 type display struct {
@@ -46,6 +62,9 @@ type app struct {
 	wantKitty  bool
 	shown      int // fb.frames last handed to the picture
 	status     string
+	uncapped   bool
+	paused     bool
+	presented  int
 }
 
 func (a *app) Init() tea.Cmd {
@@ -54,7 +73,17 @@ func (a *app) Init() tea.Cmd {
 
 func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
+	innerMsg := msg
+	advance := false
 	switch v := msg.(type) {
+	case ntpicture.PresentedMsg:
+		if v.Owner == a.pic && v.Generation == a.pic.Status().Generation {
+			a.presented++
+			if a.uncapped && !a.paused {
+				innerMsg = hello.TickMsg{}
+				advance = true
+			}
+		}
 	case tea.KeyPressMsg:
 		switch {
 		case v.String() == "ctrl+c", v.String() == "ctrl+d", key.Matches(v, a.keys.Quit):
@@ -65,20 +94,22 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// An explicit choice wins over a late capability-probe reply.
 			a.wantKitty = false
 			cmds = append(cmds, a.toggle())
+		case key.Matches(v, a.keys.Pause):
+			a.paused = !a.paused
 		}
 	case ntpicture.ErrorMsg:
 		if v.Owner == a.pic && v.Generation == a.pic.Status().Generation && v.Err != nil {
 			a.status = v.Err.Error()
 		}
 	}
-	_, cmd := a.inner.Update(msg)
+	_, cmd := a.inner.Update(innerMsg)
 	cmds = append(cmds, cmd, a.pic.Update(msg))
 	if a.wantKitty && ntpicture.KittySupported() == ntpicture.KittyCapabilitySupported {
 		a.wantKitty = false
 		cmds = append(cmds, a.pic.SetMode(ntpicture.PictureKitty))
 	}
 	// The picture's own messages never carry a new frame, so skip rendering.
-	if ntpicture.IsPictureMsg(msg) {
+	if ntpicture.IsPictureMsg(msg) && !advance {
 		return a, tea.Batch(cmds...)
 	}
 	// The adapter renders cells into the framebuffer in View. Do it here so
@@ -86,7 +117,9 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// image when the renderer flushed a new frame. SetImage copies the pixels,
 	// so the renderer may keep drawing into the framebuffer.
 	a.inner.View()
-	if a.fb.frames != a.shown {
+	// Some animation steps leave the pixels unchanged. Still complete a picture
+	// in uncapped mode so the next step has a completion to advance from.
+	if a.fb.frames != a.shown || advance {
 		a.shown = a.fb.frames
 		cmds = append(cmds, a.pic.SetImage(a.fb.RGBA))
 	}
@@ -121,13 +154,18 @@ func main() {
 	cols := flag.Int("cols", 240, "terminal columns for the display")
 	rows := flag.Int("rows", 68, "terminal rows for the display")
 	glyph := flag.Bool("glyph", false, "stay in half-block mode instead of switching to Kitty graphics")
+	uncapped := flag.Bool("uncapped", false, "advance animation after each picture completion instead of waiting 100 ms")
 	stats := flag.Bool("stats", false, "print frame statistics on exit")
 	snapshot := flag.String("snapshot", "", "write the final framebuffer to this PNG on exit")
 	flag.Parse()
 
 	fb := &display{RGBA: image.NewRGBA(image.Rect(0, 0, width, height))}
 	model := teamodel.New()
-	inner, err := displaytea.NewModel(model, fb, hello.NewFont(), hello.Theme())
+	var visual tea.Model = model
+	if *uncapped {
+		visual = &unpacedHello{model}
+	}
+	inner, err := displaytea.NewModel(visual, fb, hello.NewFont(), hello.Theme())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -142,12 +180,17 @@ func main() {
 		Fit: ntpicture.FitFill, KittyFormat: ntpicture.KittyFormatZlib, KittyResolutionFactor: 0.125}})
 	defer pic.Close()
 	a := &app{inner: inner, keys: model.Keys(), fb: fb, pic: pic, cols: *cols, rows: *rows, wantKitty: !*glyph}
+	a.uncapped = *uncapped
+	fps := 60
+	if *uncapped {
+		fps = 120 // Bubble Tea's maximum text-renderer refresh rate.
+	}
 
 	p := tea.NewProgram(a, tea.WithContext(inner.Context()), tea.WithInput(stdin()),
 		// WASI cannot tell whether stdout is a terminal, and profile detection
 		// would then strip every color.
 		tea.WithColorProfile(colorprofile.TrueColor),
-		tea.WithoutSignalHandler(), tea.WithoutCatchPanics(), tea.WithWindowSize(*cols, *rows+1))
+		tea.WithoutSignalHandler(), tea.WithoutCatchPanics(), tea.WithFPS(fps), tea.WithWindowSize(*cols, *rows+1))
 	start := time.Now()
 	_, err = p.Run()
 	elapsed := time.Since(start)
@@ -160,7 +203,8 @@ func main() {
 	if *stats {
 		fmt.Fprintf(os.Stderr, "frames=%d elapsed=%s fps=%.1f mode=%d kitty=%d stdin=%s\r\n",
 			fb.frames, elapsed.Round(time.Millisecond), float64(fb.frames)/elapsed.Seconds(), a.pic.Mode(), ntpicture.KittySupported(), stdinMode)
-
+		fmt.Fprintf(os.Stderr, "pictures=%d picture_fps=%.1f uncapped=%t\r\n",
+			a.presented, float64(a.presented)/elapsed.Seconds(), a.uncapped)
 	}
 	if *snapshot != "" {
 		if err := writePNG(*snapshot, fb.RGBA); err != nil {
