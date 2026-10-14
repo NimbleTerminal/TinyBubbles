@@ -178,6 +178,9 @@ func TestDefaultTinyFont(t *testing.T) {
 	}
 	b := NewBuffer(21, 8)
 	b.Text(0, 0, "Hello, TinyBubbles!\n\u2603", Normal)
+	b.Text(0, 2, "─━│┃┌┐└┘├┤┬┴┼╭╮╯╰╴╵╶╷", Normal)
+	b.Text(0, 3, "▀▁▂▃▄▅▆▇█▉▊▋▌▍▎▏▐░▒▓▔▕", Normal)
+	b.Text(0, 4, "▖▗▘▙▚▛▜▝▞▟⠀⠁⠂⠄⠈⠐⠠⡀⢀⣿", Normal)
 	if err = r.Render(b); err != nil {
 		t.Fatal(err)
 	}

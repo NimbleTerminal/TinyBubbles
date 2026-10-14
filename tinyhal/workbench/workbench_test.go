@@ -92,7 +92,20 @@ func TestWorkbenchColorAndMonochrome(t *testing.T) {
 	}
 	wb.Tick()
 
-	// Verify monochrome SSD1306 I2C workbench mode (128x64).
+	// Toggle to VCD Logic Analyzer view and verify VCD waveform output.
+	if wb.ViewMode() != ViewScope {
+		t.Fatalf("expected initial ViewScope, got %v", wb.ViewMode())
+	}
+	wb.ToggleView()
+	if wb.ViewMode() != ViewLogic {
+		t.Fatalf("expected ViewLogic after ToggleView, got %v", wb.ViewMode())
+	}
+	wb.Tick()
+	if len(wb.Tracer().Samples()) == 0 || wb.VCD() == "" {
+		t.Fatalf("expected recorded VCD trace samples in workbench")
+	}
+
+	// Verify monochrome SSD1306 I2C workbench mode (128x64) in both Scope and Logic views.
 	oledDisp := &testDisplay{w: 128, h: 64}
 	oledWB := New(Config{
 		Width:      128,
@@ -101,7 +114,9 @@ func TestWorkbenchColorAndMonochrome(t *testing.T) {
 		Target:     oledDisp,
 	})
 	oledWB.Tick()
-	if oledDisp.flushes < 2 || oledDisp.lit == 0 {
+	oledWB.ToggleView()
+	oledWB.Tick()
+	if oledDisp.flushes < 3 || oledDisp.lit == 0 {
 		t.Fatalf("expected SSD1306 I2C frame flushes, got flushes=%d lit=%d", oledDisp.flushes, oledDisp.lit)
 	}
 }

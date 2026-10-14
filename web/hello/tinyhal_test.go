@@ -63,14 +63,36 @@ func TestTinyHALDemoActionsAndHardwareFlow(t *testing.T) {
 		// Press Enter (D1 button) to toggle GPIO13 LED off; label must change to "D1: LED on".
 		m, cmd = m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 		ledSnap := snapshot(t, cmd)
-		var ledOnFound bool
+		var ledOnFound, viewLogicFound, exportVCDFound bool
 		for _, a := range ledSnap.Actions {
 			if a.Label == "D1: LED on" {
 				ledOnFound = true
 			}
+			if a.Label == "View: Logic" && a.Enabled {
+				viewLogicFound = true
+			}
+			if a.Label == "Export .vcd" && a.Enabled {
+				exportVCDFound = true
+			}
 		}
-		if !ledOnFound {
-			t.Fatalf("expected D1 press to update action label to 'D1: LED on', got %+v", ledSnap.Actions)
+		if !ledOnFound || !viewLogicFound || !exportVCDFound {
+			t.Fatalf("expected D1/View/Export actions, got %+v", ledSnap.Actions)
 		}
+
+		// Press 'v' to switch to the VCD Logic Analyzer view; label must change to "View: Scope".
+		m, cmd = m.Update(tea.KeyPressMsg{Code: 'v'})
+		viewSnap := snapshot(t, cmd)
+		var viewScopeFound bool
+		for _, a := range viewSnap.Actions {
+			if a.Label == "View: Scope" {
+				viewScopeFound = true
+			}
+		}
+		if !viewScopeFound {
+			t.Fatalf("expected 'v' press to update action label to 'View: Scope', got %+v", viewSnap.Actions)
+		}
+
+		// Press 'x' to exercise VCD export.
+		m, _ = m.Update(tea.KeyPressMsg{Code: 'x'})
 	}
 }

@@ -13,6 +13,8 @@ import (
 	"image/color"
 	"math"
 
+	bubbles "nimbleterminal.dev/tinybubbles"
+	"nimbleterminal.dev/tinybubbles/tinycharts"
 	"nimbleterminal.dev/tinybubbles/tinyhal"
 	"tinygo.org/x/drivers"
 	"tinygo.org/x/tinyfont"
@@ -60,6 +62,21 @@ func (m Mode) String() string {
 	}
 }
 
+// ViewMode selects between the analog ADC oscilloscope and the digital VCD logic analyzer.
+type ViewMode uint8
+
+const (
+	ViewScope ViewMode = iota
+	ViewLogic
+)
+
+func (v ViewMode) String() string {
+	if v == ViewLogic {
+		return "LOGIC"
+	}
+	return "SCOPE"
+}
+
 // Config configures the virtual MCU workbench and its display/LED sinks.
 type Config struct {
 	Width      int16
@@ -97,6 +114,7 @@ func (s ledSlotWriter) WriteColors(colors []color.RGBA) error {
 type Workbench struct {
 	cfg        Config
 	hal        *tinyhal.HAL
+	tracer     *tinyhal.TraceRecorder
 	bus        mcuBus
 	ledGroup   *ledGroupWriter
 	ledStatus  *tinyhal.LED
@@ -110,7 +128,10 @@ type Workbench struct {
 	tft        *tinyhal.ST7789
 	oled       *tinyhal.SSD1306
 	frameBuf   *frameCanvas
+	scopeChart *tinycharts.Streamline
+	logicChart *tinycharts.LogicChart
 	mode       Mode
+	viewMode   ViewMode
 	manualADC  uint16
 	adcReading uint16
 	tempC      int8
@@ -120,8 +141,7 @@ type Workbench struct {
 	lastUART   string
 	actTTL     int
 	phase      int
-	history    [96]uint16
-	histIdx    int
+	pendingBus bool
 	prevD0     bool
 	prevD1     bool
 	prevD2     bool
@@ -136,13 +156,36 @@ func New(cfg Config) *Workbench {
 		cfg.Height = 135
 	}
 	hal := newWorkbenchHAL()
+	tracer := tinyhal.NewTraceRecorder()
 	group := &ledGroupWriter{sink: cfg.LEDs}
+	cols := max(8, int((cfg.Width-14)/6))
+	scopeRows := max(3, int((cfg.Height-70)/8))
+	logicRows := max(4, int((cfg.Height-53)/8))
+	if cfg.Height <= 64 {
+		cols = max(8, int((cfg.Width-6)/6))
+		scopeRows = max(3, int((cfg.Height-36)/8))
+		logicRows = max(4, int((cfg.Height-26)/8))
+	}
 	w := &Workbench{
 		cfg:      cfg,
 		hal:      hal,
+		tracer:   tracer,
 		bus:      newMCUBus(hal),
 		ledGroup: group,
 		frameBuf: newFrameCanvas(cfg.Width, cfg.Height, cfg.Monochrome),
+		scopeChart: tinycharts.NewStreamline(
+			cols,
+			scopeRows,
+			tinycharts.WithStreamRange(0, 4095),
+			tinycharts.WithStreamMode(tinycharts.StreamModeBraille),
+			tinycharts.WithStreamStyle(styleTraceGPIO),
+		),
+		logicChart: tinycharts.NewLogicChart(cols, logicRows, []tinycharts.LogicChannel{
+			{Label: "G13", Kind: tinycharts.LogicBit, Style: styleTraceGPIO},
+			{Label: "PWM", Kind: tinycharts.LogicPWM, Style: styleTracePWM},
+			{Label: "ACT", Kind: tinycharts.LogicBit, Style: styleTraceAct},
+			{Label: "BUS", Kind: tinycharts.LogicBus, Style: bubbles.Accent},
+		}),
 	}
 	w.attachPeripherals()
 	w.Reset()
@@ -233,15 +276,28 @@ func (w *Workbench) Reset() {
 	w.prevD1 = false
 	w.prevD2 = false
 
+	w.hal.SetTracer(nil)
 	w.bus.configurePinsAndBuses(w.cfg.Width, w.cfg.Height, w.cfg.Monochrome)
+	w.tracer.Reset()
+	w.hal.SetTracer(w.tracer)
+
 	w.i2cSensor.SetRegister(0x00, byte(w.tempC))
 	_ = w.hal.InjectInput(tinyhal.InputEvent{Kind: tinyhal.InputADC, Pin: PinADCPot, Value: w.manualADC})
 
 	// Turn status LED on initially and run one SPI/I2C/UART transaction so registers are populated.
 	w.bus.pinSet(PinLEDStatus, true)
 	w.runBusBurst()
-	for i := range w.history {
-		w.history[i] = w.manualADC
+	w.scopeChart.Clear()
+	w.logicChart.Clear()
+	for i := 0; i < w.scopeChart.Width()*2; i++ {
+		w.scopeChart.Push(float64(w.manualADC))
+	}
+	for i := 0; i < w.scopeChart.Width(); i++ {
+		var burst uint16
+		if i%8 == 0 {
+			burst = 1
+		}
+		w.logicChart.PushStep(1, 128, burst, burst)
 	}
 	w.sampleAndRender()
 }
@@ -249,8 +305,28 @@ func (w *Workbench) Reset() {
 // HAL returns the underlying tinyhal.HAL instance.
 func (w *Workbench) HAL() *tinyhal.HAL { return w.hal }
 
+// Tracer returns the workbench's bus/pin VCD trace recorder.
+func (w *Workbench) Tracer() *tinyhal.TraceRecorder { return w.tracer }
+
+// VCD exports the recorded GPIO, PWM, SPI, I2C, and UART transitions as an IEEE 1364 .vcd string.
+func (w *Workbench) VCD() string { return w.tracer.VCDString() }
+
 // Mode returns the active ADC signal source mode.
 func (w *Workbench) Mode() Mode { return w.mode }
+
+// ViewMode returns the active display view mode (ViewScope or ViewLogic).
+func (w *Workbench) ViewMode() ViewMode { return w.viewMode }
+
+// ToggleView switches between the analog ADC oscilloscope and the digital VCD logic analyzer.
+func (w *Workbench) ToggleView() {
+	if w.viewMode == ViewScope {
+		w.viewMode = ViewLogic
+	} else {
+		w.viewMode = ViewScope
+	}
+	w.drawDashboard()
+	w.flushFrame()
+}
 
 // ADC returns the most recent 12-bit ADC reading (0..4095).
 func (w *Workbench) ADC() uint16 { return w.adcReading }
@@ -327,12 +403,14 @@ func (w *Workbench) AdjustTemp(delta int8) {
 	}
 	w.i2cSensor.SetRegister(0x00, byte(int8(next)))
 	w.actTTL = 2
+	w.pendingBus = true
 	w.bus.pinSet(PinLEDActivity, true)
 	w.sampleAndRender()
 }
 
 // Tick advances the workbench simulation by one timer step.
 func (w *Workbench) Tick() {
+	w.tracer.Advance(1000)
 	w.phase = (w.phase + 1) % 64
 	switch w.mode {
 	case ModeSine:
@@ -399,7 +477,15 @@ func (w *Workbench) runBusBurst() {
 
 	// 4. Pulse the bus-activity GPIO LED (Pin 15).
 	w.actTTL = 3
+	w.pendingBus = true
 	w.bus.pinSet(PinLEDActivity, true)
+}
+
+func boolU16(v bool) uint16 {
+	if v {
+		return 1
+	}
+	return 0
 }
 
 func (w *Workbench) sampleAndRender() {
@@ -412,11 +498,49 @@ func (w *Workbench) sampleAndRender() {
 	_ = w.bus.i2cTx(I2CSensorAddr, []byte{0x00}, tempBuf[:])
 	w.tempC = int8(tempBuf[0])
 
-	w.history[w.histIdx] = w.adcReading
-	w.histIdx = (w.histIdx + 1) % len(w.history)
+	w.scopeChart.Push(float64(w.adcReading))
+	w.logicChart.PushStep(
+		boolU16(w.ledStatus.On()),
+		uint16(w.ledPWM.Brightness()),
+		boolU16(w.ledAct.On()),
+		boolU16(w.pendingBus),
+	)
+	w.pendingBus = false
 
 	w.drawDashboard()
+	w.flushFrame()
+}
+
+func (w *Workbench) flushFrame() {
+	// Pause VCD trace recording while transferring framebuffer pixels to the display.
+	w.hal.SetTracer(nil)
 	w.bus.flushDisplay(w.frameBuf)
+	w.hal.SetTracer(w.tracer)
+}
+
+const (
+	styleTraceGPIO bubbles.StyleID = 4
+	styleTracePWM  bubbles.StyleID = 5
+	styleTraceAct  bubbles.StyleID = 6
+)
+
+func (w *Workbench) chartTheme(bg, colGPIO, colPWM, colAct, colLabel color.RGBA) bubbles.Theme {
+	if w.frameBuf.mono {
+		th := bubbles.DefaultTheme(true)
+		th.Styles[bubbles.Selected] = th.Styles[bubbles.Normal]
+		return th
+	}
+	th := bubbles.DefaultTheme(false)
+	for i := range th.Styles {
+		th.Styles[i].Background = bg
+	}
+	th.Styles[bubbles.Normal].Foreground = colLabel
+	th.Styles[bubbles.Muted].Foreground = colLabel
+	th.Styles[bubbles.Accent].Foreground = colPWM
+	th.Styles[styleTraceGPIO].Foreground = colGPIO
+	th.Styles[styleTracePWM].Foreground = colPWM
+	th.Styles[styleTraceAct].Foreground = colAct
+	return th
 }
 
 func (w *Workbench) drawDashboard() {
@@ -455,6 +579,12 @@ func (w *Workbench) drawDashboard() {
 
 	if height <= 64 {
 		// Compact 128x64 monochrome OLED layout over I2C0.
+		if w.viewMode == ViewLogic {
+			tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 8, fmt.Sprintf("VCD LOGIC EV:%d", len(w.tracer.Samples())), white)
+			tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 18, fmt.Sprintf("SPI:%02X I2C:%dC TX:%d", w.spiVal, w.tempC, w.uartCount), white)
+			w.drawLogicAnalyzer(2, 22, width-4, height-24, panelBg, gridCol, green, cyan, amber, white)
+			return
+		}
 		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 8, fmt.Sprintf("HAL I2C0 %s %dC", w.mode, w.tempC), white)
 		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 18, fmt.Sprintf("L13:%s PWM:%d%%", ledState, w.PWMPercent()), white)
 		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 28, fmt.Sprintf("ADC:%.2fV SPI:%02X", volts, w.spiVal), white)
@@ -464,8 +594,13 @@ func (w *Workbench) drawDashboard() {
 
 	// Color TFT layout (240x135 Feather or 320x240 Large TFT) over SPI0.
 	c.fillRect(0, 0, width, 16, headerBg)
-	tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 6, 11, "TINYHAL · SPI0 ST7789", cyan)
-	tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, width-72, 11, fmt.Sprintf("MODE:%s", w.mode), amber)
+	if w.viewMode == ViewLogic {
+		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 6, 11, "TINYHAL · VCD LOGIC", cyan)
+		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, width-78, 11, fmt.Sprintf("VCD:%4d", len(w.tracer.Samples())), amber)
+	} else {
+		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 6, 11, "TINYHAL · SPI0 ST7789", cyan)
+		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, width-72, 11, fmt.Sprintf("MODE:%s", w.mode), amber)
+	}
 
 	// Pin & LED status strip.
 	ledCol := muted
@@ -480,19 +615,23 @@ func (w *Workbench) drawDashboard() {
 	tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 78, 28, fmt.Sprintf("PWM14:%3d%%", w.PWMPercent()), cyan)
 	tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 156, 28, fmt.Sprintf("ACT15:%v", w.ledAct.On()), actCol)
 
-	// ADC voltage gauge bar.
-	tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 6, 42, fmt.Sprintf("ADC26: %4d (%0.2fV)", w.adcReading, volts), white)
-	barX, barY, barW, barH := int16(136), int16(34), width-142, int16(9)
-	c.fillRect(barX, barY, barW, barH, panelBg)
-	fillW := int16((int(w.adcReading) * int(barW)) / 4095)
-	if fillW > 0 {
-		c.fillRect(barX, barY, fillW, barH, cyan)
-	}
+	if w.viewMode == ViewLogic {
+		w.drawLogicAnalyzer(6, 33, width-12, height-51, panelBg, gridCol, green, cyan, amber, muted)
+	} else {
+		// ADC voltage gauge bar.
+		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 6, 42, fmt.Sprintf("ADC26: %4d (%0.2fV)", w.adcReading, volts), white)
+		barX, barY, barW, barH := int16(136), int16(34), width-142, int16(9)
+		c.fillRect(barX, barY, barW, barH, panelBg)
+		fillW := int16((int(w.adcReading) * int(barW)) / 4095)
+		if fillW > 0 {
+			c.fillRect(barX, barY, fillW, barH, cyan)
+		}
 
-	// Oscilloscope waveform area.
-	scopeY := int16(48)
-	scopeH := height - 68
-	w.drawScope(6, scopeY, width-12, scopeH, panelBg, gridCol, green)
+		// Oscilloscope waveform area.
+		scopeY := int16(48)
+		scopeH := height - 68
+		w.drawScope(6, scopeY, width-12, scopeH, panelBg, gridCol, green)
+	}
 
 	// Bottom bus telemetry bar (SPI, I2C, UART).
 	footerY := height - 6
@@ -506,33 +645,32 @@ func (w *Workbench) drawScope(x, y, width, height int16, bg, border, trace color
 	}
 	c := w.frameBuf
 	c.fillRect(x, y, width, height, bg)
-	// Top and bottom scope rails.
 	c.fillRect(x, y, width, 1, border)
 	c.fillRect(x, y+height-1, width, 1, border)
 
-	innerH := height - 4
-	samples := int(width - 2)
-	if samples > len(w.history) {
-		samples = len(w.history)
+	cols := max(1, int((width-2)/6))
+	rows := max(1, int((height-2)/8))
+	if w.scopeChart.Width() != cols || w.scopeChart.Height() != rows {
+		w.scopeChart.Resize(cols, rows)
 	}
-	var prevY int16
-	for i := 0; i < samples; i++ {
-		idx := (w.histIdx - samples + i + len(w.history)) % len(w.history)
-		val := w.history[idx]
-		py := y + height - 2 - int16((int(val)*int(innerH))/4095)
-		px := x + 1 + int16(i)
-		c.SetPixel(px, py, trace)
-		if i > 0 {
-			y0, y1 := prevY, py
-			if y0 > y1 {
-				y0, y1 = y1, y0
-			}
-			for yy := y0; yy <= y1; yy++ {
-				c.SetPixel(px, yy, trace)
-			}
-		}
-		prevY = py
+	th := w.chartTheme(bg, trace, trace, trace, trace)
+	tinycharts.PaintBuffer(c, x+1, y+1, w.scopeChart.View(), bubbles.DefaultFont(), th)
+}
+
+func (w *Workbench) drawLogicAnalyzer(x, y, width, height int16, bg, grid, colGPIO, colPWM, colAct, colLabel color.RGBA) {
+	if width <= 24 || height <= 16 {
+		return
 	}
+	c := w.frameBuf
+	c.fillRect(x, y, width, height, bg)
+	c.fillRect(x, y, width, 1, grid)
+	c.fillRect(x, y+height-1, width, 1, grid)
+
+	cols := max(4, int((width-2)/6))
+	rows := max(4, int((height-2)/8))
+	w.logicChart.Resize(cols, rows)
+	th := w.chartTheme(bg, colGPIO, colPWM, colAct, colLabel)
+	tinycharts.PaintBuffer(c, x+1, y+1, w.logicChart.View(), bubbles.DefaultFont(), th)
 }
 
 // frameCanvas holds the local firmware frame before flushing over SPI (RGB565BE) or I2C (SSD1306 GDDRAM).

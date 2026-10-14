@@ -35,6 +35,7 @@ or reusable cell buffers with custom fonts, including large glyphs and counters.
 | [Bubble Tea backend](bubbletea/README.md) | Real Bubble Tea v2.1 Program with a Displayer renderer. |
 | [TinyTea](RUNTIMES.md) | Optional cooperative subset with a similar model API for smaller devices. |
 | [Widgets](widgets/README.md) | Lists, value and choice pickers, dialogs, progress, status, and scrollable text. |
+| [TinyCharts](tinycharts/README.md) | Sparklines, Braille/arc/box streamlines, bar charts, and logic analyzer waveforms. |
 | [Layout](layout/README.md) | Cell regions, padding, splits, alignment, and clipped composition. |
 | [Cell buffer](cell.go) | Reusable character grids with UTF-8 text and clipped writes. |
 | [Renderer](API.md#displayer-and-rendering) | Changed-cell drawing and optional FillRectangle acceleration. |

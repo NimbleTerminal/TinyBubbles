@@ -26,6 +26,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `demo/hello/` | Shared greeting, custom font tiles, enlarged counter |
 | `demo/model.go` | Counter used by Pico and CLUE |
 | `widgets/` | Shared state and cell layouts for list, value, choice, dialog, progress, status, and viewport |
+| `tinycharts/` | Cell-buffer sparklines, Braille/arc/box streamlines, bar charts, and logic analyzer waveforms |
 | `bubbletea/<widget>/` | Bubble Tea adapters and Bubbles help bindings |
 | `tinytea/<widget>/` | Cooperative widget adapters |
 | `bubbletea/settings/` | Composed menu, focus routing, and child command handling |
