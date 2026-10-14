@@ -12,7 +12,7 @@ build-wasip1:
 	GOOS=wasip1 GOARCH=wasm go build -o $(OUT)/terminal-go.wasm .
 build-tinygo:
 	mkdir -p $(OUT)
-	GOROOT="$$(go env GOROOT)" $(TINYGO) build -target=wasip1 -o $(OUT)/terminal-tinygo.wasm .
+	GOROOT="$$(go env GOROOT)" $(TINYGO) build -target=wasip1 -gc=boehm -o $(OUT)/terminal-tinygo.wasm .
 check:
 	go mod tidy -diff
 	go mod verify
