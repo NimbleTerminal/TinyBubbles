@@ -25,7 +25,9 @@ progress, status, and viewport demos. Settings includes choice pickers.
 Hello World shares the device model and renderer and supports Bubble Tea
 and TinyTea loops; the other demos use Bubble Tea. Switching runtime restarts
 the demo and keeps the display preset. Both runtimes are in the browser binary, so this does not compare
-firmware sizes. `make web-tinygo` builds with TinyGo 0.43 and a 128 KiB stack.
+firmware sizes. `make web-tinygo` builds with TinyGo 0.43, the Boehm garbage
+collector (`-gc=boehm`), and a 128 KiB stack. CI uses the same build for the
+published demo.
 
 ## Start another project
 

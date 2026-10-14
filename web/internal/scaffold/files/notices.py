@@ -32,7 +32,7 @@ include("Go runtime", Path(goroot) / "LICENSE")
 for path in sorted((Path(__file__).parent / "licenses").glob("*.txt")):
     include("Browser dependency: " + path.stem, path)
 if len(sys.argv) > 2:
-    for relative in ("lib/compiler-rt-builtins/LICENSE.TXT", "lib/wasi-libc/libc-bottom-half/cloudlibc/LICENSE"):
+    for relative in ("lib/compiler-rt-builtins/LICENSE.TXT", "lib/wasi-libc/libc-bottom-half/cloudlibc/LICENSE", "lib/bdwgc/LICENSE"):
         path = Path(sys.argv[2]) / relative
         if path.is_file():
             include("TinyGo bundled runtime: " + relative, path)

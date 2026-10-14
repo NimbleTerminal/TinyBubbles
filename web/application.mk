@@ -11,7 +11,7 @@ assets:
 build: assets
 	GOOS=js GOARCH=wasm go build -trimpath -o $(OUT)/app.wasm $(MAIN)
 build-tinygo: assets
-	GOROOT="$$(go env GOROOT)" $(TINYGO) build -target=wasm -stack-size=128KB -o $(OUT)/app.wasm $(MAIN)
+	GOROOT="$$(go env GOROOT)" $(TINYGO) build -target=wasm -gc=boehm -stack-size=128KB -o $(OUT)/app.wasm $(MAIN)
 	cp "$$($(TINYGO) env TINYGOROOT)/targets/wasm_exec.js" $(OUT)/wasm_exec.js
 	python3 $(OUT)/notices.py $(OUT) "$$($(TINYGO) env TINYGOROOT)"
 test:
