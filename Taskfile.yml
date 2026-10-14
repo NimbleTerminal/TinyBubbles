@@ -1,0 +1,150 @@
+version: '3'
+
+vars:
+  TINYGO: '{{.TINYGO | default "tinygo"}}'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  # Root Makefile targets
+  check:
+    desc: Run root formatting, module, documentation, vet, test, and build checks
+    cmds:
+      - make check
+
+  check-format:
+    desc: Verify gofmt formatting across tracked and untracked Go files
+    cmds:
+      - make check-format
+
+  check-modules:
+    desc: Verify root go.mod and go.sum tidiness and checksums
+    cmds:
+      - make check-modules
+
+  check-docs:
+    desc: Check local Markdown links, code fences, and heading anchors
+    cmds:
+      - make check-docs
+
+  test:
+    desc: Run root Go tests with race detector and coverage plus go vet
+    cmds:
+      - make test
+
+  ci:
+    desc: Run full CI suite (root checks, previews, firmware, bubbletea, terminal, web Go/TinyGo WASM)
+    cmds:
+      - make ci TINYGO="{{.TINYGO}}"
+
+  firmware:
+    desc: Compile Pico, Pico 2, CLUE, ESP32-S3 compile checks, and cooperative Feather firmware
+    cmds:
+      - make firmware TINYGO="{{.TINYGO}}"
+
+  hello:
+    desc: Build primary Bubble Tea Feather firmware
+    cmds:
+      - make hello TINYGO="{{.TINYGO}}"
+
+  hello-tinytea:
+    desc: Build cooperative TinyTea Feather firmware
+    cmds:
+      - make hello-tinytea TINYGO="{{.TINYGO}}"
+
+  hello-preview:
+    desc: Generate build/hello.png and build/hello.gif on the host
+    cmds:
+      - make hello-preview
+
+  snapshot:
+    desc: Render the counter demo to snapshot.png on the host
+    cmds:
+      - make snapshot
+
+  web:
+    desc: Build the browser demo gallery with standard Go WASM
+    cmds:
+      - make web
+
+  web-tinygo:
+    desc: Build the browser demo gallery with TinyGo WASM (Boehm GC, 128 KiB stack)
+    cmds:
+      - make web-tinygo TINYGO="{{.TINYGO}}"
+
+  web-serve:
+    desc: Build Go WASM and serve the browser demo gallery on port 8080
+    cmds:
+      - make web-serve
+
+  # bubbletea/ Makefile targets
+  bubbletea:prepare:
+    desc: Vendor and apply portability patches in bubbletea/
+    cmds:
+      - make -C bubbletea prepare
+
+  bubbletea:test:
+    desc: Prepare vendored dependencies and run bubbletea adapter tests
+    cmds:
+      - make -C bubbletea test
+
+  bubbletea:firmware:
+    desc: Build Bubble Tea Feather firmware in bubbletea/
+    cmds:
+      - make -C bubbletea firmware TINYGO="{{.TINYGO}}"
+
+  # web/ Makefile targets
+  web:test:
+    desc: Run web harness Go tests, JS key mapping tests, and hello gallery tests
+    cmds:
+      - make -C web test
+
+  web:assets:
+    desc: Generate shared browser page assets into build/web
+    cmds:
+      - make -C web assets
+
+  web:build:
+    desc: Build browser gallery assets and Go WASM binary
+    cmds:
+      - make -C web build
+
+  web:build-tinygo:
+    desc: Build browser gallery assets and TinyGo WASM binary
+    cmds:
+      - make -C web build-tinygo TINYGO="{{.TINYGO}}"
+
+  web:serve:
+    desc: Build and serve the browser gallery from web/
+    cmds:
+      - make -C web serve
+
+  # devices/terminal/ Makefile targets
+  terminal:build:
+    desc: Build native terminal target binary
+    cmds:
+      - make -C devices/terminal build
+
+  terminal:build-wasip1:
+    desc: Build Go WASI preview 1 terminal target binary
+    cmds:
+      - make -C devices/terminal build-wasip1
+
+  terminal:build-tinygo:
+    desc: Build TinyGo WASI preview 1 terminal target binary
+    cmds:
+      - make -C devices/terminal build-tinygo TINYGO="{{.TINYGO}}"
+
+  terminal:check:
+    desc: Tidy, vet, test, and build the terminal target natively and for wasip1
+    cmds:
+      - make -C devices/terminal check
+
+  terminal:smoke:
+    desc: Run terminal target PTY smoke tests across native, Go WASI, and TinyGo WASI builds
+    cmds:
+      - make -C devices/terminal smoke TINYGO="{{.TINYGO}}"
