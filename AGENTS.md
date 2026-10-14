@@ -21,6 +21,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `bubbletea/` | Primary runtime adapter, portability patches, Feather main |
 | `bubbletea/hello/` | Bubble Tea hello model and shared Bubbles key bindings |
 | `tinytea/` | Optional cooperative subset of the Bubble Tea model API |
+| `tinyhal/` | In-WASM hardware abstraction layer for TinyGo `machine` pins, buses, and peripheral models (`tinyhal/workbench/` for the standalone MCU bench) |
 | `program.go` | Original cooperative runtime used by TinyTea and older demos |
 | `demo/hello/` | Shared greeting, custom font tiles, enlarged counter |
 | `demo/model.go` | Counter used by Pico and CLUE |
@@ -34,7 +35,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `web/hello/` | Demo gallery consumer module, layout playground, and WASM main |
 | `examples/` | Host PNG/GIF previews |
 | `internal/` | Firmware compile checks |
-| `Makefile`, `.github/workflows/ci.yml` | Local checks and CI |
+| `Makefile`, `Taskfile.yml`, `.github/workflows/ci.yml` | Local checks, task runner aliases, and CI |
 
 Read [API.md](API.md) for rendering and memory budgets, [DEVICES.md](DEVICES.md)
 for boards, and [web/README.md](web/README.md) for the browser bridge.
@@ -110,10 +111,10 @@ These rules apply only to TinyTea and the original root runtime:
 
 ## Browser demos
 
-The gallery includes Hello, layout, Settings, list, value, dialog, progress,
-status, and viewport demos. Settings demonstrates choice pickers. All entries
-except Hello use Bubble Tea only. New widgets have compile and browser checks;
-do not describe them as hardware-tested.
+The gallery includes Hello, TinyHAL workbench, layout, Settings, list, value,
+dialog, progress, status, and viewport demos. Settings demonstrates choice
+pickers. All entries except Hello use Bubble Tea only. New widgets have compile
+and browser checks; do not describe them as hardware-tested.
 
 Hello World has a Bubble Tea / TinyTea selector. Each selection starts the
 chosen runtime loop from scratch and preserves the display preset. The browser

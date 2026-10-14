@@ -19,8 +19,8 @@ make web-serve
 ```
 
 Open <http://127.0.0.1:8080>. The gallery lives in [hello](./hello), a separate
-consumer module. It includes Hello World, layout, Settings, list, value, dialog,
-progress, status, and viewport demos. Settings includes choice pickers.
+consumer module. It includes Hello World, the TinyHAL workbench, layout, Settings,
+list, value, dialog, progress, status, and viewport demos. Settings includes choice pickers.
 
 Hello World shares the device model and renderer and supports Bubble Tea
 and TinyTea loops; the other demos use Bubble Tea. Switching runtime restarts
