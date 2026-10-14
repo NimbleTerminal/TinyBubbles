@@ -16,6 +16,7 @@ build-tinygo:
 check:
 	go mod tidy -diff
 	go mod verify
+	go test .
 	go vet .
 	GOOS=wasip1 GOARCH=wasm go vet .
 	$(MAKE) build build-wasip1
@@ -24,3 +25,6 @@ smoke: build build-wasip1 build-tinygo
 	python3 -I smoke.py $(OUT)/terminal
 	python3 -I smoke.py $(OUT)/terminal-go.wasm
 	python3 -I smoke.py $(OUT)/terminal-tinygo.wasm -cols 120 -rows 34
+	python3 -I smoke.py $(OUT)/terminal --kitty
+	python3 -I smoke.py $(OUT)/terminal-go.wasm --kitty
+	python3 -I smoke.py $(OUT)/terminal-tinygo.wasm --kitty

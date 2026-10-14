@@ -29,7 +29,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `tinytea/<widget>/` | Cooperative widget adapters |
 | `bubbletea/settings/` | Composed menu, focus routing, and child command handling |
 | `devices/` | Board setup, pins, drivers, and local targets; shared Feather initialization in `feather-reverse-tft/board` |
-| `devices/terminal/` | Nested module: hello display drawn in a terminal through ntcharts picture; native and wasip1 builds |
+| `devices/terminal/` | Nested module: hello display drawn in a terminal through ntpicture; native and wasip1 builds |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
 | `web/hello/` | Demo gallery consumer module, layout playground, and WASM main |
 | `examples/` | Host PNG/GIF previews |

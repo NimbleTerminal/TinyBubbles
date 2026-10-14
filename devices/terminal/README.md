@@ -2,13 +2,25 @@
 
 Runs the Bubble Tea hello model with its 240×135 Feather display drawn inside a
 terminal. The TinyBubbles renderer draws into an RGBA framebuffer, and
-[ntcharts picture](https://github.com/NimbleMarkets/ntcharts) shows that image as
+[ntpicture](https://github.com/NimbleTerminal/ntpicture) shows that image as
 Kitty graphics where the terminal supports them, or as half-block cells elsewhere.
 It is a development target: the same model and fonts as the Feather, no hardware.
 
 The program builds natively and for WASI preview 1 with Go or TinyGo. The WASI
 builds need Bubble Tea's wasip1 stubs, so this module replaces Bubble Tea with the
-same fork commit that `web/go.mod` pins.
+same fork commit that `web/go.mod` pins. ntpicture is not released yet, so the
+module also replaces it with the checkout next to this repository.
+
+The expected layout is sibling `TinyBubbles/` and `ntpicture/` directories
+(for example, under `~/projects`). Until ntpicture is published, a clean checkout
+and CI also need that source; the replacement is not a downloadable release.
+At release, replace `v0.0.0` with the published version and remove the local
+`replace nimbleterminal.dev/ntpicture` directive.
+
+This target no longer imports NTCharts. ntpicture renders the pixels directly;
+pixterm remains a dependency of its comparison tests. ntcanvas provides terminal
+cell grids and is not needed for this pixel framebuffer. The embedded renderer
+and browser modules keep their existing dependencies.
 
 ## Build and run
 
@@ -30,9 +42,10 @@ with `stty size` because `tput` fails for `TERM` values without local terminfo, 
 as `xterm-ghostty`. A terminal of at least 240×70 shows the display at one column per
 pixel; smaller terminals get a 120×34 picture. `COLUMNS` and `LINES` override detection.
 
-`make check` tidies, vets, and builds the native and Go WASI targets. `make smoke`
+`make check` checks module tidiness, tests, vets, and builds the native and Go WASI targets. `make smoke`
 also builds the TinyGo target and drives all three through a pseudo-terminal with
-`smoke.py`, checking that each draws, handles keys, and quits.
+`smoke.py`, checking that each draws, handles keys, and quits in half-block and
+forced Kitty modes. Kitty checks also require image transmission and deletion.
 
 ## How the WASI builds differ
 
@@ -51,13 +64,18 @@ also builds the TinyGo target and drives all three through a pseudo-terminal wit
 
 TinyBubbles' own rendering costs about 50 µs per frame. The hello model ticks every
 100 ms, so 10 frames per second is the ceiling on every target. Half-block mode
-builds a 150 KB styled string per frame for 240×68 cells, which costs about 20 ms
-natively, 55 ms in Go WASI, and 100 ms in TinyGo WASI, and Bubble Tea parses it
-back each frame. Kitty mode sends a small bitmap instead and costs 1 to 2 ms, so it
-is the default. Two details keep it cheap: the image is encoded at display
-resolution rather than the cell rectangle's pixel size, and the picture only
-receives a new image when the renderer flushed a frame, never in response to
-picture's own messages.
+fits the image at one by two pixels per cell and builds about 100 KB of styled
+text per frame for 240×68 cells, in a few milliseconds on every target. Kitty mode
+sends a small bitmap instead. Two details keep it cheap: the image is encoded at
+display resolution rather than the cell rectangle's pixel size, and the picture
+only receives a new image when the renderer flushed a frame, never in response
+to the picture's own messages.
+
+The picture runs with `StableID`, so every frame reuses one image ID, the
+placeholder grid never changes, and Bubble Tea sends only the new bitmap, about
+9 KB per frame. Without it each frame gets a fresh ID and the whole 240×68 grid
+is resent, about 150 KB per frame.
 
 Kitty mode has been exercised through a pseudo-terminal with the capability forced.
 The probe round trip in a real Kitty-capable terminal is not covered by `make smoke`.
+Quitting with q or Ctrl-C deletes the terminal's copies of the frames first.

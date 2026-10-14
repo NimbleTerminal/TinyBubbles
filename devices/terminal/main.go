@@ -1,6 +1,6 @@
 // Command terminal runs the Bubble Tea hello model with the 240x135 Feather
-// display drawn inside a terminal. ntcharts picture shows the framebuffer as
-// Kitty graphics where the terminal supports them and as half-block cells
+// display drawn inside a terminal. ntpicture shows the framebuffer as Kitty
+// graphics where the terminal supports them and as half-block cells
 // elsewhere. It builds natively and for WASI preview 1 with Go or TinyGo; see
 // README.md for the terminal setup each build needs.
 package main
@@ -14,9 +14,10 @@ import (
 	"os"
 	"time"
 
+	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/colorprofile"
+	"nimbleterminal.dev/ntpicture"
 	displaytea "nimbleterminal.dev/tinybubbles/bubbletea"
 	teamodel "nimbleterminal.dev/tinybubbles/bubbletea/hello"
 	"nimbleterminal.dev/tinybubbles/demo/hello"
@@ -25,7 +26,7 @@ import (
 const width, height = 240, 135
 
 // display is the Displayer the TinyBubbles renderer draws into: a plain RGBA
-// framebuffer that picture maps onto terminal cells.
+// framebuffer that the picture maps onto terminal cells.
 type display struct {
 	*image.RGBA
 	frames int
@@ -37,50 +38,53 @@ func (d *display) Display() error                    { d.frames++; return nil }
 
 // app owns the display model and the picture that shows its framebuffer.
 type app struct {
-	inner     *displaytea.DisplayModel
-	fb        *display
-	pic       picture.Model
-	wantKitty bool
-	shown     int // fb.frames last handed to picture
-	status    string
+	inner      *displaytea.DisplayModel
+	keys       teamodel.KeyMap
+	fb         *display
+	pic        *ntpicture.Picture
+	cols, rows int
+	wantKitty  bool
+	shown      int // fb.frames last handed to the picture
+	status     string
 }
 
-func (a *app) Init() tea.Cmd { return tea.Batch(a.inner.Init(), a.pic.Init()) }
+func (a *app) Init() tea.Cmd {
+	return tea.Batch(a.inner.Init(), a.pic.Init(), a.pic.SetSize(a.cols, a.rows))
+}
 
 func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
-	if k, ok := msg.(tea.KeyPressMsg); ok {
-		switch k.String() {
-		case "ctrl+c", "ctrl+d":
-			// The terminal is in raw mode, so Ctrl-C arrives as a key, not a signal.
-			return a, tea.Quit
-		case "k":
-			if err := a.pic.ToggleBlocked(); err != nil && a.pic.Mode() == picture.PictureGlyph {
-				a.status = err.Error()
-			} else {
-				cmds = append(cmds, a.pic.Toggle())
-				a.status = ""
-			}
+	switch v := msg.(type) {
+	case tea.KeyPressMsg:
+		switch {
+		case v.String() == "ctrl+c", v.String() == "ctrl+d", key.Matches(v, a.keys.Quit):
+			// The terminal is in raw mode, so Ctrl-C arrives as a key. QuitMsg
+			// never reaches Update, so delete the terminal placements first.
+			return a, tea.Sequence(a.pic.Close(), tea.Quit)
+		case v.String() == "k":
+			// An explicit choice wins over a late capability-probe reply.
+			a.wantKitty = false
+			cmds = append(cmds, a.toggle())
+		}
+	case ntpicture.ErrorMsg:
+		if v.Owner == a.pic && v.Generation == a.pic.Status().Generation && v.Err != nil {
+			a.status = v.Err.Error()
 		}
 	}
 	_, cmd := a.inner.Update(msg)
-	cmds = append(cmds, cmd)
-	if _, quitting := msg.(tea.QuitMsg); quitting {
-		return a, tea.Batch(cmds...)
-	}
-	cmds = append(cmds, a.pic.Update(msg))
-	// Picture's own messages (Kitty frames, probe replies) must not trigger a
-	// new SetImage, or Kitty mode re-encodes a frame for every frame it sends.
-	if picture.IsPictureMsg(msg) {
-		return a, tea.Batch(cmds...)
-	}
-	if a.wantKitty && a.pic.Mode() == picture.PictureGlyph && a.pic.ToggleBlocked() == nil {
-		cmds = append(cmds, a.pic.Toggle())
+	cmds = append(cmds, cmd, a.pic.Update(msg))
+	if a.wantKitty && ntpicture.KittySupported() == ntpicture.KittyCapabilitySupported {
 		a.wantKitty = false
+		cmds = append(cmds, a.pic.SetMode(ntpicture.PictureKitty))
+	}
+	// The picture's own messages never carry a new frame, so skip rendering.
+	if ntpicture.IsPictureMsg(msg) {
+		return a, tea.Batch(cmds...)
 	}
 	// The adapter renders cells into the framebuffer in View. Do it here so
-	// picture can schedule its Kitty encode command from Update, and only
-	// hand over the image when the renderer flushed a new frame.
+	// the picture can schedule its encode from Update, and only hand over the
+	// image when the renderer flushed a new frame. SetImage copies the pixels,
+	// so the renderer may keep drawing into the framebuffer.
 	a.inner.View()
 	if a.fb.frames != a.shown {
 		a.shown = a.fb.frames
@@ -89,11 +93,26 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return a, tea.Batch(cmds...)
 }
 
-func (a *app) View() tea.View {
-	v := a.pic.View()
-	if a.status != "" {
-		v.Content += "\n" + a.status
+// toggle switches between Kitty graphics and half-blocks, reporting why Kitty
+// is unavailable instead of switching.
+func (a *app) toggle() tea.Cmd {
+	a.status = ""
+	if a.pic.Mode() == ntpicture.PictureKitty {
+		return a.pic.SetMode(ntpicture.PictureGlyph)
 	}
+	if err := ntpicture.KittyUnavailable(); err != nil {
+		a.status = err.Error()
+		return nil
+	}
+	return a.pic.SetMode(ntpicture.PictureKitty)
+}
+
+func (a *app) View() tea.View {
+	content := a.pic.View()
+	if a.status != "" {
+		content += "\n" + a.status
+	}
+	v := tea.NewView(content)
 	v.AltScreen = true
 	return v
 }
@@ -107,7 +126,8 @@ func main() {
 	flag.Parse()
 
 	fb := &display{RGBA: image.NewRGBA(image.Rect(0, 0, width, height))}
-	inner, err := displaytea.NewModel(teamodel.New(), fb, hello.NewFont(), hello.Theme())
+	model := teamodel.New()
+	inner, err := displaytea.NewModel(model, fb, hello.NewFont(), hello.Theme())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -116,9 +136,12 @@ func main() {
 	// Kitty placements are pre-scaled to cols*cellWidth by rows*cellHeight
 	// pixels, about 1920x1088 here. The display is 240x135, so encode at 1/8
 	// and let the terminal upscale: 16 times fewer pixels per frame.
-	pic := picture.NewWithConfig(picture.Config{Fit: picture.FitFill, KittyFormat: picture.KittyFormatZlib, KittyResolutionFactor: 0.125})
-	pic.SetSize(*cols, *rows)
-	a := &app{inner: inner, fb: fb, pic: pic, wantKitty: !*glyph}
+	// StableID keeps one image ID across frames, so the placeholder grid does
+	// not change and Bubble Tea sends only the new bitmap each frame.
+	pic := ntpicture.New(ntpicture.Options{StableID: true, Render: ntpicture.Config{
+		Fit: ntpicture.FitFill, KittyFormat: ntpicture.KittyFormatZlib, KittyResolutionFactor: 0.125}})
+	defer pic.Close()
+	a := &app{inner: inner, keys: model.Keys(), fb: fb, pic: pic, cols: *cols, rows: *rows, wantKitty: !*glyph}
 
 	p := tea.NewProgram(a, tea.WithContext(inner.Context()), tea.WithInput(stdin()),
 		// WASI cannot tell whether stdout is a terminal, and profile detection
@@ -136,7 +159,8 @@ func main() {
 	}
 	if *stats {
 		fmt.Fprintf(os.Stderr, "frames=%d elapsed=%s fps=%.1f mode=%d kitty=%d stdin=%s\r\n",
-			fb.frames, elapsed.Round(time.Millisecond), float64(fb.frames)/elapsed.Seconds(), a.pic.Mode(), picture.KittySupported(), stdinMode)
+			fb.frames, elapsed.Round(time.Millisecond), float64(fb.frames)/elapsed.Seconds(), a.pic.Mode(), ntpicture.KittySupported(), stdinMode)
+
 	}
 	if *snapshot != "" {
 		if err := writePNG(*snapshot, fb.RGBA); err != nil {

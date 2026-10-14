@@ -1,6 +1,6 @@
 """Drive a terminal build through a pseudo-terminal and check that it renders and quits.
 
-Usage: python3 -I smoke.py <binary or .wasm> [program flags]
+Usage: python3 -I smoke.py <binary or .wasm> [--kitty] [program flags]
 WASI builds run under wasmtime. Exits non-zero when the program fails, draws nothing,
 ignores the quit key, or writes no snapshot.
 """
@@ -8,6 +8,7 @@ ignores the quit key, or writes no snapshot.
 import fcntl
 import os
 import pty
+import re
 import select
 import struct
 import subprocess
@@ -17,6 +18,9 @@ import termios
 import time
 
 program, extra = sys.argv[1], sys.argv[2:]
+kitty = "--kitty" in extra
+if kitty:
+    extra.remove("--kitty")
 master, slave = pty.openpty()
 fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 80, 250, 0, 0))
 attrs = termios.tcgetattr(slave)
@@ -26,10 +30,13 @@ termios.tcsetattr(slave, termios.TCSANOW, attrs)
 outdir = tempfile.mkdtemp(prefix="terminal-smoke-")
 snapshot = os.path.join(outdir, "snapshot.png")
 if program.endswith(".wasm"):
-    cmd = ["wasmtime", "run", "--dir", f"{outdir}::/out", program, "-snapshot", "/out/snapshot.png"]
+    cmd = ["wasmtime", "run", "--env", "TERM=xterm-256color",
+           "--env", "NTCHARTS_KITTY=" + ("supported" if kitty else "unsupported"),
+           "--dir", f"{outdir}::/out", program, "-snapshot", "/out/snapshot.png"]
 else:
     cmd = [program, "-snapshot", snapshot]
-env = {**os.environ, "TERM": "xterm-256color"}
+env = {**os.environ, "TERM": "xterm-256color",
+       "NTCHARTS_KITTY": "supported" if kitty else "unsupported"}
 proc = subprocess.Popen(cmd + ["-stats"] + extra, env=env, stdin=slave, stdout=slave, stderr=slave, close_fds=True)
 os.close(slave)
 buf = b""
@@ -67,7 +74,13 @@ if code != 0:
     if code is None:
         proc.kill()
     sys.exit(1)
-if idle == 0:
+if kitty and not re.search(rb"\x1b_G[^;\x1b]*\ba=[tT](?:[,;])", buf):
+    print("no Kitty image transmission", file=sys.stderr)
+    sys.exit(1)
+if kitty and b"\x1b_Ga=d,d=I" not in buf:
+    print("no Kitty image cleanup on quit", file=sys.stderr)
+    sys.exit(1)
+if not kitty and idle == 0:
     print("no half-block output while idle", file=sys.stderr)
     sys.exit(1)
 if not os.path.exists(snapshot):

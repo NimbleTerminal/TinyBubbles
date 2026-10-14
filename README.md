@@ -198,7 +198,7 @@ There are five Go modules. Root checks do not run the nested modules' tests:
 | `bubbletea/` | Go 1.26.0 and TinyGo 0.43; Bubble Tea v2.1 firmware with portability patches. |
 | `web/` | Go 1.26.8; reusable canvas, LEDs, Booba actions, and scaffold tool. |
 | `web/hello/` | Demo gallery consumer of the harness. TinyGo WASM uses a 128 KiB stack. |
-| `devices/terminal/` | Go 1.26.8; hello display in a terminal via ntcharts picture, native and wasip1 with Go or TinyGo. |
+| `devices/terminal/` | Go 1.26.8; hello display in a terminal via ntpicture, native and wasip1 with Go or TinyGo. |
 
 Other TinyGo display projects can use the [browser harness](web/README.md) without
 TinyBubbles cells or fonts. Presets come from Go; the tool generates the page
