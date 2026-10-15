@@ -18,6 +18,30 @@ def anchors(text):
     return result
 
 
+def check_taskfile(root):
+    taskfile = (root / "Taskfile.yml").read_text()
+    task_names = set(re.findall(r"^  ([a-zA-Z0-9_:-]+):\s*$", taskfile, re.MULTILINE))
+    task_names.discard("default")
+    expected = set()
+    makefile_map = [
+        (root / "Makefile", ""),
+        (root / "bubbletea" / "Makefile", "bubbletea:"),
+        (root / "web" / "Makefile", "web:"),
+        (root / "devices" / "terminal" / "Makefile", "terminal:"),
+    ]
+    for path, prefix in makefile_map:
+        text = path.read_text()
+        for line in re.findall(r"^\.PHONY:\s*(.+)$", text, re.MULTILINE):
+            for target in line.split():
+                expected.add(f"{prefix}{target}")
+    errors = []
+    for missing in sorted(expected - task_names):
+        errors.append(f"Taskfile.yml: missing task '{missing}' for Makefile target")
+    for extra in sorted(task_names - expected):
+        errors.append(f"Taskfile.yml: task '{extra}' has no matching Makefile .PHONY target")
+    return errors, len(expected)
+
+
 def main():
     root = Path(__file__).resolve().parent.parent
     names = subprocess.check_output(
@@ -46,10 +70,12 @@ def main():
             elif url.fragment and target.suffix == ".md":
                 if unquote(url.fragment) not in anchors(target.read_text()):
                     errors.append(f"{name}: missing heading in {link}")
+    task_errors, task_count = check_taskfile(root)
+    errors.extend(task_errors)
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print(f"Checked {checked} local documentation links and anchors.")
+    print(f"Checked {checked} local documentation links/anchors and {task_count} Makefile/Taskfile targets.")
     return 0
 
 

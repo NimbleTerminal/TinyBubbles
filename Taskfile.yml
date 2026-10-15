@@ -122,6 +122,11 @@ tasks:
     cmds:
       - make -C bubbletea firmware TINYGO="{{.TINYGO}}"
 
+  bubbletea:settings:
+    desc: Build three-button Bubble Tea Settings Feather firmware in bubbletea/
+    cmds:
+      - make -C bubbletea settings TINYGO="{{.TINYGO}}"
+
   # web/ Makefile targets
   web:test:
     desc: Run web harness Go tests, JS key mapping tests, and hello gallery tests

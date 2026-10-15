@@ -63,7 +63,13 @@ bench-compare:
 	wasmtime run build/bench-tinygo.wasm
 
 tinyhal-wasi:
-	$(TINYGO) run -target=wasip1 ./tinyhal/cmd/tinyhal-demo
+	mkdir -p build
+	$(TINYGO) build -target=wasip1 -o build/tinyhal-demo.wasm ./tinyhal/cmd/tinyhal-demo
+	@if command -v wasmtime >/dev/null 2>&1; then \
+		wasmtime run build/tinyhal-demo.wasm; \
+	else \
+		$(TINYGO) run ./tinyhal/cmd/tinyhal-demo; \
+	fi
 
 firmware:
 	mkdir -p build
