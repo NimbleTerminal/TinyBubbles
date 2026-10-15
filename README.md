@@ -180,6 +180,9 @@ browser bundle includes both runtimes, so it does not compare firmware sizes.
 | `make web-serve` | Build and serve the interactive demo on port 8080. |
 | `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
 | `make test` | Run race-enabled Go tests with coverage and vet. |
+| `make bench` | Run Go `testing.B` benchmarks plus Go vs. TinyGo native and WASI comparisons. |
+| `make bench-compare` | Compare Go vs. TinyGo side-by-side on native host and WASI (`wasip1/wasm`). |
+| `make bench-tinygo` | Build and run the benchmark harness under TinyGo native and WASI (`wasip1`). |
 | `make firmware` | Compile device examples and core, widget, and layout checks. |
 | `make hello` | Build the primary Bubble Tea Reverse TFT Feather firmware. |
 | `make hello-tinytea` | Build the original cooperative Feather demo. |

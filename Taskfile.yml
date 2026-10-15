@@ -36,6 +36,21 @@ tasks:
     cmds:
       - make test
 
+  bench:
+    desc: Run Go testing.B benchmarks plus like-for-like Go vs TinyGo native and WASI comparisons
+    cmds:
+      - make bench TINYGO="{{.TINYGO}}"
+
+  bench-tinygo:
+    desc: Build and run the portable benchmark suite under TinyGo native and TinyGo WASI (wasip1)
+    cmds:
+      - make bench-tinygo TINYGO="{{.TINYGO}}"
+
+  bench-compare:
+    desc: Compare Go vs TinyGo side-by-side on both native host and WASI (wasip1) targets
+    cmds:
+      - make bench-compare TINYGO="{{.TINYGO}}"
+
   ci:
     desc: Run full CI suite (root checks, previews, firmware, bubbletea, terminal, web Go/TinyGo WASM)
     cmds:

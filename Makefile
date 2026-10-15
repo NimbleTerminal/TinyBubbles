@@ -1,6 +1,6 @@
 TINYGO ?= tinygo
 
-.PHONY: ci check check-format check-modules check-docs test firmware snapshot hello hello-tinytea hello-preview web web-serve web-tinygo
+.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare firmware snapshot hello hello-tinytea hello-preview web web-serve web-tinygo
 check: check-format check-modules check-docs test
 	go build ./...
 
@@ -37,6 +37,29 @@ check-docs:
 test:
 	go test -race -cover ./...
 	go vet ./...
+
+bench:
+	go test -run=^$$ -bench=. -benchmem . ./tinycharts ./tinyhal
+	$(MAKE) bench-compare TINYGO="$(TINYGO)"
+
+bench-tinygo:
+	mkdir -p build
+	$(TINYGO) build -o build/bench-tinygo-native ./internal/bench
+	./build/bench-tinygo-native
+	$(TINYGO) build -target=wasip1 -o build/bench-tinygo.wasm ./internal/bench
+	wasmtime run build/bench-tinygo.wasm
+
+bench-compare:
+	mkdir -p build
+	go build -o build/bench-go-native ./internal/bench
+	$(TINYGO) build -o build/bench-tinygo-native ./internal/bench
+	GOOS=wasip1 GOARCH=wasm go build -o build/bench-go.wasm ./internal/bench
+	$(TINYGO) build -target=wasip1 -o build/bench-tinygo.wasm ./internal/bench
+	@ls -lh build/bench-go-native build/bench-tinygo-native build/bench-go.wasm build/bench-tinygo.wasm
+	./build/bench-go-native
+	./build/bench-tinygo-native
+	wasmtime run build/bench-go.wasm
+	wasmtime run build/bench-tinygo.wasm
 
 firmware:
 	mkdir -p build
