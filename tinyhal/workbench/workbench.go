@@ -580,7 +580,7 @@ func (w *Workbench) drawDashboard() {
 	if height <= 64 {
 		// Compact 128x64 monochrome OLED layout over I2C0.
 		if w.viewMode == ViewLogic {
-			tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 8, fmt.Sprintf("VCD LOGIC EV:%d", len(w.tracer.Samples())), white)
+			tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 8, fmt.Sprintf("VCD LOGIC EV:%d", w.tracer.Len()), white)
 			tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 2, 18, fmt.Sprintf("SPI:%02X I2C:%dC TX:%d", w.spiVal, w.tempC, w.uartCount), white)
 			w.drawLogicAnalyzer(2, 22, width-4, height-24, panelBg, gridCol, green, cyan, amber, white)
 			return
@@ -596,7 +596,7 @@ func (w *Workbench) drawDashboard() {
 	c.fillRect(0, 0, width, 16, headerBg)
 	if w.viewMode == ViewLogic {
 		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 6, 11, "TINYHAL · VCD LOGIC", cyan)
-		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, width-78, 11, fmt.Sprintf("VCD:%4d", len(w.tracer.Samples())), amber)
+		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, width-78, 11, fmt.Sprintf("VCD:%4d", w.tracer.Len()), amber)
 	} else {
 		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, 6, 11, "TINYHAL · SPI0 ST7789", cyan)
 		tinyfont.WriteLine(c, &proggy.TinySZ8pt7b, width-72, 11, fmt.Sprintf("MODE:%s", w.mode), amber)

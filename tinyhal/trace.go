@@ -32,17 +32,25 @@ type TraceSample struct {
 	RX     []byte
 }
 
+// DefaultMaxTraceSamples bounds in-memory trace history so long-running browser
+// and workbench sessions do not grow without limit.
+const DefaultMaxTraceSamples = 4096
+
 // TraceRecorder captures GPIO, PWM, SPI, I2C, and UART transitions and exports
 // IEEE 1364 Value Change Dump (.vcd) waveforms for tools such as Surfer or GTKWave.
 type TraceRecorder struct {
-	mu      sync.Mutex
-	timeUS  uint64
-	samples []TraceSample
+	mu         sync.Mutex
+	timeUS     uint64
+	maxSamples int
+	samples    []TraceSample
 }
 
-// NewTraceRecorder creates an empty bus and pin trace recorder.
+// NewTraceRecorder creates an empty bus and pin trace recorder bounded to DefaultMaxTraceSamples.
 func NewTraceRecorder() *TraceRecorder {
-	return &TraceRecorder{}
+	return &TraceRecorder{
+		maxSamples: DefaultMaxTraceSamples,
+		samples:    make([]TraceSample, 0, 256),
+	}
 }
 
 // Reset clears all recorded samples and resets the trace timestamp to 0.
@@ -60,6 +68,14 @@ func (t *TraceRecorder) Advance(deltaUS uint64) {
 	t.mu.Unlock()
 }
 
+// Len returns the number of recorded trace samples without allocating.
+func (t *TraceRecorder) Len() int {
+	t.mu.Lock()
+	n := len(t.samples)
+	t.mu.Unlock()
+	return n
+}
+
 // Samples returns a copy of all recorded trace samples.
 func (t *TraceRecorder) Samples() []TraceSample {
 	t.mu.Lock()
@@ -69,27 +85,35 @@ func (t *TraceRecorder) Samples() []TraceSample {
 	return out
 }
 
+func (t *TraceRecorder) appendSampleLocked(s TraceSample, deltaUS uint64) {
+	if t.maxSamples > 0 && len(t.samples) >= t.maxSamples {
+		copy(t.samples, t.samples[1:])
+		t.samples[len(t.samples)-1] = s
+	} else {
+		t.samples = append(t.samples, s)
+	}
+	t.timeUS += deltaUS
+}
+
 func (t *TraceRecorder) recordGPIO(pin Pin, high bool) {
 	t.mu.Lock()
-	t.samples = append(t.samples, TraceSample{
+	t.appendSampleLocked(TraceSample{
 		TimeUS: t.timeUS,
 		Kind:   TraceGPIO,
 		Pin:    pin,
 		High:   high,
-	})
-	t.timeUS++
+	}, 1)
 	t.mu.Unlock()
 }
 
 func (t *TraceRecorder) recordPWM(pin Pin, duty uint8) {
 	t.mu.Lock()
-	t.samples = append(t.samples, TraceSample{
+	t.appendSampleLocked(TraceSample{
 		TimeUS: t.timeUS,
 		Kind:   TracePWM,
 		Pin:    pin,
 		PWM:    duty,
-	})
-	t.timeUS++
+	}, 1)
 	t.mu.Unlock()
 }
 
@@ -97,18 +121,14 @@ func (t *TraceRecorder) recordSPI(bus uint8, w, r []byte) {
 	tx := append([]byte(nil), w...)
 	rx := append([]byte(nil), r...)
 	t.mu.Lock()
-	t.samples = append(t.samples, TraceSample{
+	n := max(1, max(len(tx), len(rx)))
+	t.appendSampleLocked(TraceSample{
 		TimeUS: t.timeUS,
 		Kind:   TraceSPI,
 		Bus:    bus,
 		TX:     tx,
 		RX:     rx,
-	})
-	n := max(len(tx), len(rx))
-	if n < 1 {
-		n = 1
-	}
-	t.timeUS += uint64(n)
+	}, uint64(n))
 	t.mu.Unlock()
 }
 
@@ -116,32 +136,27 @@ func (t *TraceRecorder) recordI2C(bus uint8, addr uint16, w, r []byte) {
 	tx := append([]byte(nil), w...)
 	rx := append([]byte(nil), r...)
 	t.mu.Lock()
-	t.samples = append(t.samples, TraceSample{
+	n := max(1, len(tx)+len(rx))
+	t.appendSampleLocked(TraceSample{
 		TimeUS: t.timeUS,
 		Kind:   TraceI2C,
 		Bus:    bus,
 		Addr:   addr,
 		TX:     tx,
 		RX:     rx,
-	})
-	n := len(tx) + len(rx)
-	if n < 1 {
-		n = 1
-	}
-	t.timeUS += uint64(n)
+	}, uint64(n))
 	t.mu.Unlock()
 }
 
 func (t *TraceRecorder) recordUART(bus uint8, data []byte) {
 	tx := append([]byte(nil), data...)
 	t.mu.Lock()
-	t.samples = append(t.samples, TraceSample{
+	t.appendSampleLocked(TraceSample{
 		TimeUS: t.timeUS,
 		Kind:   TraceUART,
 		Bus:    bus,
 		TX:     tx,
-	})
-	t.timeUS += uint64(max(1, len(tx)))
+	}, uint64(max(1, len(tx))))
 	t.mu.Unlock()
 }
 

@@ -46,6 +46,7 @@ type SSD1306 struct {
 	mu        sync.Mutex
 	gddram    []byte
 	pixels    []byte
+	snapshot  []byte
 	colStart  int16
 	colEnd    int16
 	pageStart int16
@@ -92,6 +93,7 @@ func AttachSSD1306(h *HAL, cfg SSD1306Config) *SSD1306 {
 		target:    cfg.Target,
 		gddram:    make([]byte, int(w)*int(pages)),
 		pixels:    make([]byte, int(w)*int(height)*4),
+		snapshot:  make([]byte, int(w)*int(height)*4),
 		colStart:  0,
 		colEnd:    w - 1,
 		pageStart: 0,
@@ -143,7 +145,7 @@ func (d *SSD1306) Tx(h *HAL, w, _ []byte) error {
 		}
 		d.renderLocked()
 		d.frames++
-		snapshot := make([]byte, len(d.pixels))
+		snapshot := d.snapshot
 		copy(snapshot, d.pixels)
 		width, height := d.width, d.height
 		target := d.target

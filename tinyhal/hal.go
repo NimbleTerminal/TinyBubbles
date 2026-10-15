@@ -473,9 +473,16 @@ func (h *HAL) SPITransfer(bus uint8, w byte) byte {
 
 // SPITx performs a multi-byte SPI transaction across all devices attached to bus.
 func (h *HAL) SPITx(bus uint8, w, r []byte) {
+	var stackDevs [4]SPIDevice
 	h.mu.Lock()
 	b := h.spiBusLocked(bus)
-	devs := append([]SPIDevice(nil), b.devices...)
+	var devs []SPIDevice
+	if len(b.devices) <= len(stackDevs) {
+		n := copy(stackDevs[:], b.devices)
+		devs = stackDevs[:n]
+	} else {
+		devs = append([]SPIDevice(nil), b.devices...)
+	}
 	tr := h.tracer
 	h.mu.Unlock()
 

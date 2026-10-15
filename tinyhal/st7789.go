@@ -64,6 +64,7 @@ type ST7789 struct {
 
 	mu         sync.Mutex
 	pixels     []byte
+	snapshot   []byte
 	cmd        byte
 	paramBuf   [6]byte
 	paramLen   int
@@ -104,6 +105,7 @@ func AttachST7789(h *HAL, cfg ST7789Config) *ST7789 {
 		blPin:        cfg.Backlight,
 		target:       cfg.Target,
 		pixels:       make([]byte, int(w)*int(height)*4),
+		snapshot:     make([]byte, int(w)*int(height)*4),
 		colmod:       st7789ColorRGB565,
 		xe:           w - 1,
 		ye:           height - 1,
@@ -338,7 +340,7 @@ func (d *ST7789) flushIfDirty(h *HAL) {
 	}
 	d.dirty = false
 	d.frames++
-	snapshot := make([]byte, len(d.pixels))
+	snapshot := d.snapshot
 	copy(snapshot, d.pixels)
 	w, height := d.width, d.height
 	target := d.target
