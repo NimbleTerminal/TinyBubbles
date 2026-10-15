@@ -233,7 +233,7 @@ scrolling options, editable values, and a confirmation dialog.
   and clipped buffer composition.
 - [x] **Button interactions:** optional hold-to-repeat, long-press, and release
   events, suitable for devices with only a few buttons.
-- [ ] **TinyTea cooperative timers:** reusable ticks and delayed messages with cancellation,
+- [x] **TinyTea cooperative timers:** reusable ticks and delayed messages with cancellation,
   keeping commands short and avoiding application-specific scheduling boilerplate.
 - [x] **Interactive browser simulator:** WASM hello demo with OLED/TFT presets,
   keyboard input, and HTML controls generated from the model's help map.

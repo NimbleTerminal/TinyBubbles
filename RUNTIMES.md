@@ -15,7 +15,7 @@ custom cell views; choosing a runtime does not limit font sizes or layout.
 | Plain view | `tea.NewView(text)`, clipped to cells | Same supported usage |
 | Custom fonts/styles | Optional `CellView() *tinybubbles.Buffer` | Same interface |
 | Commands | Upstream concurrent command execution, Batch, Sequence | One short command per Step; queue capacity 16 |
-| Timers | `tea.Tick` and `tea.Every` | Device schedules custom messages; no Tick/Every helpers |
+| Timers | `tea.Tick` and `tea.Every` | Cooperative `Tick`, `Every`, `After`, and reusable/cancellable `Timer` evaluated on `Step` |
 | Input | `Program.Send` from peripheral goroutines | Single-owner synchronous Send; errors returned to caller |
 | Keys | Upstream key types and fields | `KeyPressMsg{Code: ...}`; directions, Enter, Escape, ordinary runes |
 | Window size | Cell dimensions from display; upstream delivery order | Cell dimensions delivered before the first view and Init command execution |
@@ -28,8 +28,10 @@ custom cell views; choosing a runtime does not limit font sizes or layout.
 TinyTea is not binary-compatible with `tea.Model`. Change imports and recompile;
 models that use unsupported Bubble Tea helpers need adaptation. Libraries that
 import Bubble Tea directly remain Bubble Tea libraries. TinyTea does not pretend
-to implement their complete API. Never replace a timer with a sleeping TinyTea
-command: it would block input and rendering.
+to implement their complete API. Never sleep inside a TinyTea command: use
+`tinytea.Tick`, `tinytea.Every`, `tinytea.After`, or a model-owned `tinytea.Timer`
+(`Tick`, `Every`, `After`, `Repeat`, `Cancel`) so deadlines are evaluated
+cooperatively on `Step` without blocking input or rendering.
 
 ## Switching a simple model
 

@@ -16,13 +16,16 @@ func (display) Size() (int16, int16)              { return 128, 64 }
 func (display) SetPixel(int16, int16, color.RGBA) {}
 func (display) Display() error                    { return nil }
 
-type model struct{ *listtea.Model }
+type model struct {
+	*listtea.Model
+	timer tea.Timer
+}
 
-func (model) Init() tea.Cmd { return tea.Quit }
+func (m *model) Init() tea.Cmd { return m.timer.After(0, tea.QuitMsg{}) }
 
-func (model) View() tea.View { return tea.NewView("TinyTea") }
+func (*model) View() tea.View { return tea.NewView("TinyTea") }
 func main() {
-	p, err := tea.NewProgram(model{listtea.New([]list.Item{{ID: "menu", Label: "Menu"}})}, display{}, nil, bubbles.DefaultTheme(true))
+	p, err := tea.NewProgram(&model{Model: listtea.New([]list.Item{{ID: "menu", Label: "Menu"}})}, display{}, nil, bubbles.DefaultTheme(true))
 	if err != nil {
 		panic(err)
 	}
