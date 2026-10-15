@@ -125,6 +125,8 @@ jobs:
         run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - name: Build all firmware with the minimum supported TinyGo
         run: make firmware
+      - name: Run TinyHAL WASI smoke check
+        run: make tinyhal-wasi
       - uses: actions/upload-artifact@v7
         with:
           name: firmware

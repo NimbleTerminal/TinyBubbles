@@ -183,6 +183,7 @@ browser bundle includes both runtimes, so it does not compare firmware sizes.
 | `make bench` | Run Go `testing.B` benchmarks plus Go vs. TinyGo native and WASI comparisons. |
 | `make bench-compare` | Compare Go vs. TinyGo side-by-side on native host and WASI (`wasip1/wasm`). |
 | `make bench-tinygo` | Build and run the benchmark harness under TinyGo native and WASI (`wasip1`). |
+| `make tinyhal-wasi` | Run the `tinyhal` `machine`/ST7789/APA102/VCD smoke demo under TinyGo WASI (`wasip1`). |
 | `make firmware` | Compile device examples and core, widget, and layout checks. |
 | `make hello` | Build the primary Bubble Tea Reverse TFT Feather firmware. |
 | `make hello-tinytea` | Build the original cooperative Feather demo. |

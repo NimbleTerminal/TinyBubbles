@@ -1,6 +1,6 @@
 TINYGO ?= tinygo
 
-.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare firmware snapshot hello hello-tinytea hello-preview web web-serve web-tinygo
+.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare tinyhal-wasi firmware snapshot hello hello-tinytea hello-preview web web-serve web-tinygo
 check: check-format check-modules check-docs test
 	go build ./...
 
@@ -8,7 +8,8 @@ check: check-format check-modules check-docs test
 ci:
 	$(MAKE) check
 	$(MAKE) hello-preview snapshot
-	$(MAKE) firmware
+	$(MAKE) firmware TINYGO="$(TINYGO)"
+	$(MAKE) tinyhal-wasi TINYGO="$(TINYGO)"
 	$(MAKE) -C bubbletea test
 	$(MAKE) -C bubbletea firmware TINYGO="$(TINYGO)"
 	$(MAKE) -C devices/terminal check
@@ -60,6 +61,9 @@ bench-compare:
 	./build/bench-tinygo-native
 	wasmtime run build/bench-go.wasm
 	wasmtime run build/bench-tinygo.wasm
+
+tinyhal-wasi:
+	$(TINYGO) run -target=wasip1 ./tinyhal/cmd/tinyhal-demo
 
 firmware:
 	mkdir -p build

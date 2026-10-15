@@ -51,6 +51,11 @@ tasks:
     cmds:
       - make bench-compare TINYGO="{{.TINYGO}}"
 
+  tinyhal-wasi:
+    desc: Run the TinyHAL machine/ST7789/APA102/VCD smoke demo under TinyGo WASI (wasip1)
+    cmds:
+      - make tinyhal-wasi TINYGO="{{.TINYGO}}"
+
   ci:
     desc: Run full CI suite (root checks, previews, firmware, bubbletea, terminal, web Go/TinyGo WASM)
     cmds:
