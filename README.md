@@ -118,6 +118,7 @@ state and cell layouts across both runtimes.
 | :--- | :--- | :--- |
 | Hello, Tiny World | [bubbletea/hello](./bubbletea/hello) | Floating bubbles, large text and counter, four palettes, and pause/resume on the Reverse TFT Feather. |
 | TinyHAL workbench | [tinyhal/workbench](./tinyhal/workbench) | Simulated GPIO buttons, PWM LEDs, 12-bit ADC oscilloscope, SPI ST7789/registers, I2C SSD1306/sensor, and UART without TinyBubbles cell buffers. |
+| TinyCharts | [web/hello/charts.go](web/hello/charts.go) | Streamlines (Braille, arc, box), sparklines, bar charts, and multi-channel logic analyzer waveforms in a cell buffer. |
 | Layout playground | [web/hello/layout.go](web/hello/layout.go) | Responsive rows and columns, padding, gaps, and alignment. |
 | Settings | [bubbletea/settings](bubbletea/settings) | A menu combining values, choices, toggles, and confirmation. |
 | Scrolling menu | [bubbletea/list](bubbletea/list) | Selection, disabled items, and scrolling. |
@@ -130,7 +131,7 @@ state and cell layouts across both runtimes.
 | Hello preview | [examples/hello-preview](./examples/hello-preview) | The hello demo rendered to PNG and an animated GIF with ordinary Go. |
 | Counter snapshot | [examples/snapshot](./examples/snapshot) | A desktop Displayer implementation that writes a PNG. |
 
-The first ten entries run in the browser gallery. Choice pickers appear in
+The first eleven entries run in the browser gallery. Choice pickers appear in
 Settings. Only Hello World has a runtime selector; the other browser demos use
 Bubble Tea. All seven widgets have shared state and layouts plus adapters for
 both runtimes. See the [widget guide](widgets/README.md).

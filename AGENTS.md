@@ -112,7 +112,7 @@ These rules apply only to TinyTea and the original root runtime:
 
 ## Browser demos
 
-The gallery includes Hello, TinyHAL workbench, layout, Settings, list, value,
+The gallery includes Hello, TinyHAL workbench, TinyCharts, layout, Settings, list, value,
 dialog, progress, status, and viewport demos. Settings demonstrates choice
 pickers. All entries except Hello use Bubble Tea only. New widgets have compile
 and browser checks; do not describe them as hardware-tested.
