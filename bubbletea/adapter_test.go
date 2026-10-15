@@ -152,16 +152,24 @@ func TestCellViewPreservesTilesAndStyles(t *testing.T) {
 	}
 }
 
-type keyModel struct{ presses int }
+type keyModel struct {
+	presses  int
+	releases int
+}
 
 func (keyModel) Init() tea.Cmd { return nil }
 func (m keyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if key, ok := msg.(tea.KeyPressMsg); ok {
+	switch key := msg.(type) {
+	case tea.KeyPressMsg:
 		if key.Code == 'q' {
 			return m, tea.Quit
 		}
-		if key.Code == tea.KeyRight {
+		if key.Code == tea.KeyRight || key.Code == tea.KeyEnter {
 			m.presses++
+		}
+	case tea.KeyReleaseMsg:
+		if key.Code == tea.KeyEnter {
+			m.releases++
 		}
 	}
 	return m, nil
@@ -176,15 +184,18 @@ func TestPeripheralMessages(t *testing.T) {
 	go func() {
 		defer close(done)
 		p.Send(tea.KeyPressMsg{Code: tea.KeyRight})
-		p.Send(tea.KeyPressMsg{Code: 'q'})
+		p.Send(bubbles.KeyMsg{Key: bubbles.KeySelect})
+		p.Send(bubbles.KeyReleaseMsg{Key: bubbles.KeySelect})
+		p.Send(bubbles.KeyMsg{Key: bubbles.KeyQuit})
 	}()
 	final, err := run(t, p)
 	if err != nil {
 		t.Fatal(err)
 	}
 	<-done
-	if final.(keyModel).presses != 1 {
-		t.Fatalf("lost button message: %+v", final)
+	got := final.(keyModel)
+	if got.presses != 2 || got.releases != 1 {
+		t.Fatalf("lost button message: %+v", got)
 	}
 }
 

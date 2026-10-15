@@ -218,8 +218,11 @@ reflow cached text only when needed.
 
 `ButtonPoller` shares round-robin polling across device loops. Supply its `Buttons`
 and call `Poll(now, pressed)` with a function returning each button's logical
-pressed state. It emits at most one press per call and preserves simultaneous
-presses for later polls. Pin reads and polarity remain in device code.
+pressed state. It emits at most one event per call and preserves simultaneous
+events for later polls. Pin reads and polarity remain in device code. Each
+`Button` optionally configures `RepeatDelay` / `RepeatInterval` for hold-to-repeat,
+`LongPress` / `LongKey` to distinguish short taps from long holds on two- or
+three-button boards, and `EmitRelease` to emit `KeyReleaseMsg` on debounced release.
 
 A nil `*Buffer` behaves as an empty grid. Size and At return zero values; Set,
 Clear, Text, and Resize do nothing. Resize on nil returns false; use NewBuffer

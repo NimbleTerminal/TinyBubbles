@@ -231,7 +231,7 @@ scrolling options, editable values, and a confirmation dialog.
 
 - [x] **Layout helpers:** cell regions, padding, row/column splits, alignment,
   and clipped buffer composition.
-- [ ] **Button interactions:** optional hold-to-repeat, long-press, and release
+- [x] **Button interactions:** optional hold-to-repeat, long-press, and release
   events, suitable for devices with only a few buttons.
 - [ ] **TinyTea cooperative timers:** reusable ticks and delayed messages with cancellation,
   keeping commands short and avoiding application-specific scheduling boilerplate.
@@ -239,8 +239,8 @@ scrolling options, editable values, and a confirmation dialog.
   keyboard input, and HTML controls generated from the model's help map.
 - [x] **Browser widget gallery:** Hello World, seven widgets, Settings, and the layout playground.
 - [ ] **More widget demos:** add more composed screens.
-- [ ] **Rendering benchmarks:** measure frame time, allocations, and display writes
-  on the Feather; use the results to evaluate glyph caching and batched transfers.
+- [x] **Rendering benchmarks:** measure frame time, allocations, and display writes
+  across Go and TinyGo; use the results to evaluate glyph caching and batched transfers.
 - [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical
   display, including monochrome styling and button navigation.
 - [x] **First release:** document remaining API limitations and publish versioned modules.

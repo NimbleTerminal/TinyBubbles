@@ -80,15 +80,45 @@ func (p *Program) Run() (tea.Model, error) {
 	}
 	return p.model.model, err
 }
+func keyCode(k bubbles.Key) (rune, bool) {
+	switch k {
+	case bubbles.KeyUp:
+		return tea.KeyUp, true
+	case bubbles.KeyDown:
+		return tea.KeyDown, true
+	case bubbles.KeyRight:
+		return tea.KeyRight, true
+	case bubbles.KeyLeft:
+		return tea.KeyLeft, true
+	case bubbles.KeySelect:
+		return tea.KeyEnter, true
+	case bubbles.KeyBack:
+		return tea.KeyEscape, true
+	case bubbles.KeyQuit:
+		return 'q', true
+	default:
+		return 0, false
+	}
+}
+
 func (a *DisplayModel) Init() tea.Cmd { return a.model.Init() }
 func (a *DisplayModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if a.err != nil {
 		return a, tea.Quit
 	}
-	// A host terminal resize must not change the physical display's cell grid.
-	if _, ok := msg.(tea.WindowSizeMsg); ok {
+	switch m := msg.(type) {
+	case tea.WindowSizeMsg:
+		// A host terminal resize must not change the physical display's cell grid.
 		cols, rows := a.Size()
 		msg = tea.WindowSizeMsg{Width: cols, Height: rows}
+	case bubbles.KeyMsg:
+		if code, ok := keyCode(m.Key); ok {
+			msg = tea.KeyPressMsg{Code: code}
+		}
+	case bubbles.KeyReleaseMsg:
+		if code, ok := keyCode(m.Key); ok {
+			msg = tea.KeyReleaseMsg{Code: code}
+		}
 	}
 	next, cmd := a.model.Update(msg)
 	a.model = next
