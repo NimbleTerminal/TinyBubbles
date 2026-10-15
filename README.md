@@ -62,21 +62,21 @@ switch between Bubble Tea and TinyTea.
 To build firmware, install **TinyGo 0.43.0 or newer**:
 
 ```sh
-make hello          # Bubble Tea firmware: build/bubbletea-feather.bin
-make hello-preview  # desktop PNG/GIF of the shared greeting
+make hello          # Bubble Tea Feather firmware (hello + settings)
+make settings       # Three-button Feather settings firmware only
+make hello-preview  # Desktop PNG/GIF of the shared greeting
 ```
 
-The firmware build selects Go 1.26.0 and applies the required portability patches.
-This is an early port; read the [backend guide](bubbletea/README.md) for its
-limitations and flash instructions. See the [device guide](DEVICES.md) for wiring
-and adding a board.
+The firmware build selects Go 1.26.0 and applies the bare-metal portability
+patches. See the [backend guide](bubbletea/README.md) for flash instructions and
+the [device guide](DEVICES.md) for wiring and board setup.
 
 ## Usage
 
 Use `nimbleterminal.dev/tinybubbles` for Go imports. The repository and issue
-tracker remain at [NimbleTerminal/TinyBubbles](https://github.com/NimbleTerminal/TinyBubbles).
+tracker live at [NimbleTerminal/TinyBubbles](https://github.com/NimbleTerminal/TinyBubbles).
 
-Use Bubble Tea's model interface and the separate `bubbletea` module:
+Use Bubble Tea's model interface and the `bubbletea` module:
 
 ```go
 import (
@@ -102,25 +102,25 @@ if _, err := p.Run(); err != nil { panic(err) }
 ```
 
 Send keys and custom messages through `p.Send`. Add `CellView() *bubbles.Buffer`
-to render styled cells or custom font tiles. Plain View content is clipped to
+to render styled cells or custom font tiles. Plain `View` content is clipped to
 the grid; ANSI and terminal graphics are not interpreted. Read the
 [backend guide](bubbletea/README.md) before using terminal-specific libraries.
 
-For a smaller cooperative runtime, use [TinyTea](tinytea/tea.go). It supports the
-basic model signatures and the same cell rendering, but has different command,
-timer, and input semantics. The [runtime comparison and migration guide](RUNTIMES.md)
-explains the supported subset and how to switch. Device-focused widgets can share
-state and cell layouts across both runtimes.
+For a smaller cooperative runtime, use [TinyTea](tinytea/tea.go). It supports
+the basic model signatures, cooperative timers (`Tick`, `Every`, `After`, and
+reusable/cancellable `Timer`), and the same cell rendering. The
+[runtime comparison guide](RUNTIMES.md) covers behavioral differences and how
+to switch.
 
 ## Demo Apps
 
 | Demo | Source | What it shows |
 | :--- | :--- | :--- |
 | Hello, Tiny World | [bubbletea/hello](./bubbletea/hello) | Floating bubbles, large text and counter, four palettes, and pause/resume on the Reverse TFT Feather. |
-| TinyHAL workbench | [tinyhal/workbench](./tinyhal/workbench) | Simulated GPIO buttons, PWM LEDs, 12-bit ADC oscilloscope, SPI ST7789/registers, I2C SSD1306/sensor, and UART without TinyBubbles cell buffers. |
+| TinyHAL workbench | [tinyhal/workbench](./tinyhal/workbench) | Simulated GPIO buttons, PWM LEDs, 12-bit ADC oscilloscope, VCD logic analyzer, SPI ST7789/registers, I2C SSD1306/sensor, and UART. |
 | TinyCharts | [web/hello/charts.go](web/hello/charts.go) | Streamlines (Braille, arc, box), sparklines, bar charts, and multi-channel logic analyzer waveforms in a cell buffer. |
 | Layout playground | [web/hello/layout.go](web/hello/layout.go) | Responsive rows and columns, padding, gaps, and alignment. |
-| Settings | [bubbletea/settings](bubbletea/settings) | A menu combining values, choices, toggles, and confirmation. |
+| Settings | [bubbletea/settings](bubbletea/settings) | Composed menu combining value pickers, choice pickers, and a reset dialog; also builds for Feather D0/D1/D2 (`make settings`). |
 | Scrolling menu | [bubbletea/list](bubbletea/list) | Selection, disabled items, and scrolling. |
 | Value picker | [bubbletea/value](bubbletea/value) | Bounded numbers with apply and cancel. |
 | Confirmation dialog | [bubbletea/dialog](bubbletea/dialog) | Safe default and one decision per prompt. |
@@ -140,10 +140,10 @@ both runtimes. See the [widget guide](widgets/README.md).
 
 | Device | Display | TinyGo target | Validation |
 | :--- | :--- | :--- | :--- |
-| Adafruit Reverse TFT Feather | ST7789, 240×135 | [Local target](./devices/feather-reverse-tft/target.json) | Hello demo confirmed on hardware |
-| Raspberry Pi Pico | SSD1306, 128×64 | `pico` | Compiled |
+| Adafruit Reverse TFT Feather | ST7789, 240×135 | [Local target](./devices/feather-reverse-tft/target.json) | Hello demo confirmed on hardware; Settings compiled + TinyHAL tested |
+| Raspberry Pi Pico | SSD1306, 128×64 | `pico` | Compiled + TinyHAL tested |
 | Raspberry Pi Pico 2 | SSD1306, 128×64 | `pico2` | Compiled |
-| Adafruit CLUE | ST7789, 240×240 | `clue` | Compiled |
+| Adafruit CLUE | ST7789, 240×240 | `clue` | Compiled + TinyHAL tested |
 
 The core also has an ESP32-S3 compile check. Other boards can use any initialized
 `drivers.Displayer`; concrete peripherals stay under `devices/<name>/main.go`.
@@ -161,19 +161,18 @@ See the [changelog](CHANGELOG.md) for the v0.1.1 release summary.
 
 The [browser playground](web/README.md) uses the shared Go model, fonts, and
 renderer. Booba turns the model's Bubbles help map into HTML controls: Pause
-becomes Resume, and Color is disabled on monochrome screens. Add working demos
-to the Go `web.Config.Demos` list in `web/hello/cmd/demo/main.go`; the [browser guide](web/README.md#adding-a-gallery-entry)
-explains how to build and register them.
+becomes Resume, and Color is disabled on monochrome screens. Add demos to
+`web.Config.Demos` in `web/hello/cmd/demo/main.go`; see the
+[browser guide](web/README.md#adding-a-gallery-entry).
 
 Hello World has a **Bubble Tea / TinyTea** runtime selector. Switching restarts
-the demo and keeps the display preset. Bubble Tea uses commands and timers;
-TinyTea runs cooperatively with host-supplied ticks. Both share the same visual
-model and help bindings. Go versus TinyGo is a separate compiler choice. The
-browser bundle includes both runtimes, so it does not compare firmware sizes.
+the demo and keeps the display preset. Go versus TinyGo is a separate compiler
+choice. The browser bundle includes both runtimes, so its size does not measure
+firmware memory.
 
 | Command | Purpose |
 | :--- | :--- |
-| `make ci` | Run all CI checks locally, generate previews, and build firmware and the WASM site. |
+| `make ci` | Run all CI checks locally, generate previews, and build firmware, WASI checks, and the WASM site. |
 | `make web` | Build the static browser demo in `build/web/`. |
 | `make web-tinygo` | Build the browser demo with TinyGo v0.43 and its matching runtime shim. |
 | `make -C web test` | Check web modules, Go tests, vet, and the JavaScript key encoder. |
@@ -185,37 +184,37 @@ browser bundle includes both runtimes, so it does not compare firmware sizes.
 | `make bench-tinygo` | Build and run the benchmark harness under TinyGo native and WASI (`wasip1`). |
 | `make tinyhal-wasi` | Run the `tinyhal` `machine`/ST7789/APA102/VCD smoke demo under TinyGo WASI (`wasip1`). |
 | `make firmware` | Compile device examples and core, widget, and layout checks. |
-| `make hello` | Build the primary Bubble Tea Reverse TFT Feather firmware. |
+| `make hello` | Build the Bubble Tea Reverse TFT Feather firmware (`hello` and `settings`). |
+| `make settings` | Build the three-button Bubble Tea Settings Feather firmware (`build/bubbletea-feather-settings.bin`). |
 | `make hello-tinytea` | Build the original cooperative Feather demo. |
 | `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
 | `make snapshot` | Render the counter to `snapshot.png`. |
-| `make -C devices/terminal check` | Build the [terminal target](devices/terminal/README.md) natively and for wasip1. |
+| `make -C devices/terminal check` | Build and test the [terminal target](devices/terminal/README.md) natively and for `wasip1`. |
 
 [CI](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)
 runs on pushes, pull requests, and manual dispatch. It checks code and docs,
 renders previews, and builds the firmware matrix and both Go and TinyGo WASM
 sites. After all checks pass on `main`, CI publishes the TinyGo WASM gallery
 to GitHub Pages. Artifacts are kept for 14 days. CI does not flash hardware.
-`make ci` runs the same checks locally, without publishing.
 
 There are five Go modules. Root checks do not run the nested modules' tests:
 
 | Module | Toolchain and role |
 | :--- | :--- |
-| Root | Go 1.23 language version; renderer, widgets, layout, and TinyTea; no Bubble Tea dependency. |
+| Root | Go 1.23 language version; renderer, layout, widgets, `tinycharts`, `tinyhal`, and TinyTea; no Bubble Tea dependency. |
 | `bubbletea/` | Go 1.26.0 and TinyGo 0.43; Bubble Tea v2.1 firmware with portability patches. |
 | `web/` | Go 1.26.8; reusable canvas, LEDs, Booba actions, and scaffold tool. |
 | `web/hello/` | Demo gallery consumer of the harness. TinyGo WASM uses a 128 KiB stack. |
-| `devices/terminal/` | Go 1.26.8; hello display in a terminal via ntpicture, native and wasip1 with Go or TinyGo. |
+| `devices/terminal/` | Go 1.26.8; hello display in a terminal via ntpicture, native and `wasip1` with Go or TinyGo. |
 
 Other TinyGo display projects can use the [browser harness](web/README.md) without
 TinyBubbles cells or fonts. Presets come from Go; the tool generates the page
 and build assets. Hidden tabs throttle timers to roughly once per second,
 slowing every `time.Sleep`; keep previews visible when testing timing.
 
-Documentation and web asset builds need Python 3. Web tests need Node.js 22 or
-newer. See the [backend](bubbletea/README.md) and [browser](web/README.md) guides
-for dependency details.
+Documentation and web asset builds need Python 3. Web tests need Node.js 22+.
+See the [backend](bubbletea/README.md) and [browser](web/README.md) guides for
+dependency details.
 
 To refresh the README animation after a demo change:
 
@@ -226,25 +225,24 @@ cp build/hello.gif docs/assets/hello.gif
 
 ## TODO
 
-- [x] **Three-button settings menu on the Feather:** scrolling options, editable
-  values, and confirmation dialog wired to Feather D0/D1/D2 (`make settings`).
-- [x] **Layout helpers:** cell regions, padding, row/column splits, alignment,
-  and clipped buffer composition.
-- [x] **Button interactions:** optional hold-to-repeat, long-press, and release
-  events, suitable for devices with only a few buttons.
-- [x] **TinyTea cooperative timers:** reusable ticks and delayed messages with cancellation,
-  keeping commands short and avoiding application-specific scheduling boilerplate.
-- [x] **Interactive browser simulator:** WASM hello demo with OLED/TFT presets,
-  keyboard input, and HTML controls generated from the model's help map.
-- [x] **Browser widget gallery:** Hello World, seven widgets, Settings, and the layout playground.
-- [ ] **More widget demos:** add more composed screens.
-- [x] **Rendering benchmarks:** measure frame time, allocations, and display writes
-  across Go and TinyGo; use the results to evaluate glyph caching and batched transfers.
 - [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical
   display, including monochrome styling and button navigation.
-- [x] **First release:** document remaining API limitations and publish versioned modules.
-- [x] **Vanity imports:** use `nimbleterminal.dev/tinybubbles` for Go packages
-  and `NimbleTerminal/TinyBubbles` for the GitHub repository.
+- [ ] **More composed screens:** add additional multi-widget device screens.
+- [x] **Three-button settings menu on the Feather:** scrolling options, editable
+  values, and confirmation dialog wired to Feather D0/D1/D2 (`make settings`).
+- [x] **TinyCharts and procedural Unicode glyphs:** sparklines, Braille/arc/box
+  streamlines, bar charts, and VCD logic analyzer waveforms.
+- [x] **TinyHAL workbench and WASI target:** in-WASM `machine` HAL, peripheral
+  models, IEEE 1364 `.vcd` export, and `tinyhal-wasi` CI checks.
+- [x] **Button interactions:** hold-to-repeat, short-tap vs. long-press, and
+  release events (`Button` / `ButtonPoller`).
+- [x] **TinyTea cooperative timers:** `Tick`, `Every`, `After`, and reusable
+  cancellable `Timer`.
+- [x] **Rendering benchmarks:** Go and TinyGo native/WASI benchmark suite (`make bench`).
+- [x] **Terminal target:** native and `wasip1` terminal rendering via `ntpicture`
+  and clickable Terminal Actions (`devices/terminal`).
+- [x] **Layout helpers & browser widget gallery:** cell regions, seven widgets,
+  Settings, and the layout playground.
 
 ## Open Collaboration
 
