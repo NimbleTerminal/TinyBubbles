@@ -3,6 +3,7 @@ package settings
 
 import (
 	"fmt"
+	"time"
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
@@ -17,6 +18,33 @@ import (
 	lc "nimbleterminal.dev/tinybubbles/widgets/list"
 	vc "nimbleterminal.dev/tinybubbles/widgets/value"
 )
+
+// FeatherButtons returns the three-button D0/D1/D2 configuration for the
+// Reverse TFT Feather: D0 moves up or decreases (with hold-to-repeat), D1
+// moves down or increases (with hold-to-repeat), and D2 selects/applies on a
+// short tap or cancels on a 500ms long press.
+func FeatherButtons() [3]bubbles.Button {
+	return [3]bubbles.Button{
+		{
+			Key:            bubbles.KeyUp,
+			Debounce:       25 * time.Millisecond,
+			RepeatDelay:    400 * time.Millisecond,
+			RepeatInterval: 100 * time.Millisecond,
+		},
+		{
+			Key:            bubbles.KeyDown,
+			Debounce:       25 * time.Millisecond,
+			RepeatDelay:    400 * time.Millisecond,
+			RepeatInterval: 100 * time.Millisecond,
+		},
+		{
+			Key:       bubbles.KeySelect,
+			LongKey:   bubbles.KeyBack,
+			Debounce:  25 * time.Millisecond,
+			LongPress: 500 * time.Millisecond,
+		},
+	}
+}
 
 // Values contains the settings applied during this session. Playback is an option index.
 type Values struct {
@@ -119,6 +147,32 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Code == 'q' {
 			return m, tea.Quit
 		}
+		// Allow a single pair of directional buttons (Up/Down or Left/Right)
+		// to navigate both the vertical menu and horizontal child pickers.
+		if m.focus == "" {
+			switch msg.Code {
+			case tea.KeyLeft:
+				msg = tea.KeyPressMsg{Code: tea.KeyUp}
+			case tea.KeyRight:
+				msg = tea.KeyPressMsg{Code: tea.KeyDown}
+			}
+		} else {
+			switch msg.Code {
+			case tea.KeyUp:
+				msg = tea.KeyPressMsg{Code: tea.KeyLeft}
+			case tea.KeyDown:
+				msg = tea.KeyPressMsg{Code: tea.KeyRight}
+			}
+		}
+		if m.pending {
+			return m, nil
+		}
+		_, cmd := m.active().Update(msg)
+		if cmd != nil {
+			m.pending = true
+			return m, func() tea.Msg { return childResult{cmd()} }
+		}
+		return m, nil
 	}
 	if m.pending {
 		return m, nil

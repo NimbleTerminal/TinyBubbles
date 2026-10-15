@@ -226,9 +226,8 @@ cp build/hello.gif docs/assets/hello.gif
 
 ## TODO
 
-The next milestone is a **three-button settings menu on the Feather** with
-scrolling options, editable values, and a confirmation dialog.
-
+- [x] **Three-button settings menu on the Feather:** scrolling options, editable
+  values, and confirmation dialog wired to Feather D0/D1/D2 (`make settings`).
 - [x] **Layout helpers:** cell regions, padding, row/column splits, alignment,
   and clipped buffer composition.
 - [x] **Button interactions:** optional hold-to-repeat, long-press, and release

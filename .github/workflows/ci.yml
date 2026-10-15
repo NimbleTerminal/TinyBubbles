@@ -167,6 +167,8 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: bubbletea
-          path: build/bubbletea-feather.bin
+          path: |
+            build/bubbletea-feather.bin
+            build/bubbletea-feather-settings.bin
           if-no-files-found: error
           retention-days: 14

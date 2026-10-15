@@ -71,6 +71,11 @@ tasks:
     cmds:
       - make hello TINYGO="{{.TINYGO}}"
 
+  settings:
+    desc: Build three-button Bubble Tea Settings Feather firmware
+    cmds:
+      - make settings TINYGO="{{.TINYGO}}"
+
   hello-tinytea:
     desc: Build cooperative TinyTea Feather firmware
     cmds:

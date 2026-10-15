@@ -30,7 +30,8 @@ From this directory:
 ```sh
 make prepare       # vendor pinned dependencies and apply bare-metal changes
 make test          # actual Bubble Tea loop, commands, timer, and display tests
-make firmware      # build/bubbletea-feather.bin in the repository root
+make firmware      # build/bubbletea-feather.bin and build/bubbletea-feather-settings.bin
+make settings      # build/bubbletea-feather-settings.bin only
 ```
 
 To flash the Reverse TFT Feather from this directory after identifying its port:
@@ -45,10 +46,13 @@ The Makefile selects `GOTOOLCHAIN=go1.26.0` and passes its `GOROOT` to TinyGo.
 Go downloads that toolchain if needed. Override `GOTOOLCHAIN` to select another
 Go 1.26 patch release, or `TINYGO` to select the compiler binary.
 
-Firmware uses the same Reverse TFT Feather configuration and controls as the
-[working demo](../devices/feather-reverse-tft/README.md): D0 pop, D1 color,
+`./devices/feather` uses the same Reverse TFT Feather configuration and controls
+as the [working demo](../devices/feather-reverse-tft/README.md): D0 pop, D1 color,
 D2 pause. The top-left header reads **BUBBLE TEA 2.1**, identifying this runtime
-on the physical screen. It retains the existing fonts and large counter.
+on the physical screen. `./devices/feather-settings` runs the composed
+[`settings`](settings/model.go) menu over `ButtonPoller`: D0 moves up/decreases
+(with hold-to-repeat), D1 moves down/increases (with hold-to-repeat), and D2
+selects/applies on a short tap or cancels on a 500 ms long press.
 Building does not flash.
 
 ## Portability changes

@@ -1,6 +1,6 @@
 TINYGO ?= tinygo
 
-.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare tinyhal-wasi firmware snapshot hello hello-tinytea hello-preview web web-serve web-tinygo
+.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare tinyhal-wasi firmware snapshot hello settings hello-tinytea hello-preview web web-serve web-tinygo
 check: check-format check-modules check-docs test
 	go build ./...
 
@@ -83,6 +83,9 @@ firmware:
 
 hello:
 	$(MAKE) -C bubbletea firmware TINYGO="$(TINYGO)"
+
+settings:
+	$(MAKE) -C bubbletea settings TINYGO="$(TINYGO)"
 
 hello-tinytea:
 	mkdir -p build

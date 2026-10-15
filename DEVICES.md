@@ -8,8 +8,10 @@ their physical display and button operation has not yet been verified.
 
 For the Feather, see the [hello demo and flashing instructions](./devices/feather-reverse-tft/README.md).
 
-The primary Bubble Tea Feather entry point lives in
-[bubbletea/devices/feather](bubbletea/devices/feather). The root device examples
+The primary Bubble Tea Feather entry points live in
+[bubbletea/devices/feather](bubbletea/devices/feather) (hello) and
+[bubbletea/devices/feather-settings](bubbletea/devices/feather-settings)
+(three-button settings menu). The root device examples
 use the original cooperative TinyTea scheduler. See [runtime differences](RUNTIMES.md).
 
 ## Devices and wiring
@@ -23,6 +25,7 @@ out of normal host builds.
 | `devices/pico-oled` | `pico`, `pico2` | External SSD1306, 128x64, I2C address `0x3c` | GP14 / GP15 buttons |
 | `devices/clue` | `clue` | Built-in ST7789, 240x240, SPI1 | Built-in A / B buttons |
 | `devices/feather-reverse-tft` | Local `target.json` | Built-in ST7789, 240x135, SPI0 | Built-in D0 / D1 / D2; animated hello demo |
+| `bubbletea/devices/feather-settings` | Local `target.json` | Built-in ST7789, 240x135, SPI0 | Built-in D0 (up/repeat) / D1 (down/repeat) / D2 (tap select, hold cancel) |
 
 For Pico/Pico 2, connect SSD1306 VCC to **3V3**, GND to GND, SDA to **GP4**, SCL
 to **GP5**. Use a 3.3 V-compatible module with I2C pull-ups (add them if the board
@@ -33,7 +36,9 @@ The CLUE needs no external wiring and uses 8 MHz SPI with its board pin constant
 Its 270-degree driver rotation and 80-pixel offset match the panel's native
 orientation in [Adafruit's board initialization](https://github.com/adafruit/circuitpython/blob/main/ports/nordic/boards/clue_nrf52840_express/board.c).
 
-The examples use 25 ms press/release debounce and no auto-repeat. `Button.Update`
+The examples use 25 ms press/release debounce; `Button` also supports optional
+`RepeatDelay`/`RepeatInterval` hold-to-repeat and `LongPress`/`LongKey` short-tap
+versus long-hold detection. `Button.Update`
 takes a logical pressed state and a timestamp, so the same mapper works with
 GPIO, an I2C expander, or a gamepad. Input returns one message per poll; queue
 multiple events if your hardware produces them together. The examples alternate
@@ -66,7 +71,7 @@ tinygo flash -target=clue ./devices/clue
 ```
 
 `make firmware` builds the cooperative device examples and ESP32-S3 compile checks.
-For the primary Bubble Tea Feather image, use `make hello` and follow the
+For the primary Bubble Tea Feather images, use `make hello` or `make settings` and follow the
 [backend flashing guide](bubbletea/README.md#build-and-test).
 `make hello-tinytea` builds the original cooperative Feather image.
 

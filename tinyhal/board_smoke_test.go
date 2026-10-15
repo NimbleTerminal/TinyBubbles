@@ -374,3 +374,141 @@ func TestBoardSmokeFeatherReverseTFT(t *testing.T) {
 		t.Fatalf("expected Feather Reverse TFT smoke test to light pixels")
 	}
 }
+
+// TestBoardSmokeFeatherThreeButtonInteractions validates Feather D0/D1/D2
+// button interactions with hold-to-repeat on D0/D1 and short-tap vs long-press
+// on D2 over tinyhal GPIO and ST7789 SPI0.
+func TestBoardSmokeFeatherThreeButtonInteractions(t *testing.T) {
+	h := New()
+	const (
+		tftPower     Pin = 7
+		tftClock     Pin = 36
+		tftMOSI      Pin = 35
+		tftCS        Pin = 42
+		tftDC        Pin = 40
+		tftReset     Pin = 41
+		tftBacklight Pin = 45
+		pinD0        Pin = 0
+		pinD1        Pin = 1
+		pinD2        Pin = 2
+	)
+
+	h.GPIOConfigure(tftPower, PinConfig{Mode: PinOutput})
+	h.GPIOSet(tftPower, true)
+
+	target := newRecordDisplayer(240, 135)
+	tft := AttachST7789(h, ST7789Config{
+		ID:           "feather-tft-3btn",
+		Bus:          0,
+		Width:        240,
+		Height:       135,
+		RowOffset:    40,
+		ColumnOffset: 53,
+		CS:           tftCS,
+		DC:           tftDC,
+		Reset:        tftReset,
+		Backlight:    tftBacklight,
+		Target:       target,
+	})
+
+	h.SPIConfigure(0, SPIConfig{Frequency: 20_000_000, SCK: tftClock, SDO: tftMOSI, SDI: NoPin})
+	display := &hostST7789Driver{
+		hal:       h,
+		bus:       0,
+		cs:        tftCS,
+		dc:        tftDC,
+		rst:       tftReset,
+		bl:        tftBacklight,
+		width:     240,
+		height:    135,
+		colOffset: 40,
+		rowOff:    53,
+		madctl:    st7789MADCTLMV | 0x48,
+	}
+	display.configure()
+
+	h.GPIOConfigure(pinD0, PinConfig{Mode: PinInputPullup})
+	h.GPIOConfigure(pinD1, PinConfig{Mode: PinInputPulldown})
+	h.GPIOConfigure(pinD2, PinConfig{Mode: PinInputPulldown})
+	AttachButton(h, ButtonConfig{ID: "d0", Pin: pinD0, ActiveLow: true})
+	AttachButton(h, ButtonConfig{ID: "d1", Pin: pinD1, ActiveLow: false})
+	AttachButton(h, ButtonConfig{ID: "d2", Pin: pinD2, ActiveLow: false})
+
+	pins := [3]Pin{pinD0, pinD1, pinD2}
+	boardPressed := func(index int) bool {
+		v := h.GPIOGet(pins[index])
+		if index == 0 {
+			return !v
+		}
+		return v
+	}
+
+	poller := bubbles.ButtonPoller{Buttons: []bubbles.Button{
+		{
+			Key:            bubbles.KeyUp,
+			Debounce:       25 * time.Millisecond,
+			RepeatDelay:    400 * time.Millisecond,
+			RepeatInterval: 100 * time.Millisecond,
+		},
+		{
+			Key:            bubbles.KeyDown,
+			Debounce:       25 * time.Millisecond,
+			RepeatDelay:    400 * time.Millisecond,
+			RepeatInterval: 100 * time.Millisecond,
+		},
+		{
+			Key:       bubbles.KeySelect,
+			LongKey:   bubbles.KeyBack,
+			Debounce:  25 * time.Millisecond,
+			LongPress: 500 * time.Millisecond,
+		},
+	}}
+
+	now := time.Now()
+	p, err := bubbles.NewProgram(demo.New(), bubbles.Config{
+		Display: display,
+		Input:   func() bubbles.Msg { return poller.Poll(now, boardPressed) },
+	})
+	if err != nil {
+		t.Fatalf("bubbles.NewProgram failed: %v", err)
+	}
+	if err := p.Step(); err != nil {
+		t.Fatalf("initial p.Step failed: %v", err)
+	}
+
+	// Hold D0 (active-low Up) across RepeatDelay + RepeatInterval (+1, +1, +1).
+	_ = h.InjectInput(InputEvent{Kind: InputButton, ID: "d0", Pressed: true})
+	_ = p.Step()
+	now = now.Add(30 * time.Millisecond)
+	_ = p.Step()
+	now = now.Add(400 * time.Millisecond)
+	_ = p.Step()
+	now = now.Add(100 * time.Millisecond)
+	_ = p.Step()
+	_ = h.InjectInput(InputEvent{Kind: InputButton, ID: "d0", Pressed: false})
+	now = now.Add(30 * time.Millisecond)
+	_ = p.Step()
+
+	// Short-tap D2 (KeySelect -> +1), then long-press D2 (KeyBack -> reset to 0).
+	_ = h.InjectInput(InputEvent{Kind: InputButton, ID: "d2", Pressed: true})
+	_ = p.Step()
+	now = now.Add(30 * time.Millisecond)
+	_ = p.Step()
+	_ = h.InjectInput(InputEvent{Kind: InputButton, ID: "d2", Pressed: false})
+	now = now.Add(30 * time.Millisecond)
+	_ = p.Step()
+
+	_ = h.InjectInput(InputEvent{Kind: InputButton, ID: "d2", Pressed: true})
+	_ = p.Step()
+	now = now.Add(30 * time.Millisecond)
+	_ = p.Step()
+	now = now.Add(550 * time.Millisecond)
+	_ = p.Step()
+	_ = h.InjectInput(InputEvent{Kind: InputButton, ID: "d2", Pressed: false})
+	now = now.Add(30 * time.Millisecond)
+	_ = p.Step()
+
+	if tft.Frames() < 5 {
+		t.Fatalf("expected at least 5 ST7789 frame flushes on Feather 3-button smoke test, got %d", tft.Frames())
+	}
+}
