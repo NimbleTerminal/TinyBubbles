@@ -126,13 +126,17 @@ func (a *app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	_, cmd := a.inner.Update(innerMsg)
 	cmds = append(cmds, cmd, a.pic.Update(msg))
-	if a.wantKitty && ntpicture.KittySupported() == ntpicture.KittyCapabilitySupported {
+	if a.wantKitty && a.pic.KittySupported() == ntpicture.KittyCapabilitySupported {
 		a.wantKitty = false
 		cmds = append(cmds, a.pic.SetMode(ntpicture.PictureKitty))
 	}
-	// The picture's own messages never carry a new frame, so skip rendering.
-	if ntpicture.IsPictureMsg(msg) && !advance {
-		return a, tea.Batch(cmds...)
+	// Picture notifications never carry a new frame. Internal picture messages
+	// also leave the framebuffer unchanged and are filtered by the frame count below.
+	switch msg.(type) {
+	case ntpicture.PresentedMsg, ntpicture.ErrorMsg, ntpicture.KittyCapabilityMsg, ntpicture.TerminalSessionMsg:
+		if !advance {
+			return a, tea.Batch(cmds...)
+		}
 	}
 	// The adapter renders cells into the framebuffer in View. Do it here so
 	// the picture can schedule its encode from Update, and only hand over the
@@ -158,7 +162,7 @@ func (a *app) helpKeys() keyMap {
 	if a.pic.Mode() == ntpicture.PictureKitty {
 		keys.kitty.SetHelp("k", "Half-blocks")
 	} else {
-		keys.kitty.SetEnabled(ntpicture.KittyUnavailable() == nil)
+		keys.kitty.SetEnabled(a.pic.KittySupported() == ntpicture.KittyCapabilitySupported)
 	}
 	return keys
 }
@@ -169,10 +173,6 @@ func (a *app) toggle() tea.Cmd {
 	a.status = ""
 	if a.pic.Mode() == ntpicture.PictureKitty {
 		return a.pic.SetMode(ntpicture.PictureGlyph)
-	}
-	if err := ntpicture.KittyUnavailable(); err != nil {
-		a.status = err.Error()
-		return nil
 	}
 	return a.pic.SetMode(ntpicture.PictureKitty)
 }
@@ -253,7 +253,7 @@ func main() {
 	}
 	if *stats {
 		fmt.Fprintf(os.Stderr, "frames=%d elapsed=%s fps=%.1f mode=%d kitty=%d actions=%d stdin=%s\r\n",
-			fb.frames, elapsed.Round(time.Millisecond), float64(fb.frames)/elapsed.Seconds(), a.pic.Mode(), ntpicture.KittySupported(), host.Mode(), stdinMode)
+			fb.frames, elapsed.Round(time.Millisecond), float64(fb.frames)/elapsed.Seconds(), a.pic.Mode(), a.pic.KittySupported(), host.Mode(), stdinMode)
 		fmt.Fprintf(os.Stderr, "pictures=%d picture_fps=%.1f uncapped=%t\r\n",
 			a.presented, float64(a.presented)/elapsed.Seconds(), a.uncapped)
 	}

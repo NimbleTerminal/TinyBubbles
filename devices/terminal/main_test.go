@@ -33,9 +33,8 @@ func testApp(t *testing.T) *app {
 }
 
 func TestManualModeOverridesAutoSelection(t *testing.T) {
-	ntpicture.ForceKittyCapability(ntpicture.KittyCapabilitySupported)
-	t.Cleanup(func() { ntpicture.ForceKittyCapability(ntpicture.KittyCapabilityUnknown) })
 	a := testApp(t)
+	a.pic.SetKittyCapability(ntpicture.KittyCapabilitySupported)
 	a.pic.SetMode(ntpicture.PictureKitty)
 	a.Update(tea.KeyPressMsg{Code: 'k'})
 	if a.wantKitty || a.pic.Mode() != ntpicture.PictureGlyph {
@@ -202,8 +201,7 @@ func TestHostedActionsFollowHelpMap(t *testing.T) {
 func TestActionLabelsFollowModelAndPicture(t *testing.T) {
 	a := testApp(t)
 	a.wantKitty = false
-	ntpicture.ForceKittyCapability(ntpicture.KittyCapabilitySupported)
-	t.Cleanup(func() { ntpicture.ForceKittyCapability(ntpicture.KittyCapabilityUnknown) })
+	a.pic.SetKittyCapability(ntpicture.KittyCapabilitySupported)
 	if keys := a.helpKeys(); keys.hello.Pause.Help().Desc != "Pause" || !keys.kitty.Enabled() {
 		t.Fatal("initial actions do not match the model and capability")
 	}
@@ -216,7 +214,7 @@ func TestActionLabelsFollowModelAndPicture(t *testing.T) {
 		t.Fatal("Kitty action does not offer the reverse transition")
 	}
 	a.Update(tea.KeyPressMsg{Code: 'k'})
-	ntpicture.ForceKittyCapability(ntpicture.KittyCapabilityUnsupported)
+	a.pic.SetKittyCapability(ntpicture.KittyCapabilityUnsupported)
 	if a.helpKeys().kitty.Enabled() {
 		t.Fatal("unavailable Kitty action is enabled")
 	}

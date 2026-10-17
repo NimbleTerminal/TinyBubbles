@@ -7,7 +7,7 @@ require (
 	charm.land/bubbletea/v2 v2.1.0
 	github.com/NimbleMarkets/go-booba v0.9.2
 	github.com/charmbracelet/colorprofile v0.4.3
-	nimbleterminal.dev/ntpicture v0.0.0
+	nimbleterminal.dev/ntpicture v0.1.0
 	nimbleterminal.dev/tinybubbles v0.1.1
 	nimbleterminal.dev/tinybubbles/bubbletea v0.0.0
 )
@@ -36,10 +36,7 @@ require (
 
 replace nimbleterminal.dev/tinybubbles => ../..
 
-// ntpicture is unreleased and go-booba's termhost is not released yet; build
-// against the checkouts next to this repository.
-replace nimbleterminal.dev/ntpicture => ../../../ntpicture
-
+// go-booba's termhost is not released yet; build against the sibling checkout.
 replace github.com/NimbleMarkets/go-booba => ../../../go-booba
 
 replace nimbleterminal.dev/tinybubbles/bubbletea => ../../bubbletea

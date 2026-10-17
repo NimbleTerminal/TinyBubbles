@@ -31,12 +31,12 @@ outdir = tempfile.mkdtemp(prefix="terminal-smoke-")
 snapshot = os.path.join(outdir, "snapshot.png")
 if program.endswith(".wasm"):
     cmd = ["wasmtime", "run", "--env", "TERM=xterm-256color",
-           "--env", "NTCHARTS_KITTY=" + ("supported" if kitty else "unsupported"),
+           "--env", "NTPICTURE_KITTY=" + ("supported" if kitty else "unsupported"),
            "--dir", f"{outdir}::/out", program, "-snapshot", "/out/snapshot.png"]
 else:
     cmd = [program, "-snapshot", snapshot]
 env = {**os.environ, "TERM": "xterm-256color",
-       "NTCHARTS_KITTY": "supported" if kitty else "unsupported"}
+       "NTPICTURE_KITTY": "supported" if kitty else "unsupported"}
 proc = subprocess.Popen(cmd + ["-stats"] + extra, env=env, stdin=slave, stdout=slave, stderr=slave, close_fds=True)
 os.close(slave)
 buf = b""

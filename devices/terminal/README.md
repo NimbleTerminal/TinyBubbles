@@ -8,16 +8,14 @@ It is a development target: the same model and fonts as the Feather, no hardware
 
 The program builds natively and for WASI preview 1 with Go or TinyGo. The WASI
 builds need Bubble Tea's wasip1 stubs, so this module replaces Bubble Tea with the
-same fork commit that `web/go.mod` pins. ntpicture and go-booba's `termhost` are
-not released yet, so the module replaces both with the checkouts next to this
-repository.
+same fork commit that `web/go.mod` pins. The module uses ntpicture v0.1.0.
+go-booba's `termhost` is not released yet, so the module replaces go-booba with
+the checkout next to this repository.
 
-The expected layout is sibling `TinyBubbles/`, `ntpicture/`, and `go-booba/`
+The expected layout is sibling `TinyBubbles/` and `go-booba/`
 directories (for example, under `~/projects`). The go-booba checkout must include
-`actions/termhost`. A clean checkout and CI also need these sources; the local
-replacements are not downloadable releases.
-At release, replace `v0.0.0` with the published version and remove the local
-`replace nimbleterminal.dev/ntpicture` directive.
+`actions/termhost`. A clean checkout and CI also need this source; the local
+replacement is not a downloadable release.
 
 This target no longer imports NTCharts. ntpicture renders the pixels directly;
 pixterm remains a dependency of its comparison tests. ntcanvas provides terminal
