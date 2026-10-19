@@ -102,7 +102,7 @@ jobs:
       - name: Check the terminal target natively and for wasip1
         run: make -C devices/terminal check
       - name: Render desktop demos
-        run: make hello-preview snapshot widgets-preview
+        run: make hello-preview snapshot widgets-preview tinycharts-preview
       - uses: actions/upload-artifact@v7
         with:
           name: demo-previews
@@ -111,6 +111,7 @@ jobs:
             build/hello.gif
             snapshot.png
             docs/assets/widgets/*.png
+            docs/assets/tinycharts/*.png
           if-no-files-found: error
           retention-days: 14
   firmware:

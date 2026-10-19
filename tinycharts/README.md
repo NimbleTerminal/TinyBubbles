@@ -6,6 +6,17 @@
 widgets for TinyBubbles [`*bubbles.Buffer`](../cell.go) grids and embedded
 displays, modeled after [`NimbleMarkets/ntcharts`](https://github.com/NimbleMarkets/ntcharts).
 
+| Chart | Preview | Purpose |
+| --- | --- | --- |
+| [BrailleGrid](#braillegrid) | ![Braille dot-matrix sine wave with axes](../docs/assets/tinycharts/braille.png) | Plot lines on a 2×4 sub-cell dot matrix. |
+| [Sparkline](#sparkline) | ![Two scrolling block sparklines](../docs/assets/tinycharts/sparkline.png) | Scroll recent values as fractional block columns. |
+| [Streamline](#streamline) | ![Braille and arc streamline charts](../docs/assets/tinycharts/streamline.png) | Scroll a time series as a Braille, arc, or box line. |
+| [BarChart](#barchart) | ![Horizontal and vertical bar charts with a gauge](../docs/assets/tinycharts/barchart.png) | Compare labeled values horizontally or vertically, or draw a one-row gauge. |
+| [LogicChart](#logicchart) | ![Clock, PWM, and bus logic analyzer lanes](../docs/assets/tinycharts/logicchart.png) | Show digital, PWM, and bus traces as logic analyzer lanes. |
+
+The screenshots use the default 6×8 font on a 128×64 display, enlarged twice.
+Regenerate them with `make tinycharts-preview` after changing chart rendering.
+
 ## Procedural Unicode Chart Runes in `DefaultFont()`
 
 TinyBubbles' [`TinyFont`](../font.go) procedurally rasterizes three standard
@@ -24,13 +35,45 @@ canvas, and in a terminal.
 
 ## Chart Types
 
-| Type | File | Description |
-| --- | --- | --- |
-| [`BrailleGrid`](./runes.go) | `runes.go` | `2*W × 4*H` sub-cell dot matrix with Bresenham `DrawLine` and `Draw(dst, rect, style)` |
-| [`Sparkline`](./sparkline.go) | `sparkline.go` | Scrolling right-to-left column chart using `▁▂▃▄▅▆▇█` (`Push`, `PushAll`, `AutoMaxValue`) |
-| [`Streamline`](./streamline.go) | `streamline.go` | Scrolling time-series line chart supporting `StreamModeBraille` (`⠀..⣿`), `StreamModeArc` (`╭╮╰╯─│`), and `StreamModeBox` (`┌┐└┘─│`) |
-| [`BarChart`](./barchart.go) | `barchart.go` | Horizontal (`▏▎▍▌▋▊▉█`) and vertical (`▁▂▃▄▅▆▇█`) bar charts plus single-row `DrawGauge` |
-| [`LogicChart`](./logicchart.go) | `logicchart.go` | Multi-channel digital (`LogicBit`), PWM (`LogicPWM`), and bus (`LogicBus`) logic analyzer chart |
+Every chart draws into a `*bubbles.Buffer` region with `Draw(dst, rect)` or
+returns its own buffer from `View()`. Charts allocate at construction and on
+`Resize`; pushing values and drawing reuse that storage.
+
+### BrailleGrid
+
+[`runes.go`](./runes.go) · A `2*W × 4*H` sub-cell dot matrix. `Set(dx, dy)`
+lights one dot, `DrawLine` plots a Bresenham line, and `Draw(dst, rect, style)`
+writes the Braille runes. `DotSize()` reports the plotting resolution for the
+current cell size. Use it for custom plots that the other charts do not cover.
+
+### Sparkline
+
+[`sparkline.go`](./sparkline.go) · A scrolling right-to-left column chart using
+`▁▂▃▄▅▆▇█`. `Push` and `PushAll` add samples and drop the oldest when full.
+`WithSparklineMax` fixes the scale; `WithSparklineAutoMax` grows it with the data.
+`WithSparklineStyle` picks the theme style for the columns.
+
+### Streamline
+
+[`streamline.go`](./streamline.go) · A scrolling time-series line chart.
+`StreamModeBraille` plots a `⠀..⣿` curve at sub-cell resolution; `StreamModeArc`
+(`╭╮╰╯─│`) and `StreamModeBox` (`┌┐└┘─│`) connect one rune per column, like the
+ntcharts streamline chart. `WithStreamRange` fixes the vertical scale and
+`WithStreamAutoRange` tracks the data.
+
+### BarChart
+
+[`barchart.go`](./barchart.go) · Labeled bars, horizontal (`▏▎▍▌▋▊▉█`) by
+`WithBarHorizontal(true)` or vertical (`▁▂▃▄▅▆▇█`) otherwise. `SetBars` copies
+the `BarData` slice; `WithBarMax` and `SetMax` control the scale. `DrawGauge`
+draws a single-row fractional gauge without a chart object.
+
+### LogicChart
+
+[`logicchart.go`](./logicchart.go) · Multi-channel logic analyzer lanes.
+`LogicBit` draws a square wave with edges, `LogicPWM` draws an 8-bit duty level
+as fractional blocks, and `LogicBus` expands into packet blocks while active.
+`PushStep` takes one value per channel and scrolls the oldest step out.
 
 ## Quickstart
 

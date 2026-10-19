@@ -174,6 +174,7 @@ make bench          # Go testing.B benchmarks plus Go vs. TinyGo native/WASI com
 make hello-preview  # build/hello.png and build/hello.gif
 make snapshot       # counter snapshot.png
 make widgets-preview # widget screenshots in docs/assets/widgets/
+make tinycharts-preview # chart screenshots in docs/assets/tinycharts/
 make web-serve      # build Go WASM and serve on port 8080
 make web-tinygo     # build TinyGo WASM with a 128 KiB stack
 make -C web test    # Go bridge tests, vet, module checks, JS key mapping tests
@@ -208,8 +209,9 @@ make hello-preview
 cp build/hello.gif docs/assets/hello.gif
 ```
 
-When widget rendering changes, run `make widgets-preview` to refresh the
-screenshots in `docs/assets/widgets/` used by `widgets/README.md`.
+When widget or chart rendering changes, run `make widgets-preview` or
+`make tinycharts-preview` to refresh the screenshots in `docs/assets/` used by
+`widgets/README.md` and `tinycharts/README.md`.
 
 CI runs on pushes, pull requests, and manual dispatch. It uploads named previews,
 firmware files, and `build/web/`. After all checks pass on `main`, it deploys

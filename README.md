@@ -190,6 +190,7 @@ firmware memory.
 | `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
 | `make snapshot` | Render the counter to `snapshot.png`. |
 | `make widgets-preview` | Render the widget screenshots in `docs/assets/widgets/`. |
+| `make tinycharts-preview` | Render the chart screenshots in `docs/assets/tinycharts/`. |
 | `make -C devices/terminal check` | Build and test the [terminal target](devices/terminal/README.md) natively and for `wasip1`. |
 
 [CI](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)

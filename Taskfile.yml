@@ -96,6 +96,11 @@ tasks:
     cmds:
       - make widgets-preview
 
+  tinycharts-preview:
+    desc: Render the chart screenshots in docs/assets/tinycharts on the host
+    cmds:
+      - make tinycharts-preview
+
   web:
     desc: Build the browser demo gallery with standard Go WASM
     cmds:

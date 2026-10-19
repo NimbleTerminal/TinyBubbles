@@ -1,13 +1,13 @@
 TINYGO ?= tinygo
 
-.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare tinyhal-wasi firmware snapshot hello settings hello-tinytea hello-preview widgets-preview web web-serve web-tinygo
+.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare tinyhal-wasi firmware snapshot hello settings hello-tinytea hello-preview widgets-preview tinycharts-preview web web-serve web-tinygo
 check: check-format check-modules check-docs test
 	go build ./...
 
 # Keep preparation and builds sequential, including when invoked with make -j.
 ci:
 	$(MAKE) check
-	$(MAKE) hello-preview snapshot widgets-preview
+	$(MAKE) hello-preview snapshot widgets-preview tinycharts-preview
 	$(MAKE) firmware TINYGO="$(TINYGO)"
 	$(MAKE) tinyhal-wasi TINYGO="$(TINYGO)"
 	$(MAKE) -C bubbletea test
@@ -106,3 +106,6 @@ snapshot:
 widgets-preview:
 	go run ./examples/widgets-preview
 	$(MAKE) -C bubbletea preview
+
+tinycharts-preview:
+	go run ./examples/tinycharts-preview
