@@ -41,7 +41,7 @@ go tool tinybubbles-web --module example.org/player/web \
 This creates `go.mod`, a Makefile, `index.html`, and `style.css`. Add your Go
 main under `cmd/demo`, then run `go mod tidy` and `make serve` in the new module.
 Existing page and build files are left alone unless you pass `--force`.
-An existing `go.mod` is always preserved, even with `--force`. For v0.1.1, use `--harness-version v0.1.1` instead of `--local-harness`.
+An existing `go.mod` is always preserved, even with `--force`. For a release, use `--harness-version v0.2.0` instead of `--local-harness`.
 
 In an existing web module, add these tools and the harness dependency:
 
@@ -54,7 +54,7 @@ tool (
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261009201241-c397c32a5074
 ```
 
-Require `nimbleterminal.dev/tinybubbles/web v0.1.1`, or use a local replace
+Require `nimbleterminal.dev/tinybubbles/web v0.2.0`, or use a local replace
 when developing the harness. Do not change your
 hardware application's root module. To generate a site without keeping local
 copies of the harness assets:

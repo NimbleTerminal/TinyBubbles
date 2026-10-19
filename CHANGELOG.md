@@ -5,6 +5,72 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a minor
 release may change public APIs; the notes will say so.
 
+## v0.2.0 - 2026-10-19
+
+New packages and targets. Existing v0.1.1 APIs are unchanged; the additions
+below are additive.
+
+### Input and runtimes
+
+- **Button interactions.** `Button` and `ButtonPoller` add debounce,
+  hold-to-repeat, short-tap versus long-press keys, and release events, so a
+  three-button board can drive menus and pickers.
+- **TinyTea cooperative timers.** `Tick`, `Every`, `After`, and a reusable,
+  cancellable `Timer` (`Tick`, `Every`, `After`, `Repeat`, `Cancel`) schedule
+  work without goroutines. [RUNTIMES.md](RUNTIMES.md) describes the model.
+- **Three-button Feather settings firmware.** `make settings` builds the composed
+  settings menu for the Reverse TFT Feather: D0 moves up or decreases, D1 moves
+  down or increases, and D2 selects on a tap or cancels on a long press.
+  Compiled and smoke-tested with TinyHAL; not yet confirmed on hardware.
+
+### TinyCharts
+
+- **`tinycharts` package.** Allocation-conscious charts for cell buffers:
+  `BrailleGrid`, `Sparkline`, `Streamline` (Braille, arc, and box modes),
+  `BarChart` with `DrawGauge`, and a multi-channel `LogicChart` for digital,
+  PWM, and bus traces. `PaintBuffer` draws any chart into a `drivers.Displayer`.
+- **Procedural chart glyphs.** `DefaultFont()` rasterizes the Unicode box and
+  arc drawing, block element, and Braille ranges into any cell size, with no
+  extra bitmap tables. See the [TinyCharts guide](tinycharts/README.md).
+
+### TinyHAL
+
+- **`tinyhal` package.** An in-WASM hardware abstraction layer for TinyGo
+  `machine` pins and buses with peripheral models (ST7789, SSD1306, APA102,
+  sensors, UART) and an IEEE 1364 VCD trace recorder. Board smoke tests run
+  the Pico, CLUE, and Feather setups on the host.
+- **MCU workbench.** `tinyhal/workbench` is a standalone bench with simulated
+  buttons, PWM LEDs, an ADC oscilloscope, and a logic analyzer view. It runs in
+  the browser gallery and under TinyGo `wasip1` (`make tinyhal-wasi`).
+
+### Terminal target
+
+- **`devices/terminal` module.** Draws the hello display inside a terminal
+  through [ntpicture](https://github.com/NimbleTerminal/ntpicture) as Kitty
+  graphics or half-block cells, and hosts the help bindings as clickable
+  Terminal Actions from go-booba. It builds natively and for `wasip1` with Go
+  or TinyGo. `make -C devices/terminal check` covers tidy, vet, tests, and builds.
+
+### Browser
+
+- Added the TinyHAL workbench and TinyCharts demos to the gallery.
+- TinyGo WASM and WASI builds use the Boehm garbage collector.
+
+### Build and docs
+
+- Added `Taskfile.yml` mirroring every Makefile target; `make check-docs`
+  keeps the two in sync.
+- Added `make bench` with Go `testing.B` benchmarks and Go versus TinyGo
+  native and WASI comparisons (`internal/bench`).
+- Added host screenshot generators (`make widgets-preview`,
+  `make tinycharts-preview`); the widget and chart guides open with preview tables.
+- Tightened [AGENTS.md](AGENTS.md) and the README; feature tables list the
+  new packages.
+
+Downstream modules can update `nimbleterminal.dev/tinybubbles`,
+`nimbleterminal.dev/tinybubbles/bubbletea`, and
+`nimbleterminal.dev/tinybubbles/web` to v0.2.0 together.
+
 ## v0.1.1 - 2026-10-11
 
 ### Browser

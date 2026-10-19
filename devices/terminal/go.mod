@@ -8,8 +8,8 @@ require (
 	github.com/NimbleMarkets/go-booba v0.10.0
 	github.com/charmbracelet/colorprofile v0.4.3
 	nimbleterminal.dev/ntpicture v0.1.0
-	nimbleterminal.dev/tinybubbles v0.1.1
-	nimbleterminal.dev/tinybubbles/bubbletea v0.0.0
+	nimbleterminal.dev/tinybubbles v0.2.0
+	nimbleterminal.dev/tinybubbles/bubbletea v0.2.0
 )
 
 require (

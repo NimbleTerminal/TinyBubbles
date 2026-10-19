@@ -157,41 +157,25 @@ See [memory and resolution](./API.md#memory-and-resolution) for the full budget.
 
 ## Development
 
-See the [changelog](CHANGELOG.md) for the v0.1.1 release summary.
+See the [changelog](CHANGELOG.md) for what changed in each release.
 
-The [browser playground](web/README.md) uses the shared Go model, fonts, and
-renderer. Booba turns the model's Bubbles help map into HTML controls: Pause
-becomes Resume, and Color is disabled on monochrome screens. Add demos to
-`web.Config.Demos` in `web/hello/cmd/demo/main.go`; see the
-[browser guide](web/README.md#adding-a-gallery-entry).
+The [browser playground](web/README.md) turns the model's Bubbles help map into
+HTML controls. Add demos to `web.Config.Demos` in `web/hello/cmd/demo/main.go`;
+see the [browser guide](web/README.md#adding-a-gallery-entry). The browser
+bundle includes both runtimes, so its size does not measure firmware memory.
 
-Hello World has a **Bubble Tea / TinyTea** runtime selector. Switching restarts
-the demo and keeps the display preset. Go versus TinyGo is a separate compiler
-choice. The browser bundle includes both runtimes, so its size does not measure
-firmware memory.
+The most useful commands; the [Makefile](Makefile) and `task --list` have the full set:
 
 | Command | Purpose |
 | :--- | :--- |
-| `make ci` | Run all CI checks locally, generate previews, and build firmware, WASI checks, and the WASM site. |
-| `make web` | Build the static browser demo in `build/web/`. |
-| `make web-tinygo` | Build the browser demo with TinyGo v0.43 and its matching runtime shim. |
-| `make -C web test` | Check web modules, Go tests, vet, and the JavaScript key encoder. |
-| `make web-serve` | Build and serve the interactive demo on port 8080. |
-| `make check` | Check formatting, module consistency, local documentation links, race tests, vet, and host builds. |
-| `make test` | Run race-enabled Go tests with coverage and vet. |
-| `make bench` | Run Go `testing.B` benchmarks plus Go vs. TinyGo native and WASI comparisons. |
-| `make bench-compare` | Compare Go vs. TinyGo side-by-side on native host and WASI (`wasip1/wasm`). |
-| `make bench-tinygo` | Build and run the benchmark harness under TinyGo native and WASI (`wasip1`). |
-| `make tinyhal-wasi` | Run the `tinyhal` `machine`/ST7789/APA102/VCD smoke demo under TinyGo WASI (`wasip1`). |
-| `make firmware` | Compile device examples and core, widget, and layout checks. |
-| `make hello` | Build the Bubble Tea Reverse TFT Feather firmware (`hello` and `settings`). |
-| `make settings` | Build the three-button Bubble Tea Settings Feather firmware (`build/bubbletea-feather-settings.bin`). |
-| `make hello-tinytea` | Build the original cooperative Feather demo. |
-| `make hello-preview` | Generate the hello PNG and animated GIF in `build/`. |
-| `make snapshot` | Render the counter to `snapshot.png`. |
-| `make widgets-preview` | Render the widget screenshots in `docs/assets/widgets/`. |
-| `make tinycharts-preview` | Render the chart screenshots in `docs/assets/tinycharts/`. |
-| `make -C devices/terminal check` | Build and test the [terminal target](devices/terminal/README.md) natively and for `wasip1`. |
+| `make check` | Format, module, docs, race test, vet, and host build checks for the root module. |
+| `make ci` | Everything CI runs: all modules, previews, firmware, WASI, and the WASM site. |
+| `make web-serve` | Build and serve the browser gallery on port 8080. |
+| `make hello` / `make settings` | Bubble Tea firmware for the Reverse TFT Feather. |
+| `make firmware` | Compile checks for Pico, Pico 2, CLUE, ESP32-S3, and the cooperative Feather demo. |
+| `make bench` | Go benchmarks plus Go vs. TinyGo native and WASI comparisons. |
+| `make hello-preview` | Desktop PNG and GIF of the hello demo in `build/`. |
+| `make -C devices/terminal check` | Test and build the [terminal target](devices/terminal/README.md). |
 
 [CI](https://github.com/NimbleTerminal/TinyBubbles/actions/workflows/ci.yml)
 runs on pushes, pull requests, and manual dispatch. It checks code and docs,
@@ -216,35 +200,15 @@ slowing every `time.Sleep`; keep previews visible when testing timing.
 
 Documentation and web asset builds need Python 3. Web tests need Node.js 22+.
 See the [backend](bubbletea/README.md) and [browser](web/README.md) guides for
-dependency details.
-
-To refresh the README animation after a demo change:
-
-```sh
-make hello-preview
-cp build/hello.gif docs/assets/hello.gif
-```
+dependency details, and [AGENTS.md](AGENTS.md) for the contributor workflow.
 
 ## TODO
 
 - [ ] **OLED hardware validation:** verify the Pico SSD1306 example on a physical
   display, including monochrome styling and button navigation.
+- [ ] **Feather settings on hardware:** confirm the three-button settings firmware
+  on the Reverse TFT Feather.
 - [ ] **More composed screens:** add additional multi-widget device screens.
-- [x] **Three-button settings menu on the Feather:** scrolling options, editable
-  values, and confirmation dialog wired to Feather D0/D1/D2 (`make settings`).
-- [x] **TinyCharts and procedural Unicode glyphs:** sparklines, Braille/arc/box
-  streamlines, bar charts, and VCD logic analyzer waveforms.
-- [x] **TinyHAL workbench and WASI target:** in-WASM `machine` HAL, peripheral
-  models, IEEE 1364 `.vcd` export, and `tinyhal-wasi` CI checks.
-- [x] **Button interactions:** hold-to-repeat, short-tap vs. long-press, and
-  release events (`Button` / `ButtonPoller`).
-- [x] **TinyTea cooperative timers:** `Tick`, `Every`, `After`, and reusable
-  cancellable `Timer`.
-- [x] **Rendering benchmarks:** Go and TinyGo native/WASI benchmark suite (`make bench`).
-- [x] **Terminal target:** native and `wasip1` terminal rendering via `ntpicture`
-  and clickable Terminal Actions (`devices/terminal`).
-- [x] **Layout helpers & browser widget gallery:** cell regions, seven widgets,
-  Settings, and the layout playground.
 
 ## Open Collaboration
 
