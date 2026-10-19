@@ -91,6 +91,11 @@ tasks:
     cmds:
       - make snapshot
 
+  widgets-preview:
+    desc: Render the widget screenshots in docs/assets/widgets on the host
+    cmds:
+      - make widgets-preview
+
   web:
     desc: Build the browser demo gallery with standard Go WASM
     cmds:
@@ -116,6 +121,11 @@ tasks:
     desc: Prepare vendored dependencies and run bubbletea adapter tests
     cmds:
       - make -C bubbletea test
+
+  bubbletea:preview:
+    desc: Render the composed settings menu screenshot in docs/assets/widgets
+    cmds:
+      - make -C bubbletea preview
 
   bubbletea:firmware:
     desc: Build Bubble Tea Feather firmware in bubbletea/

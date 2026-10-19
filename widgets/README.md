@@ -6,6 +6,20 @@ Use [layout helpers](../layout/README.md) to size and compose their cell buffers
 
 Create widgets with `New`; zero-value models do not initialize their cell buffers.
 
+| Widget | Preview | Purpose |
+| --- | --- | --- |
+| [Scrolling list](#scrolling-list) | ![Scrolling list on a 128×64 display](../docs/assets/widgets/list.png) | Pick one item from a menu; wraps, skips disabled rows, shows a scrollbar. |
+| [Value picker](#value-picker) | ![Value picker editing a volume setting](../docs/assets/widgets/value.png) | Adjust a bounded integer with a meter and a draft/applied state. |
+| [Confirmation dialog](#confirmation-dialog) | ![Confirmation dialog defaulting to Cancel](../docs/assets/widgets/dialog.png) | Ask a two-choice question; defaults to Cancel and resolves once. |
+| [Choice picker and toggles](#choice-picker-and-toggles) | ![Choice picker cycling playback modes](../docs/assets/widgets/choice.png) | Cycle through named options or an on/off toggle. |
+| [Composing a settings screen](#composing-a-settings-screen) | ![Settings menu composed from the widgets](../docs/assets/widgets/settings.png) | Route focus between a menu and its editors. |
+| [Progress bar](#progress-bar) | ![Progress bar at 35 percent](../docs/assets/widgets/progress.png) | Show completed work, or activity when the total is unknown. |
+| [Status indicator](#status-indicator) | ![Ready, Warning, and Error status indicators](../docs/assets/widgets/status.png) | Report device state with a symbol, text, and optional color. |
+| [Text viewport](#text-viewport) | ![Text viewport scrolled through a device guide](../docs/assets/widgets/viewport.png) | Scroll plain text that wraps at cell boundaries. |
+
+The screenshots use the default 6×8 font on a 128×64 display, enlarged twice.
+Regenerate them with `make widgets-preview` after changing widget rendering.
+
 ## Scrolling list
 
 The list draws one item per row, skips disabled items, and wraps at either end.

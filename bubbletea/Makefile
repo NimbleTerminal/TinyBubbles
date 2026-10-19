@@ -2,13 +2,16 @@ TINYGO ?= tinygo
 GOTOOLCHAIN ?= go1.26.0
 export GOTOOLCHAIN
 
-.PHONY: prepare test firmware settings
+.PHONY: prepare test firmware settings preview
 prepare:
 	go mod vendor
 	python3 prepare.py
 
 test: prepare
 	go test -race ./...
+
+preview: prepare
+	go run ./examples/settings-preview
 
 firmware: prepare
 	mkdir -p ../build

@@ -173,6 +173,7 @@ make tinyhal-wasi   # TinyHAL machine/ST7789/APA102/VCD smoke demo under TinyGo 
 make bench          # Go testing.B benchmarks plus Go vs. TinyGo native/WASI comparison
 make hello-preview  # build/hello.png and build/hello.gif
 make snapshot       # counter snapshot.png
+make widgets-preview # widget screenshots in docs/assets/widgets/
 make web-serve      # build Go WASM and serve on port 8080
 make web-tinygo     # build TinyGo WASM with a 128 KiB stack
 make -C web test    # Go bridge tests, vet, module checks, JS key mapping tests
@@ -206,6 +207,9 @@ When the shared hello visuals change, refresh the README animation if needed:
 make hello-preview
 cp build/hello.gif docs/assets/hello.gif
 ```
+
+When widget rendering changes, run `make widgets-preview` to refresh the
+screenshots in `docs/assets/widgets/` used by `widgets/README.md`.
 
 CI runs on pushes, pull requests, and manual dispatch. It uploads named previews,
 firmware files, and `build/web/`. After all checks pass on `main`, it deploys
