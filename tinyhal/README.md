@@ -141,3 +141,25 @@ Or run the host simulation fallback with standard Go:
 ```sh
 go run ./tinyhal/cmd/tinyhal-demo
 ```
+
+## How `tinyhal` differs from the [TinyGo Playground](https://tinygo.org/playground/)
+
+Both let TinyGo `machine`-peripheral code run in a browser, but with nearly
+opposite architectures:
+
+| | [TinyGo Playground](https://tinygo.org/playground/) | `tinyhal` |
+| --- | --- | --- |
+| What it is | Hosted web app (code editor + circuit simulator) | Go library you compile into your own app or page |
+| Compiling | Server-side cloud compile to WASM (board tags, e.g. `-tags=circuitplay_express`) | Local `tinygo build -target=wasm` (or `-target=wasip1`); no server |
+| Peripheral emulation | JavaScript "simulator core" running in a web worker | Go device models (`ST7789`, `SSD1306`, `APA102`, `LED`, `Button`, ...) linked into the same WASM module |
+| `__tinygo_*` symbol implementations | Exported from JavaScript into the WASM module | Defined in `hooks_tinygo.go`, resolved by LLVM inside the module at link time |
+| WASM ↔ JS traffic | Per-pin toggle / per-byte SPI-I2C transfer crosses the host boundary | JS receives only batched high-level events (LED state/brightness/color, flushed framebuffers, UART data) and injects high-level inputs |
+| Hardware wiring | Interactive drag-and-drop SVG breadboard | Devices configured in Go code (`tinyhal.Default()`, config structs) |
+| Headless / WASI | Browser-only product | Runs under `wasip1`; host-simulatable with standard `go test` (untagged core has no `machine` or `syscall/js` imports) |
+| Extras | Power-consumption estimates, download binary for physical boards | `TraceRecorder` exporting IEEE 1364 `.vcd` waveforms; `tinytea`/`bubbletea` UIs rendered through real display drivers over the simulated buses |
+
+In short: [TinyGo Playground](https://tinygo.org/playground/) emulates the *hardware in JavaScript* around a
+cloud-compiled program, while `tinyhal` emulates the *hardware in Go inside
+the WASM module itself*, keeping the JavaScript layer to three minimal hooks
+(`window.tinyhalOnEvent`, `window.tinyhalSetButton`,
+`window.tinyhalInjectInput`).
