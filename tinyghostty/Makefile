@@ -7,7 +7,7 @@ ZIG ?= zig
 GHOSTTY_SRC ?= ../../ghostty
 OUT ?= ../build/tinyghostty
 
-.PHONY: lib lib-clue check test-tinygo preview clue
+.PHONY: lib lib-clue check test-tinygo preview shell clue
 lib:
 	GHOSTTY_SRC="$(GHOSTTY_SRC)" ZIG="$(ZIG)" scripts/build-libghostty-vt.sh host wasm
 lib-clue:
@@ -26,6 +26,12 @@ test-tinygo:
 preview:
 	mkdir -p $(OUT)
 	go run ./examples/preview -out $(OUT)/tinyghostty.png
+# Interactive: your shell on an emulated display. Needs a 240×69 terminal for
+# the default Feather preset; pass ARGS="-display oled" for 128×33.
+shell:
+	mkdir -p $(OUT)
+	go build -o $(OUT)/shell ./examples/shell
+	$(OUT)/shell $(ARGS)
 # Link check only. TinyGo's stack analysis cannot parse Zig's symbols, so the
 # scheduler is disabled; Bubble Tea firmware needs the bubbletea vendor patches.
 clue:

@@ -33,6 +33,23 @@ term.Renderer().SetTheme(theme)               // match the display program's the
 go io.Copy(tinyghostty.Sender(p.Send), pty)   // program output arrives as OutputMsg
 ```
 
+## Interactive demo
+
+```sh
+make shell                          # $SHELL on a 240×135 Feather screen
+make shell ARGS="-display oled"     # 128×64 OLED, needs a 128×33 terminal
+make shell ARGS="-mono -- htop"     # monochrome theme, any command
+```
+
+[examples/shell](examples/shell/main.go) runs a command in a PTY and draws the
+emulated display in your terminal with half-block pixels, one terminal cell per
+two pixels. Keys go through Bubble Tea and the widget's key encoder to the
+PTY. Press ctrl+] to quit. The default Feather preset needs a terminal at least
+240×69; shrink the font if it is smaller. Unix only. The 6×8 font is ASCII, so
+other glyphs render as placeholders.
+
+## Using the widget
+
 A parent model sizes the terminal with `SetSize`, forwards keys and paste only
 while it has focus, and composes `CellView()` with `layout.Draw`. See
 [examples/preview](examples/preview/main.go).
