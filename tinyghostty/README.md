@@ -33,7 +33,7 @@ term.Renderer().SetTheme(theme)               // match the display program's the
 go io.Copy(tinyghostty.Sender(p.Send), pty)   // program output arrives as OutputMsg
 ```
 
-## Interactive demo
+## Shell demo in your terminal
 
 ```sh
 make shell                          # $SHELL on a 240×135 Feather screen
@@ -47,6 +47,24 @@ two pixels. Keys go through Bubble Tea and the widget's key encoder to the
 PTY. Press ctrl+] to quit. The default Feather preset needs a terminal at least
 240×69; shrink the font if it is smaller. Unix only. The 6×8 font is ASCII, so
 other glyphs render as placeholders.
+
+## Browser demo
+
+```sh
+make web    # http://127.0.0.1:8080
+```
+
+[web](web) builds a TinyGo-only page with the shared browser harness. Go's
+`js/wasm` has no cgo, so Go cannot build it. A browser has no PTY, so a small
+Go shell runs inside the WASM binary: `help`, `colors`, `styles`, `box`, `ls`,
+`cat`, with Tab completion, history, Ctrl+C, and Ctrl+L. The demo sets the
+harness's `Demo.TextInput`, so the focused display accepts free typing and
+paste. Buttons below it run sample commands. The page offers the Feather TFT,
+a 320×240 TFT, and a monochrome 128×64 OLED. `app.wasm` is about 6 MB.
+
+The page is separate from the main gallery and is not deployed by CI.
+`make -C web build` appends the licenses in `lib/licenses` (Ghostty, uucode,
+Wuffs) to `THIRD_PARTY_NOTICES.txt`.
 
 ## Using the widget
 
@@ -102,7 +120,8 @@ moved cursor. A steady-state 40×16 frame allocates nothing in `Draw`.
 | Target | Archive | Status |
 | --- | --- | --- |
 | Go, darwin/arm64 | `lib/darwin_arm64` (native, no SIMD) | Tests pass |
-| TinyGo `wasip1` | `lib/wasip1_wasm` (`wasm32-freestanding`) | Tests and smoke pass under wasmtime; smoke binary 1.4 MB |
+| TinyGo `wasip1` | `lib/wasm` (`wasm32-freestanding`) | Tests and smoke pass under wasmtime; smoke binary 1.4 MB |
+| TinyGo `wasm` (browser) | `lib/wasm` | Browser demo runs in Chrome |
 | TinyGo `clue` | `lib/baremetal` (`make lib-clue`, Cortex-M4F) | `vt` smoke links: 779 KB flash, 6.7 KB static RAM. Not run on hardware |
 
 Other Go hosts link `lib/<GOOS>_<GOARCH>` after `scripts/build-libghostty-vt.sh host`.

@@ -31,7 +31,7 @@ Go imports use `nimbleterminal.dev/tinybubbles`. Repository links and remotes us
 | `tinytea/<widget>/` | Cooperative widget adapters |
 | `bubbletea/settings/` | Composed menu, focus routing, child command handling, and three-button Feather config |
 | `devices/` | Board setup, pins, drivers, and local targets; shared Feather initialization in `feather-reverse-tft/board` |
-| `tinyghostty/` | Nested module: Ghostty VT terminal widget over a static libghostty-vt (`vt` cgo shim, `render` to cell buffers, Bubble Tea model); needs `make -C tinyghostty lib`, not in `make ci` |
+| `tinyghostty/` | Nested module: Ghostty VT terminal widget over a static libghostty-vt (`vt` cgo shim, `render` to cell buffers, Bubble Tea model); needs `make -C tinyghostty lib`, not in `make ci`; `tinyghostty/web` is a TinyGo-only browser page with an in-process shell |
 | `devices/terminal/` | Nested module: hello display drawn in a terminal through ntpicture, help bindings hosted as clickable Terminal Actions; native and wasip1 builds |
 | `web/` | Reusable browser harness module, actions, canvas, LEDs, scaffold tool |
 | `web/hello/` | Demo gallery consumer module (Hello, TinyHAL, TinyCharts, layout, Settings, widgets) and WASM main |

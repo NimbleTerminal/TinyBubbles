@@ -7,7 +7,7 @@ ZIG ?= zig
 GHOSTTY_SRC ?= ../../ghostty
 OUT ?= ../build/tinyghostty
 
-.PHONY: lib lib-clue check test-tinygo preview shell clue
+.PHONY: lib lib-clue check test-tinygo preview shell web clue
 lib:
 	GHOSTTY_SRC="$(GHOSTTY_SRC)" ZIG="$(ZIG)" scripts/build-libghostty-vt.sh host wasm
 lib-clue:
@@ -32,6 +32,9 @@ shell:
 	mkdir -p $(OUT)
 	go build -o $(OUT)/shell ./examples/shell
 	$(OUT)/shell $(ARGS)
+# Browser page with an in-process shell, served on port 8080.
+web:
+	$(MAKE) -C web serve
 # Link check only. TinyGo's stack analysis cannot parse Zig's symbols, so the
 # scheduler is disabled; Bubble Tea firmware needs the bubbletea vendor patches.
 clue:
