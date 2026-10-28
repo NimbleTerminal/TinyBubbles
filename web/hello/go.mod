@@ -30,6 +30,7 @@ require (
 	github.com/xo/terminfo v1.2.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
+	nimbleterminal.dev/tinybubbles/tinyghostty v0.2.0 // indirect
 	tinygo.org/x/tinyfont v0.7.0 // indirect
 )
 
@@ -41,8 +42,15 @@ replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-2026
 
 tool github.com/NimbleMarkets/go-booba/cmd/booba-assets
 
-require nimbleterminal.dev/tinybubbles/web v0.2.0
+require (
+	nimbleterminal.dev/tinybubbles/tinyghostty/web v0.2.0
+	nimbleterminal.dev/tinybubbles/web v0.2.0
+)
 
 replace nimbleterminal.dev/tinybubbles/web => ..
 
 tool nimbleterminal.dev/tinybubbles/web/cmd/tinybubbles-web
+
+replace nimbleterminal.dev/tinybubbles/tinyghostty => ../../tinyghostty
+
+replace nimbleterminal.dev/tinybubbles/tinyghostty/web => ../../tinyghostty/web

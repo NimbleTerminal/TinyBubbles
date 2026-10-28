@@ -62,7 +62,9 @@ harness's `Demo.TextInput`, so the focused display accepts free typing and
 paste. Buttons below it run sample commands. The page offers the Feather TFT,
 a 320×240 TFT, and a monochrome 128×64 OLED. `app.wasm` is about 6 MB.
 
-The page is separate from the main gallery and is not deployed by CI.
+The same demo is a tab in the main gallery: after `make lib`, run
+`make web-serve-tinygo` from the repository root. CI does not
+build libghostty-vt, so the published gallery does not include it yet.
 `make -C web build` appends the licenses in `lib/licenses` (Ghostty, uucode,
 Wuffs) to `THIRD_PARTY_NOTICES.txt`.
 

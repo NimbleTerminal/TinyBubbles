@@ -21,6 +21,9 @@ make web-serve
 Open <http://127.0.0.1:8080>. The gallery lives in [hello](./hello), a separate
 consumer module. It includes Hello World, the TinyHAL workbench, TinyCharts, layout, Settings,
 list, value, dialog, progress, status, and viewport demos. Settings includes choice pickers.
+`make web-serve-tinygo` (or `make web-tinygo`) also adds a Ghostty terminal tab when
+`tinyghostty/lib/wasm/libghostty-vt.a` exists (`make -C tinyghostty lib`);
+Go builds and builds without the archive omit it.
 
 Hello World shares the device model and renderer and supports Bubble Tea
 and TinyTea loops; the other demos use Bubble Tea. Switching runtime restarts
@@ -153,6 +156,10 @@ letter or `[ \ ] ^ _ @`, every named key the harness maps, and bracketed paste,
 whether or not the help map binds them. Alt and Meta combinations stay with the
 browser. Action buttons still follow the help map, and other demos keep the
 enabled-binding rule.
+
+`application.mk` also accepts `TINYGO_TAGS` for the TinyGo build and
+`EXTRA_NOTICES`, license files appended to `THIRD_PARTY_NOTICES.txt` for linked
+code that is not a Go module.
 
 Hidden browser tabs throttle timers to about once per second. This slows every
 `time.Sleep` in the Go program, including tinypod playback and LED updates.

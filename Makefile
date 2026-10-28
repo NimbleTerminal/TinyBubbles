@@ -1,6 +1,6 @@
 TINYGO ?= tinygo
 
-.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare tinyhal-wasi firmware snapshot hello settings hello-tinytea hello-preview widgets-preview tinycharts-preview web web-serve web-tinygo
+.PHONY: ci check check-format check-modules check-docs test bench bench-tinygo bench-compare tinyhal-wasi firmware snapshot hello settings hello-tinytea hello-preview widgets-preview tinycharts-preview web web-serve web-tinygo web-serve-tinygo
 check: check-format check-modules check-docs test
 	go build ./...
 
@@ -24,6 +24,10 @@ web-tinygo:
 
 web-serve:
 	$(MAKE) -C web serve
+
+# Includes the Ghostty terminal tab when tinyghostty/lib is built.
+web-serve-tinygo:
+	$(MAKE) -C web serve-tinygo TINYGO="$(TINYGO)"
 
 check-format:
 	@files="$$(git ls-files --cached --others --exclude-standard '*.go' | while IFS= read -r file; do if [ -f "$$file" ]; then gofmt -l "$$file"; fi; done)"; if [ -n "$$files" ]; then echo "Run gofmt on:"; echo "$$files"; exit 1; fi

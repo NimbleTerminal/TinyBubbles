@@ -1,8 +1,8 @@
 GOTOOLCHAIN ?= go1.26.8
 export GOTOOLCHAIN
 TINYGO ?= tinygo
-.PHONY: build build-tinygo assets test serve
-build build-tinygo assets serve:
+.PHONY: build build-tinygo assets test serve serve-tinygo
+build build-tinygo assets serve serve-tinygo:
 	$(MAKE) -C hello $@ TINYGO="$(TINYGO)"
 test:
 	go mod tidy -diff

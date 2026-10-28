@@ -116,6 +116,11 @@ tasks:
     cmds:
       - make web-serve
 
+  web-serve-tinygo:
+    desc: Build TinyGo WASM and serve the gallery on port 8080, with the Ghostty tab when tinyghostty/lib is built
+    cmds:
+      - make web-serve-tinygo TINYGO="{{.TINYGO}}"
+
   # bubbletea/ Makefile targets
   bubbletea:prepare:
     desc: Vendor and apply portability patches in bubbletea/
@@ -167,6 +172,11 @@ tasks:
     desc: Build and serve the browser gallery from web/
     cmds:
       - make -C web serve
+
+  web:serve-tinygo:
+    desc: Build the browser gallery with TinyGo and serve it from web/
+    cmds:
+      - make -C web serve-tinygo TINYGO="{{.TINYGO}}"
 
   # devices/terminal/ Makefile targets
   terminal:build:
