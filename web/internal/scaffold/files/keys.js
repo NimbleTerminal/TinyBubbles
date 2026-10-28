@@ -14,3 +14,17 @@ export function keyFromEvent(event) {
   if (Object.hasOwn(named,event.key)) return named[event.key];
   return /^F([1-9]|1[0-2])$/.test(event.key) ? event.key.toLowerCase() : null;
 }
+
+// textFromEvent maps a keydown to raw input for TextInput demos: printable
+// characters, including space, and Ctrl with a letter or [ \\ ] ^ _ @ space.
+// Named keys return null; encode them as gestures. Alt and Meta are declined.
+export function textFromEvent(event) {
+  if (event.altKey || event.metaKey || event.isComposing) return null;
+  if (event.ctrlKey) {
+    const k = event.key.length === 1 ? event.key.toLowerCase() : '';
+    if (k >= 'a' && k <= 'z') return String.fromCharCode(k.charCodeAt(0) - 96);
+    const extra = {'[':'\x1b', '\\':'\x1c', ']':'\x1d', '^':'\x1e', '_':'\x1f', '@':'\x00', ' ':'\x00'};
+    return Object.hasOwn(extra,k) ? extra[k] : null;
+  }
+  return /^\P{C}$/u.test(event.key) ? event.key : null;
+}

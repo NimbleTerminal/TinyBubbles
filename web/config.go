@@ -19,6 +19,10 @@ type Demo struct {
 	Description string    `json:"description"`
 	Source      string    `json:"source"`
 	Runtimes    []Runtime `json:"runtimes,omitempty"`
+	// TextInput forwards typed text, Ctrl+letter, named keys, and paste from
+	// the focused display to the program instead of only enabled help-map
+	// keys. Use it for demos that host a terminal or text editor.
+	TextInput bool `json:"textInput,omitempty"`
 }
 
 // TextPart is plain introduction text with an optional link.

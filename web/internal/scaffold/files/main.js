@@ -1,11 +1,12 @@
 import { BoobaTerminal, installActionBar } from './booba/booba.js';
-import { keyFromEvent, allowedKeys } from './keys.js';
+import { keyFromEvent, allowedKeys, textFromEvent } from './keys.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('display');
 const url = new URL(location.href);
 let terminal, disposeControls, unsubscribe, timer;
 let stopped = false;
+let textInput = false;
 function selection(id, choices, selected) {
   const element = $(id);
   element.replaceChildren();
@@ -28,6 +29,7 @@ window.tinybubblesConfigure = json => {
   const screen = pick(config.screens, 'screen');
   const demos = config.demos?.length ? config.demos : [{id:'default', title:config.title, description:'', source:config.source}];
   const demo = pick(demos, 'demo');
+  textInput = !!demo.textInput;
   const runtimes = demo.runtimes?.length ? demo.runtimes : [{id:'bubbletea', label:'Bubble Tea', description:''}];
   const runtime = pick(runtimes, 'runtime');
   document.title = demo.title === config.title ? config.title : `${demo.title} · ${config.title}`;
@@ -95,15 +97,27 @@ try {
     if (stopped) return;
     const ready = !!terminal.actions.snapshot;
     canvas.dataset.state = ready ? 'ready' : 'waiting';
-    $('status').textContent = ready ? 'Running. Click the display to use the keyboard.' : 'Waiting for controls…';
+    $('status').textContent = !ready ? 'Waiting for controls…' :
+      textInput ? 'Running. Click the display to type.' : 'Running. Click the display to use the keyboard.';
   });
   terminal.onActionError = fail;
   canvas.addEventListener('keydown',event => {
+    if (stopped || canvas.dataset.state!=='ready') return;
+    const text = textInput ? textFromEvent(event) : null;
+    if (text!==null) { event.preventDefault(); terminal.adapter?.boobaWrite(text); return; }
     const key = keyFromEvent(event);
-    if (!key || stopped || canvas.dataset.state!=='ready') return;
-    const bytes = encode({key,modifiers:[]});
+    if (!key) return;
+    // TextInput demos accept every named key, not only help-map bindings.
+    const bytes = textInput ? terminal.encodeKey({key,modifiers:[]}) : encode({key,modifiers:[]});
     if (bytes===null) return;
     event.preventDefault(); terminal.adapter?.boobaWrite(bytes);
+  });
+  canvas.addEventListener('paste',event => {
+    const text = event.clipboardData?.getData('text/plain');
+    if (!textInput || !text || stopped || canvas.dataset.state!=='ready') return;
+    event.preventDefault();
+    // Bracketed so the program receives one paste, not typed keys.
+    terminal.adapter?.boobaWrite(`\x1b[200~${text.replaceAll('\x1b[201~','')}\x1b[201~`);
   });
   const go = new Go();
   const response = await fetch(new URL('app.wasm',import.meta.url));

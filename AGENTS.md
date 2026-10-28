@@ -152,7 +152,8 @@ callbacks enqueue input. Firmware uses `make hello`, `make settings`, or `make h
   Each consumer web module must repeat the Bubble Tea WASM replacement.
 - `WrapActions` uses Booba's eight-character hashed IDs and validates the initial OSC payload. Keep
   host tests for distinct binding IDs and the 2048-byte message limit. Keyboard input
-  must be restricted to enabled bindings in the current help map.
+  must be restricted to enabled bindings in the current help map, except in
+  demos that set `Demo.TextInput` (terminals and editors). Test that flag in JS.
 - Hidden browser tabs throttle timers to about once per second and slow every
   `time.Sleep`. Keep the page visible during timing checks. Do not add Web Audio
   as part of harness work.

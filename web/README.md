@@ -147,6 +147,13 @@ follows the live cursor, backarrow, and newline modes. It declines input when
 an extended keyboard protocol is active. Shift used to type a character such as `+`
 is part of the character; Shift+Arrow is a modified command and is declined.
 
+A demo that hosts a terminal or text editor can set `Demo.TextInput`. The
+focused display then forwards typed characters (including space), Ctrl with a
+letter or `[ \ ] ^ _ @`, every named key the harness maps, and bracketed paste,
+whether or not the help map binds them. Alt and Meta combinations stay with the
+browser. Action buttons still follow the help map, and other demos keep the
+enabled-binding rule.
+
 Hidden browser tabs throttle timers to about once per second. This slows every
 `time.Sleep` in the Go program, including tinypod playback and LED updates.
 Keep the tab visible when checking timing. The harness provides no Web Audio output.
