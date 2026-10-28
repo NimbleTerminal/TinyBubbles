@@ -6,7 +6,9 @@ tinyghostty embeds a live [Ghostty](https://ghostty.org) VT terminal in a
 TinyBubbles UI. Ghostty's freestanding `libghostty-vt` parses the program's
 output; tinyghostty copies the screen into a TinyBubbles cell buffer and
 encodes keys and paste for the program. It builds with Go on the host and with
-TinyGo for WASI. A Cortex-M4 link check passes; it has not run on hardware.
+TinyGo for WASI and the browser. A Cortex-M4 link check passes; it has not run
+on hardware. For how this differs from the general Go binding, see
+[How it differs from go-libghostty](#how-it-differs-from-go-libghostty).
 
 This is a nested module because it links a C library that you build first.
 The root `make check` and `make ci` do not build it.
@@ -81,6 +83,33 @@ while it has focus, and composes `CellView()` with `layout.Draw`. See
 | `tinyghostty` | Bubble Tea `Model`: `New`, `Write`, `SetSize`, `SendKey`, `Paste`, `CellView`, `Text`, `OutputMsg`, `Sender`, `AppendKey` |
 | `tinyghostty/vt` | cgo binding over a C shim: `Terminal` lifetime, `Write`, `Resize`, `Update`/`NextRow`/`MarkClean`, `Cursor`, `Colors`, `DECMode`, `ReadReply`, `SetScrollback`, `HeapUsage` |
 | `tinyghostty/render` | Copies a snapshot into a `*tinybubbles.Buffer`, redrawing only dirty rows; `Theme` adds red, green, yellow, and blue styles |
+
+## How it differs from go-libghostty
+
+[go-libghostty](https://pkg.go.dev/go.mitchellh.com/libghostty)
+(`go.mitchellh.com/libghostty`) is the general Go binding for libghostty-vt.
+Use it for desktop or server Go programs that need Ghostty's full API.
+tinyghostty wraps a much smaller part of the same C library so it builds with
+TinyGo and fits small displays.
+
+| | go-libghostty | tinyghostty |
+| --- | --- | --- |
+| Compilers | Go | Go and TinyGo (`wasip1`, browser `wasm`, Cortex-M link) |
+| Linking | `#cgo pkg-config`, static by default, `-tags dynamic` for shared | Static archives in `lib/` from `scripts/build-libghostty-vt.sh`; per-target `cgo_*.go` flag files, no pkg-config |
+| Callbacks from C | `//export` trampolines with `cgo.Handle` for PTY writes, bell, title, clipboard, notifications, and other effects | None. Terminal replies collect in a 512-byte shim buffer; `ReadReply` drains it |
+| Reading cells | Per-cell getters that copy Ghostty's style structs | One shim call per row fills flat 16-byte `vt.Cell` values: rune, RGB colors, palette indices, flags |
+| Allocation | Ghostty's default allocator | A `malloc`-backed shim allocator, so the VT shares TinyGo's heap; `HeapUsage` reports it |
+| Scrollback | Configurable with `WithMaxScrollbackBytes`, `WithMaxScrollbackLines`, and setters | Off by default to bound memory; `SetScrollback` sets a byte limit |
+| API scope | Most of libghostty-vt: formatter, selection, search, snapshots, Kitty graphics, key and mouse encoders, OSC and SGR parsers | Terminal lifetime, VT input, resize, render state, cursor, colors, and mode queries |
+| Keys | Ghostty's key encoder, including the Kitty keyboard protocol | A Go xterm encoder (`AppendKey`) that follows DECCKM; no Kitty protocol |
+| On top | A Go API over the VT | A renderer into TinyBubbles cell buffers and a Bubble Tea model |
+
+TinyGo 0.43 rejects go-libghostty's `#cgo pkg-config` line ("invalid #cgo
+line: pkg-config"), checked against commit `8812ad0e0f79`. TinyGo also does
+not expand `${SRCDIR}` or accept build constraints on `#cgo` lines, which is why
+tinyghostty keeps its flags in tagged files. Its shim flattens Ghostty's union
+colors and sized structs into plain integers, so TinyGo's cgo never handles
+them.
 
 ## Ghostty API used
 
