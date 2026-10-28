@@ -219,7 +219,8 @@ When widget or chart rendering changes, run `make widgets-preview` or
 
 CI runs on pushes, pull requests, and manual dispatch. It uploads named previews,
 firmware files, and `build/web/`. After all checks pass on `main`, it deploys
-the TinyGo WASM site to GitHub Pages. Pull requests and tags do not deploy.
+the TinyGo WASM site to GitHub Pages. The `web-tinygo` job first builds the
+Wasm libghostty-vt from Ghostty v1.4.0 with Zig 0.17.0 for the TinyGhostty tab. Pull requests and tags do not deploy.
 It does not flash hardware. Never upload the whole `build/` directory.
 
 ## Hardware and private files

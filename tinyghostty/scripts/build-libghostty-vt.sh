@@ -7,8 +7,8 @@
 # host installs into lib/<GOOS>_<GOARCH>; wasm builds wasm32-freestanding into
 # lib/wasm; clue builds Cortex-M4F into lib/baremetal.
 # Headers are copied to lib/include and the licenses of code compiled into the
-# archive (Ghostty, uucode, Wuffs) to lib/licenses. SIMD is disabled so the
-# archives need no libc++.
+# archives (Ghostty, uucode, and Wuffs when fetched) to lib/licenses. SIMD is
+# disabled so the archives need no libc++.
 set -eu
 
 here=$(cd "$(dirname "$0")/.." && pwd)
@@ -48,9 +48,8 @@ licenses() {
 			fi
 		done
 	done
-	for name in uucode wuffs; do
-		[ -f "$here/lib/licenses/$name.txt" ] || echo "warning: $name license not found" >&2
-	done
+	# Zig fetches Wuffs lazily, only for targets that compile it (not wasm).
+	[ -f "$here/lib/licenses/uucode.txt" ] || echo "warning: uucode license not found" >&2
 }
 
 for t in "$@"; do

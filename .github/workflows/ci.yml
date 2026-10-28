@@ -29,10 +29,34 @@ jobs:
           cache-dependency-path: |
             web/go.sum
             web/hello/go.sum
+            tinyghostty/go.sum
+            tinyghostty/web/go.sum
       - name: Install asset packaging runtime
-        run: apt-get update && apt-get install -y --no-install-recommends python3
+        run: apt-get update && apt-get install -y --no-install-recommends python3 curl xz-utils
+      # The gallery adds its TinyGhostty tab when tinyghostty/lib/wasm holds
+      # libghostty-vt, built from Ghostty with the Zig version it pins.
+      - name: Check out Ghostty for libghostty-vt
+        uses: actions/checkout@v7
+        with:
+          repository: ghostty-org/ghostty
+          ref: v1.4.0
+          path: build/ghostty
+      - name: Build libghostty-vt for the TinyGhostty tab
+        env:
+          ZIG_VERSION: 0.17.0
+          ZIG_SHA256: 1cbe9df9f27e6b78d14ccbca43b6703a404ef79ef1c463de901d7f088d4e2026
+        run: |
+          git config --system --add safe.directory "$GITHUB_WORKSPACE/build/ghostty"
+          curl -fsSL -o /tmp/zig.tar.xz "https://ziglang.org/download/$ZIG_VERSION/zig-x86_64-linux-$ZIG_VERSION.tar.xz"
+          echo "$ZIG_SHA256  /tmp/zig.tar.xz" | sha256sum -c -
+          mkdir -p /opt/zig && tar -xJf /tmp/zig.tar.xz -C /opt/zig --strip-components=1
+          make -C tinyghostty lib-wasm GHOSTTY_SRC="$GITHUB_WORKSPACE/build/ghostty" ZIG=/opt/zig/zig
+          test -f tinyghostty/lib/wasm/libghostty-vt.a
       - name: Build TinyGo WASM site
         run: make web-tinygo
+      - name: Check that the gallery includes TinyGhostty
+        run: |
+          grep -q "Bundled native code: ghostty" build/web/THIRD_PARTY_NOTICES.txt
       - uses: actions/upload-artifact@v7
         with:
           name: web-demo-tinygo

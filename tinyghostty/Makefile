@@ -7,9 +7,12 @@ ZIG ?= zig
 GHOSTTY_SRC ?= ../../ghostty
 OUT ?= ../build/tinyghostty
 
-.PHONY: lib lib-clue check test-tinygo preview shell web clue
+.PHONY: lib lib-wasm lib-clue check test-tinygo preview shell web clue
 lib:
 	GHOSTTY_SRC="$(GHOSTTY_SRC)" ZIG="$(ZIG)" scripts/build-libghostty-vt.sh host wasm
+# Browser and WASI archive only; CI uses this for the gallery's TinyGhostty tab.
+lib-wasm:
+	GHOSTTY_SRC="$(GHOSTTY_SRC)" ZIG="$(ZIG)" scripts/build-libghostty-vt.sh wasm
 lib-clue:
 	GHOSTTY_SRC="$(GHOSTTY_SRC)" ZIG="$(ZIG)" scripts/build-libghostty-vt.sh clue
 check:

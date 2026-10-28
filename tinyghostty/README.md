@@ -65,10 +65,12 @@ paste. Buttons below it run sample commands. The page offers the Feather TFT,
 a 320×240 TFT, and a monochrome 128×64 OLED. `app.wasm` is about 6 MB.
 
 The same demo is a tab in the main gallery: after `make lib`, run
-`make web-serve-tinygo` from the repository root. CI does not
-build libghostty-vt, so the published gallery does not include it yet.
-`make -C web build` appends the licenses in `lib/licenses` (Ghostty, uucode,
-Wuffs) to `THIRD_PARTY_NOTICES.txt`.
+`make web-serve-tinygo` from the repository root. CI's `web-tinygo` job
+builds the Wasm archive from Ghostty v1.4.0 with Zig 0.17.0, so the published
+gallery includes it.
+`make -C web build` appends the licenses in `lib/licenses` to
+`THIRD_PARTY_NOTICES.txt`: Ghostty and uucode, plus Wuffs when a host build
+fetched it. The Wasm archive does not compile Wuffs.
 
 ## Using the widget
 
