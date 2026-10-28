@@ -28,7 +28,7 @@ func main() {
 			{ID: "oled", Label: "OLED 128×64", Width: 128, Height: 64, Monochrome: true},
 		},
 		Demos: []browser.Demo{{
-			ID: "terminal", Title: "Ghostty terminal", Source: source, TextInput: true,
+			ID: "tinyghostty", Title: "TinyGhostty", Source: source, TextInput: true,
 			Description: "Type commands: help, colors, styles, box, ls, cat. Colors snap to the display's eight theme styles.",
 		}},
 	})

@@ -12,7 +12,7 @@ import (
 func init() {
 	optional = append(optional, optionalDemo{
 		Demo: browser.Demo{
-			ID: "terminal", Title: "Ghostty terminal", TextInput: true,
+			ID: "tinyghostty", Title: "TinyGhostty", TextInput: true,
 			Description: "A live Ghostty VT terminal with a small in-browser shell. Click the display and type: help, colors, styles, box, ls, cat. Colors snap to the theme's eight styles.",
 			Source:      "https://github.com/NimbleTerminal/TinyBubbles/tree/main/tinyghostty",
 		},

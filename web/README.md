@@ -21,7 +21,7 @@ make web-serve
 Open <http://127.0.0.1:8080>. The gallery lives in [hello](./hello), a separate
 consumer module. It includes Hello World, the TinyHAL workbench, TinyCharts, layout, Settings,
 list, value, dialog, progress, status, and viewport demos. Settings includes choice pickers.
-`make web-serve-tinygo` (or `make web-tinygo`) also adds a Ghostty terminal tab when
+`make web-serve-tinygo` (or `make web-tinygo`) also adds a TinyGhostty tab when
 `tinyghostty/lib/wasm/libghostty-vt.a` exists (`make -C tinyghostty lib`);
 Go builds and builds without the archive omit it.
 
