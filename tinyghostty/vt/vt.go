@@ -5,10 +5,10 @@
 //
 // Build the library first with scripts/build-libghostty-vt.sh. It installs
 // headers into lib/include and archives into lib/<GOOS>_<GOARCH>. Go links the
-// host archive; TinyGo links lib/wasm or lib/baremetal. TinyGo rejects
-// build constraints on #cgo lines and does not expand ${SRCDIR}, so cgo_*.go
-// files carry each toolchain's and target's flags; TinyGo resolves relative
-// paths itself.
+// host archive; TinyGo links lib/wasm, lib/cortexm, lib/esp32c3, or
+// lib/esp32s3. TinyGo rejects build constraints on #cgo lines and does not
+// expand ${SRCDIR}, so cgo_*.go files carry each toolchain's and target's
+// flags; TinyGo resolves relative paths itself.
 //
 // A Terminal is not safe for concurrent use.
 package vt

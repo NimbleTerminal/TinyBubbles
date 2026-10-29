@@ -6,6 +6,22 @@
 
 #include "shim.h"
 
+#ifdef TGVT_REAL_MALLOC
+// TinyGo's ESP32 targets link with --wrap=malloc for the radio driver, which
+// defines the wrappers only when it is linked. Call TinyGo's allocator;
+// its calloc calls the wrapped malloc, so zero memory here.
+void *__real_malloc(size_t);
+void __real_free(void *);
+static void *tgvt_calloc(size_t n, size_t size) {
+  void *p = __real_malloc(n * size);
+  if (p != NULL) memset(p, 0, n * size);
+  return p;
+}
+#define malloc __real_malloc
+#define calloc tgvt_calloc
+#define free __real_free
+#endif
+
 #define TGVT_REPLY_CAP 512
 
 struct tgvt {

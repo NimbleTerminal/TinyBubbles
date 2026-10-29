@@ -6,8 +6,9 @@ tinyghostty embeds a live [Ghostty](https://ghostty.org) VT terminal in a
 TinyBubbles UI. Ghostty's freestanding `libghostty-vt` parses the program's
 output; tinyghostty copies the screen into a TinyBubbles cell buffer and
 encodes keys and paste for the program. It builds with Go on the host and with
-TinyGo for WASI and the browser. A Cortex-M4 link check passes; it has not run
-on hardware. For how this differs from the general Go binding, see
+TinyGo for WASI, the browser, Cortex-M, ESP32-C3 (RISC-V), and ESP32-S3
+(Xtensa). The microcontroller builds pass link checks; none has run on
+hardware. For how this differs from the general Go binding, see
 [How it differs from go-libghostty](#how-it-differs-from-go-libghostty).
 
 This is a nested module because it links a C library that you build first.
@@ -25,6 +26,22 @@ make check        # Go tests and vet
 make test-tinygo  # TinyGo wasip1 tests and smoke run (needs wasmtime)
 make preview      # ../build/tinyghostty/tinyghostty.png
 ```
+
+Microcontroller archives build one at a time. Each `make <chip>` links a
+smoke binary as a check; it does not flash.
+
+```sh
+make lib-cortexm GHOSTTY_SRC=... ZIG=...  && make clue     # Cortex-M4F
+make lib-esp32c3 GHOSTTY_SRC=... ZIG=...  && make esp32c3  # ESP32-C3, RISC-V
+make lib-esp32s3 GHOSTTY_SRC=...          && make esp32s3  # ESP32-S3, Xtensa
+```
+
+Upstream Zig cannot target the ESP32-S3. `make lib-esp32s3` first runs
+`make zig-xtensa`, which downloads a pinned Xtensa Zig build
+([kassane/zig-espressif-bootstrap](https://github.com/kassane/zig-espressif-bootstrap)
+`0.17.0-xtensa`) into `.tools/` and checks its sha256. That fork is
+maintained outside Zig and Espressif. Set `ZIG_XTENSA=/path/to/zig` to use
+your own.
 
 ```go
 term := tinyghostty.New(40, 16)
@@ -155,7 +172,9 @@ moved cursor. A steady-state 40×16 frame allocates nothing in `Draw`.
 | Go, darwin/arm64 | `lib/darwin_arm64` (native, no SIMD) | Tests pass |
 | TinyGo `wasip1` | `lib/wasm` (`wasm32-freestanding`) | Tests and smoke pass under wasmtime; smoke binary 1.4 MB |
 | TinyGo `wasm` (browser) | `lib/wasm` | Browser demo runs in Chrome |
-| TinyGo `clue` | `lib/baremetal` (`make lib-clue`, Cortex-M4F) | `vt` smoke links: 779 KB flash, 6.7 KB static RAM. Not run on hardware |
+| TinyGo `clue` | `lib/cortexm` (`make lib-cortexm`, Cortex-M4F) | `vt` smoke links: 779 KB flash, 6.4 KB static RAM. Not run on hardware |
+| TinyGo `esp32c3-generic` | `lib/esp32c3` (`make lib-esp32c3`, RV32IMC) | `vt` smoke links: 905 KB flash, 11.6 KB static RAM. Not run on hardware |
+| TinyGo `esp32s3-generic`, Feather `target.json` | `lib/esp32s3` (`make lib-esp32s3`, Xtensa fork) | `vt` smoke links: 595 KB flash, 19.6 KB static RAM. Not run on hardware |
 
 Other Go hosts link `lib/<GOOS>_<GOARCH>` after `scripts/build-libghostty-vt.sh host`.
 TinyGo's native darwin target lacks libc symbols the macOS archive needs, so
@@ -168,14 +187,22 @@ peak bytes.
 
 Microcontroller notes:
 
-- Build the archive for your CPU, for example
-  `scripts/build-libghostty-vt.sh thumb-freestanding-eabi:baremetal:cortex_m0plus`
-  for the RP2040. Every `baremetal` target links `lib/baremetal`.
+- TinyGo picks the archive by build tag: `cortexm` links `lib/cortexm`,
+  `esp32c3` links `lib/esp32c3`, and `esp32s3` links `lib/esp32s3`. Rebuild
+  `lib/cortexm` for other Cortex-M CPUs, for example
+  `scripts/build-libghostty-vt.sh thumb-freestanding-eabi:cortexm:cortex_m0plus`
+  for the RP2040. Other chips, such as the original ESP32, have no archive yet.
 - TinyGo's stack-size analysis cannot parse Zig's symbols, so link with
   `-scheduler=none`. Bubble Tea firmware also needs the vendored portability
   patches from `bubbletea/`.
-- The ESP32-S3 Feather is not supported. Zig 0.17 has no `esp32s3` CPU, and
-  a generic `xtensa-freestanding` build fails in Zig's compiler-rt.
+- The ESP32-S3 archive builds through [scripts/xtensa](scripts/xtensa/build.zig),
+  which uses Ghostty as a Zig dependency and changes two settings to work
+  around bugs in the fork. With stripped symbols, the fork's literal pools name
+  functions the object never defines. Without per-function sections, `L32R`
+  literals fall out of range. ReleaseFast and ReleaseSafe crash the fork's
+  register allocator, so the archive stays ReleaseSmall.
+- On ESP32 targets TinyGo links with `--wrap=malloc` for its radio driver, so
+  the shim calls the runtime's allocator directly (`TGVT_REAL_MALLOC`).
 - Ghostty's heap figure assumes a few hundred KiB of RAM. It will not fit
   boards with less.
 
