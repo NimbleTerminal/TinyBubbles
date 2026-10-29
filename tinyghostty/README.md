@@ -28,7 +28,7 @@ make preview      # ../build/tinyghostty/tinyghostty.png
 ```
 
 Microcontroller archives build one at a time. Each `make <chip>` links a
-smoke binary as a check; it does not flash.
+smoke binary as a check; it does not flash. CI runs all three.
 
 ```sh
 make lib-cortexm GHOSTTY_SRC=... ZIG=...  && make clue     # Cortex-M4F

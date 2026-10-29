@@ -70,6 +70,44 @@ jobs:
           path: build/web/
           # Keep the local asset ownership manifest out of the published site.
           include-hidden-files: false
+  # Link checks only: libghostty-vt archives for Cortex-M, ESP32-C3 (upstream
+  # Zig), and ESP32-S3 (the Xtensa Zig fork that make zig-xtensa pins).
+  tinyghostty-firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: tinygo/tinygo:0.43.0
+      # Actions writes runner-mounted files; the image defaults to a different UID.
+      options: --user 0
+    steps:
+      - uses: actions/checkout@v7
+      - name: Trust the mounted checkout for TinyGo VCS stamping
+        run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.0'
+          cache-dependency-path: tinyghostty/go.sum
+      - name: Install build tools
+        run: apt-get update && apt-get install -y --no-install-recommends curl xz-utils
+      - name: Check out Ghostty for libghostty-vt
+        uses: actions/checkout@v7
+        with:
+          repository: ghostty-org/ghostty
+          ref: v1.4.0
+          path: build/ghostty
+      - name: Install Zig
+        env:
+          ZIG_VERSION: 0.17.0
+          ZIG_SHA256: 1cbe9df9f27e6b78d14ccbca43b6703a404ef79ef1c463de901d7f088d4e2026
+        run: |
+          git config --system --add safe.directory "$GITHUB_WORKSPACE/build/ghostty"
+          curl -fsSL -o /tmp/zig.tar.xz "https://ziglang.org/download/$ZIG_VERSION/zig-x86_64-linux-$ZIG_VERSION.tar.xz"
+          echo "$ZIG_SHA256  /tmp/zig.tar.xz" | sha256sum -c -
+          mkdir -p /opt/zig && tar -xJf /tmp/zig.tar.xz -C /opt/zig --strip-components=1
+      - name: Build libghostty-vt for Cortex-M, ESP32-C3, and ESP32-S3
+        run: make -C tinyghostty lib-cortexm lib-esp32c3 lib-esp32s3 GHOSTTY_SRC="$GITHUB_WORKSPACE/build/ghostty" ZIG=/opt/zig/zig
+      - name: Link the vt smoke binary for CLUE, ESP32-C3, and ESP32-S3
+        run: make -C tinyghostty clue esp32c3 esp32s3
   deploy-pages:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [host, web, firmware, bubbletea, web-tinygo]
